@@ -1,8 +1,8 @@
-const CACHE_NAME = 'biblia-vovo-v2';
+const CACHE_NAME = 'biblia-vovo-v3';
 const urlsToCache = [
   './biblia.html',
   './manifest.json',
-  'https://cdn-icons-png.flaticon.com/512/3004/3004458.png'
+  './icon.png'
 ];
 
 // Instalação do Service Worker
@@ -10,13 +10,13 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache atualizado (v2)');
+        console.log('Cache atualizado (v3) - Novo Ícone');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Limpeza de cache antigo (Apaga a v1 com o coração)
+// Limpeza de cache antigo
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -40,4 +40,3 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-
