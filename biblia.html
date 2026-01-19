@@ -2,15 +2,22 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bíblia da Vovó</title>
     
+    <link rel="manifest" href="./manifest.json">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bíblia">
+
+    <meta name="theme-color" content="#2c3e50">
+
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
 
     <style>
         /* --- ESTILO (CSS) --- */
-        
         * { box-sizing: border-box; }
 
         body {
@@ -21,7 +28,6 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            /* Altura fixa para evitar pulos na tela */
             height: 100vh; 
             overflow: hidden; 
         }
@@ -30,12 +36,9 @@
         header {
             background-color: #2c3e50;
             color: white;
-            /* Espaçamento extra no topo para compensar a barra do navegador */
-            padding-top: 20px;
+            /* Espaçamento para a barra de status transparente */
+            padding-top: max(20px, env(safe-area-inset-top)); 
             padding-bottom: 15px;
-            padding-left: 10px;
-            padding-right: 10px;
-            
             text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 20;
@@ -165,6 +168,7 @@
             display: flex; gap: 15px;
             border-top: 3px solid #bdc3c7;
             flex-shrink: 0; z-index: 30;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .btn-nav {
@@ -228,6 +232,15 @@
     </footer>
 
     <script>
+        // --- REGISTO DO SERVICE WORKER (PWA) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registado!', reg))
+                    .catch(err => console.log('Falha no Service Worker:', err));
+            });
+        }
+
         // --- DADOS E LÓGICA ---
         
         const livroSiglas = {
