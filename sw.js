@@ -1,8 +1,9 @@
-const CACHE_NAME = 'biblia-vovo-v3';
+const CACHE_NAME = 'biblia-vovo-v4';
 const urlsToCache = [
   './biblia.html',
   './manifest.json',
-  './icon.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Instalação do Service Worker
@@ -10,7 +11,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache atualizado (v3) - Novo Ícone');
+        console.log('Cache atualizado (v4) - Ícones Maskable');
         return cache.addAll(urlsToCache);
       })
   );
