@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Bíblia da Vovó</title>
+
+    <meta name="theme-color" content="#2c3e50">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bíblia Vovó">
+
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
+
+    <style>
+        /* --- ESTILO (CSS) --- */
+        
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Verdana', sans-serif;
+            background-color: #fdfbf7;
+            color: #111;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100dvh; /* Altura total da tela */
+            overflow: hidden; 
+            -webkit-user-select: none; /* Evita selecionar texto sem querer no iOS */
+            user-select: none;
+        }
+
+        /* CABEÇALHO */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 10px; /* Mais espaço para o dedo */
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 20;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding-top: env(safe-area-inset-top); /* Protege contra o "notch" do iPhone */
+        }
+
+        h1 { margin: 0; font-size: 22px; }
+
+        /* SELETOR DE VERSÃO */
+        .seletor-versao-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .label-versao { font-size: 14px; font-weight: normal; color: #ecf0f1; }
+
+        #select-versao {
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #fff;
+        }
+
+        /* CORPO PRINCIPAL */
+        main {
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        /* DIVISÃO DE TESTAMENTOS */
+        .separador-testamento {
+            background-color: #d35400; 
+            color: white;
+            padding: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .separador-testamento:first-child { margin-top: 0; }
+
+        /* GRID DE LIVROS */
+        .grade-livros { 
+            display: grid; 
+            gap: 12px; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            padding-bottom: 10px; 
+        }
+
+        /* GRID DE CAPÍTULOS */
+        .grade-capitulos { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px; 
+            padding-bottom: 20px; 
+        }
+
+        /* BOTÕES */
+        button { touch-action: manipulation; }
+        button:active { transform: scale(0.96); opacity: 0.8; }
+
+        .btn-livro {
+            background-color: #ecf0f1; border: 2px solid #bdc3c7;
+            padding: 18px; font-size: 18px; text-align: center;
+            border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
+        }
+
+        .btn-capitulo {
+            padding: 20px; font-size: 24px; background-color: #fff;
+            border: 2px solid #2c3e50; border-radius: 12px; cursor: pointer;
+            color: #2c3e50; font-weight: bold;
+        }
+
+        .btn-voltar-topo {
+            grid-column: 1 / -1;
+            background-color: #e74c3c; color: white; border: none;
+            padding: 15px; font-size: 20px; border-radius: 12px;
+            cursor: pointer; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        /* LEITURA */
+        #texto-biblico {
+            font-size: 26px; 
+            line-height: 1.8;
+            padding: 5px;
+            text-align: left;
+            margin-bottom: 30px;
+            user-select: text; /* Permite selecionar texto apenas aqui */
+            -webkit-user-select: text;
+        }
+
+        .versiculo-num {
+            font-size: 18px; color: #e67e22; font-weight: bold;
+            vertical-align: super; margin-right: 5px;
+        }
+
+        .nav-final-texto {
+            margin-top: 40px; margin-bottom: 40px;
+            display: flex; justify-content: center;
+        }
+        .btn-extra {
+            padding: 20px; font-size: 20px;
+            background-color: #2c3e50; color: white;
+            border: none; border-radius: 12px; width: 100%;
+        }
+
+        /* RODAPÉ */
+        footer {
+            background-color: #ecf0f1; padding: 15px 10px;
+            display: flex; gap: 15px;
+            border-top: 3px solid #bdc3c7;
+            flex-shrink: 0; z-index: 30;
+            padding-bottom: env(safe-area-inset-bottom); /* Ajuste para iPhones novos */
+        }
+
+        .btn-nav {
+            flex: 1; padding: 20px 0; font-size: 28px;
+            background-color: #2c3e50; color: white;
+            border: none; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .btn-voltar-menu {
+            background-color: #d35400; font-size: 18px; flex: 1;
+        }
+
+        /* UTILITÁRIOS */
+        .escondido { display: none !important; }
+
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 24px; color: #e67e22; background: rgba(255,255,255,0.9);
+            padding: 20px; border-radius: 10px; z-index: 50;
+            display: none; width: 80%; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="titulo-app">Bíblia da Vovó</h1>
+        
+        <div id="area-versao" class="seletor-versao-container escondido">
+            <span class="label-versao">Versão:</span>
+            <select id="select-versao" onchange="mudarVersao()">
+                <option value="nvi">NVI (Linguagem Atual)</option>
+                <option value="acf">Almeida Corrigida (Fiel)</option>
+                <option value="aa">Almeida Revisada (AA)</option>
+            </select>
+        </div>
+    </header>
+
+    <div id="loading">⏳ A procurar texto...</div>
+
+    <main id="area-principal">
+        <div id="tela-livros"></div>
+        <div id="tela-capitulos" class="grade-capitulos escondido"></div>
+        
+        <div id="tela-leitura" class="escondido">
+            <h2 id="titulo-capitulo-leitura" style="text-align:center; color:#2c3e50; margin-top:0;"></h2>
+            <div id="texto-biblico"></div>
+            <div class="nav-final-texto">
+                <button class="btn-extra" onclick="mudarCapitulo(1)">Ler Próximo Capítulo &#10140;</button>
+            </div>
+        </div>
+    </main>
+
+    <footer id="rodape-nav" class="escondido">
+        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarParaLivros()">Início</button>
+        <button type="button" class="btn-nav" id="btn-ant" onclick="mudarCapitulo(-1)">&#9664;</button>
+        <button type="button" class="btn-nav" id="btn-prox" onclick="mudarCapitulo(1)">&#9654;</button>
+    </footer>
+
+    <script>
+        // --- MAPEAMENTO DE SIGLAS ---
+        const livroSiglas = {
+            "Gênesis": "gn", "Êxodo": "ex", "Levítico": "lv", "Números": "nm", "Deuteronômio": "dt",
+            "Josué": "js", "Juízes": "jz", "Rute": "rt", "1 Samuel": "1sm", "2 Samuel": "2sm",
+            "1 Reis": "1rs", "2 Reis": "2rs", "1 Crônicas": "1cr", "2 Crônicas": "2cr", "Esdras": "ed",
+            "Neemias": "ne", "Ester": "et", "Jó": "job", "Salmos": "sl", "Provérbios": "pv",
+            "Eclesiastes": "ec", "Cânticos": "ct", "Isaías": "is", "Jeremias": "jr", "Lamentações": "lm",
+            "Ezequiel": "ez", "Daniel": "dn", "Oseias": "os", "Joel": "jl", "Amós": "am",
+            "Obadias": "ob", "Jonas": "jn", "Miqueias": "mq", "Naum": "na", "Habacuque": "hc",
+            "Sofonias": "sf", "Ageu": "ag", "Zacarias": "zc", "Malaquias": "ml",
+            "Mateus": "mt", "Marcos": "mc", "Lucas": "lc", "João": "jo", "Atos": "at",
+            "Romanos": "rm", "1 Coríntios": "1co", "2 Coríntios": "2co", "Gálatas": "gl", "Efésios": "ef",
+            "Filipenses": "fp", "Colossenses": "cl", "1 Tessalonicenses": "1ts", "2 Tessalonicenses": "2ts",
+            "1 Timóteo": "1tm", "2 Timóteo": "2tm", "Tito": "tt", "Filemom": "fm", "Hebreus": "hb",
+            "Tiago": "tg", "1 Pedro": "1pe", "2 Pedro": "2pe", "1 João": "1jo", "2 João": "2jo",
+            "3 João": "3jo", "Judas": "jd", "Apocalipse": "ap"
+        };
+
+        const antigoTestamento = [
+            { nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 },
+            { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 },
+            { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 },
+            { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 },
+            { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 },
+            { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 },
+            { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 },
+            { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }
+        ];
+
+        const novoTestamento = [
+            { nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 },
+            { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 },
+            { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 },
+            { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 },
+            { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 },
+            { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }
+        ];
+
+        let livroAtualNome = "";
+        let livroAtualMaxCaps = 0;
+        let capituloAtual = 1;
+        let estaCarregando = false;
+        
+        let cacheLivroAtual = null;
+        let nomeLivroCache = "";
+        let versaoCache = "";
+
+        const telaLivros = document.getElementById('tela-livros');
+        const telaCapitulos = document.getElementById('tela-capitulos');
+        const telaLeitura = document.getElementById('tela-leitura');
+        const rodape = document.getElementById('rodape-nav');
+        const loading = document.getElementById('loading');
+        const tituloApp = document.getElementById('titulo-app');
+        const areaPrincipal = document.getElementById('area-principal');
+        const areaVersao = document.getElementById('area-versao');
+        const selectVersao = document.getElementById('select-versao');
+
+        function iniciarApp() {
+            renderizarLivros();
+        }
+
+        function renderizarLivros() {
+            telaLivros.innerHTML = "";
+            tituloApp.innerText = "Bíblia da Vovó";
+            mostrarTela('livros');
+
+            function criarSecao(titulo, lista) {
+                const divTitulo = document.createElement('div');
+                divTitulo.className = 'separador-testamento';
+                divTitulo.innerText = titulo;
+                telaLivros.appendChild(divTitulo);
+
+                const grid = document.createElement('div');
+                grid.className = 'grade-livros';
+
+                lista.forEach((livro) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-livro';
+                    btn.innerText = livro.nome;
+                    btn.onclick = () => abrirCapitulos(livro.nome, livro.caps);
+                    grid.appendChild(btn);
+                });
+                telaLivros.appendChild(grid);
+            }
+
+            criarSecao("Antigo Testamento", antigoTestamento);
+            criarSecao("Novo Testamento", novoTestamento);
+        }
+
+        function abrirCapitulos(nome, totalCaps) {
+            livroAtualNome = nome;
+            livroAtualMaxCaps = totalCaps;
+            
+            tituloApp.innerText = nome;
+            telaCapitulos.innerHTML = "";
+            mostrarTela('capitulos');
+
+            const btnVoltar = document.createElement('button');
+            btnVoltar.className = 'btn-voltar-topo';
+            btnVoltar.innerHTML = "&#11013; Escolher outro livro"; 
+            btnVoltar.onclick = () => renderizarLivros();
+            telaCapitulos.appendChild(btnVoltar);
+
+            for (let i = 1; i <= totalCaps; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-capitulo';
+                btn.innerText = i;
+                btn.onclick = () => lerCapitulo(i);
+                telaCapitulos.appendChild(btn);
+            }
+        }
+
+        function mudarVersao() {
+            lerCapitulo(capituloAtual);
+        }
+
+        async function lerCapitulo(numero) {
+            if(estaCarregando) return;
+
+            capituloAtual = numero;
+            mostrarLoading(true);
+
+            const versao = selectVersao.value;
+            const sigla = livroSiglas[livroAtualNome];
+            
+            const url = `https://raw.githubusercontent.com/thiagobodruk/biblia/master/xml/${versao}/${versao}-${sigla}.xml`;
+
+            try {
+                let xmlDoc;
+
+                if (cacheLivroAtual && nomeLivroCache === livroAtualNome && versaoCache === versao) {
+                    xmlDoc = cacheLivroAtual;
+                } else {
+                    const resposta = await fetch(url);
+                    if (!resposta.ok) throw new Error("Livro não encontrado.");
+                    
+                    const textoXML = await resposta.text();
+                    const parser = new DOMParser();
+                    xmlDoc = parser.parseFromString(textoXML, "text/xml");
+                    
+                    cacheLivroAtual = xmlDoc;
+                    nomeLivroCache = livroAtualNome;
+                    versaoCache = versao;
+                }
+                
+                const capituloElemento = xmlDoc.querySelector(`chapter[number="${capituloAtual}"]`);
+                let textoHTML = "";
+
+                if (capituloElemento) {
+                    const versiculos = capituloElemento.querySelectorAll("verse");
+                    versiculos.forEach(v => {
+                        const num = v.getAttribute("number");
+                        const texto = v.textContent;
+                        textoHTML += `<span class="versiculo-num">${num}</span> ${texto}<br><br>`;
+                    });
+                } else {
+                    textoHTML = "<p>Capítulo não encontrado nesta versão.</p>";
+                }
+
+                document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
+                document.getElementById('texto-biblico').innerHTML = textoHTML;
+                
+                tituloApp.innerText = "Leitura";
+                mostrarTela('leitura');
+
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao carregar o texto. Verifique a internet.");
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function mudarCapitulo(direcao) {
+            const novoCapitulo = capituloAtual + direcao;
+            
+            if (novoCapitulo < 1) {
+                alert("Início do Livro.");
+                return;
+            }
+            if (novoCapitulo > livroAtualMaxCaps) {
+                alert("Fim do Livro. Clique em 'Início' para mudar.");
+                return;
+            }
+
+            lerCapitulo(novoCapitulo);
+        }
+
+        function voltarParaLivros() {
+            renderizarLivros();
+        }
+
+        function mostrarTela(tela) {
+            telaLivros.classList.add('escondido');
+            telaCapitulos.classList.add('escondido');
+            telaLeitura.classList.add('escondido');
+            rodape.classList.add('escondido');
+            areaVersao.classList.add('escondido'); 
+            loading.style.display = 'none';
+
+            if (tela === 'livros') telaLivros.classList.remove('escondido');
+            if (tela === 'capitulos') telaCapitulos.classList.remove('escondido');
+            if (tela === 'leitura') {
+                telaLeitura.classList.remove('escondido');
+                rodape.classList.remove('escondido');
+                areaVersao.classList.remove('escondido'); 
+                areaPrincipal.scrollTop = 0;
+            }
+        }
+
+        function mostrarLoading(ativo) {
+            estaCarregando = ativo;
+            loading.style.display = ativo ? 'block' : 'none';
+        }
+
+        iniciarApp();
+    </script>
+</body>
+</html>
