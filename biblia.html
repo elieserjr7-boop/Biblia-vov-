@@ -2,18 +2,20 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>Bíblia da Vovó</title>
 
-    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <meta name="theme-color" content="#2c3e50">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Bíblia Vovó">
 
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3004/3004458.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2614/2614486.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2614/2614486.png">
 
     <style>
         /* --- ESTILO (CSS) --- */
@@ -28,9 +30,9 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            height: 100dvh; /* Altura total da tela */
+            height: 100dvh; /* Garante que o app ocupe 100% da altura da tela */
             overflow: hidden; 
-            -webkit-user-select: none; /* Evita selecionar texto sem querer no iOS */
+            -webkit-user-select: none;
             user-select: none;
         }
 
@@ -38,7 +40,7 @@
         header {
             background-color: #2c3e50;
             color: white;
-            padding: 15px 10px; /* Mais espaço para o dedo */
+            padding: 15px 10px;
             text-align: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 20;
@@ -47,7 +49,8 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            padding-top: env(safe-area-inset-top); /* Protege contra o "notch" do iPhone */
+            /* Proteção para o 'notch' (recorte) dos celulares modernos */
+            padding-top: env(safe-area-inset-top); 
         }
 
         h1 { margin: 0; font-size: 22px; }
@@ -146,7 +149,7 @@
             padding: 5px;
             text-align: left;
             margin-bottom: 30px;
-            user-select: text; /* Permite selecionar texto apenas aqui */
+            user-select: text; 
             -webkit-user-select: text;
         }
 
@@ -171,7 +174,7 @@
             display: flex; gap: 15px;
             border-top: 3px solid #bdc3c7;
             flex-shrink: 0; z-index: 30;
-            padding-bottom: env(safe-area-inset-bottom); /* Ajuste para iPhones novos */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .btn-nav {
@@ -235,7 +238,8 @@
     </footer>
 
     <script>
-        // --- MAPEAMENTO DE SIGLAS ---
+        // --- CONFIGURAÇÃO E DADOS ---
+        
         const livroSiglas = {
             "Gênesis": "gn", "Êxodo": "ex", "Levítico": "lv", "Números": "nm", "Deuteronômio": "dt",
             "Josué": "js", "Juízes": "jz", "Rute": "rt", "1 Samuel": "1sm", "2 Samuel": "2sm",
