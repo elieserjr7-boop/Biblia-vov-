@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <title>Bíblia da Vovó</title>
 
-    <meta name="mobile-web-app-capable" content="yes">
-    
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "Bíblia da Vovó",
+        "short_name": "Bíblia",
+        "start_url": ".",
+        "display": "standalone",
+        "background_color": "#fdfbf7",
+        "theme_color": "#2c3e50",
+        "icons": [{
+            "src": "https://cdn-icons-png.flaticon.com/512/2614/2614486.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }]
+    }'>
+
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <meta name="theme-color" content="#2c3e50">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bíblia Vovó">
+    <meta name="apple-mobile-web-app-title" content="Bíblia">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2c3e50">
 
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2614/2614486.png">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2614/2614486.png">
 
     <style>
         /* --- ESTILO (CSS) --- */
-        
         * { box-sizing: border-box; }
 
         body {
@@ -30,7 +41,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            height: 100dvh; /* Garante que o app ocupe 100% da altura da tela */
+            height: 100dvh; 
             overflow: hidden; 
             -webkit-user-select: none;
             user-select: none;
@@ -49,7 +60,6 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            /* Proteção para o 'notch' (recorte) dos celulares modernos */
             padding-top: env(safe-area-inset-top); 
         }
 
@@ -198,7 +208,6 @@
             display: none; width: 80%; text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
     </style>
 </head>
 <body>
@@ -238,7 +247,7 @@
     </footer>
 
     <script>
-        // --- CONFIGURAÇÃO E DADOS ---
+        // --- DADOS E LÓGICA ---
         
         const livroSiglas = {
             "Gênesis": "gn", "Êxodo": "ex", "Levítico": "lv", "Números": "nm", "Deuteronômio": "dt",
@@ -281,7 +290,6 @@
         let livroAtualMaxCaps = 0;
         let capituloAtual = 1;
         let estaCarregando = false;
-        
         let cacheLivroAtual = null;
         let nomeLivroCache = "";
         let versaoCache = "";
