@@ -132,7 +132,7 @@
             background: white; border: 1px solid #bdc3c7; padding: 15px;
             border-radius: 8px; font-size: 18px; color: #2c3e50; text-align: left; cursor: pointer;
         }
-        .estrofe-hino { margin-bottom: 25px; } /* Espaço maior entre estrofes */
+        .estrofe-hino { margin-bottom: 25px; }
 
         /* --- BARRA DE NAVEGAÇÃO (Leitura) --- */
         #rodape-nav {
@@ -415,28 +415,26 @@
             }
         }
 
-        // --- HINÁRIOS ---
+        // --- HINÁRIOS LOCAL (ARQUIVOS SEUS) ---
         async function abrirHinario(tipo) {
             hinarioSelecionado = tipo;
             telaEscolhaHinario.classList.add('escondido');
             mostrarLoading(true);
             
-            // LINKS CORRIGIDOS E CONFIÁVEIS
+            // AGORA BUSCA DO SEU GITHUB (Arquivo Local)
             let url = "";
             if(tipo === 'harpa') {
-                // Link estável para Harpa
-                url = "https://raw.githubusercontent.com/hiagodotme/harpa-crista-json/master/harpa.json"; 
+                url = "./harpa.json"; // Arquivo que você subiu
                 tituloApp.innerText = "Harpa Cristã";
             } else {
-                // Link estável para Cantor Cristão
-                url = "https://raw.githubusercontent.com/rodrigorauber/cantor-cristao-json/master/cantor.json";
+                url = "./cantor.json"; // Arquivo que você subiu
                 tituloApp.innerText = "Cantor Cristão";
             }
 
             try {
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
                     const resp = await fetch(url);
-                    if(!resp.ok) throw new Error("Erro ao baixar hinário");
+                    if(!resp.ok) throw new Error("Erro ao abrir arquivo local");
                     const json = await resp.json();
                     dadosHinario = json;
                     dadosHinario.tipo = tipo; 
@@ -444,7 +442,7 @@
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
             } catch(e) {
-                alert("Erro ao carregar hinário. Verifique sua internet.");
+                alert("Erro! Verifique se você subiu o arquivo " + (tipo === 'harpa' ? 'harpa.json' : 'cantor.json') + " no GitHub.");
                 telaEscolhaHinario.classList.remove('escondido');
                 console.error(e);
             } finally {
@@ -481,20 +479,16 @@
             let numero = hino.numero || hino.number || (index + 1);
             let letraHTML = "";
             
-            // --- DETETIVE DE LETRAS (Resolve a tela branca) ---
-            // Procura a letra em várias propriedades possíveis
             let letraRaw = hino.letra || hino.text || hino.verses || hino.content || hino.lyrics;
 
             if (!letraRaw) {
-                letraHTML = "<p style='text-align:center; color:red;'>Letra indisponível para este hino.</p>";
+                letraHTML = "<p style='text-align:center; color:red;'>Letra indisponível.</p>";
             } else if (Array.isArray(letraRaw)) {
-                // Se for uma lista de estrofes
                 letraRaw.forEach(estrofe => {
                      let texto = (typeof estrofe === 'string') ? estrofe : (estrofe.verse || estrofe.text || "");
                      letraHTML += `<div class="estrofe-hino">${texto.replace(/\n/g, '<br>')}</div>`;
                 });
             } else {
-                // Se for texto corrido
                 letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
             }
 
