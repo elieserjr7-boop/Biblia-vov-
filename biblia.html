@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bíblia Sagrada</title>
+    <title>Bíblia da Vovó</title>
     
     <link rel="manifest" href="./manifest.json">
 
@@ -190,9 +190,11 @@
         <div id="area-versao" class="seletor-versao-container">
             <span class="label-versao">Versão:</span>
             <select id="select-versao" onchange="mudarVersao()">
-                <option value="nvi">NVI (Atual)</option>
-                <option value="acf">Corrigida (Fiel)</option>
-                <option value="aa">Revista (AA)</option>
+                <option value="NVI">NVI</option>
+                <option value="NVT">NVT</option>
+                <option value="TB">TB</option>
+                <option value="ACF">ACF</option>
+                <option value="AA">AA</option>
             </select>
         </div>
     </header>
@@ -253,24 +255,26 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
         }
 
-        // --- DADOS BÍBLIA ---
-        const livroSiglas = { "Gênesis": "gn", "Êxodo": "ex", "Levítico": "lv", "Números": "nm", "Deuteronômio": "dt", "Josué": "js", "Juízes": "jz", "Rute": "rt", "1 Samuel": "1sm", "2 Samuel": "2sm", "1 Reis": "1rs", "2 Reis": "2rs", "1 Crônicas": "1cr", "2 Crônicas": "2cr", "Esdras": "ed", "Neemias": "ne", "Ester": "et", "Jó": "job", "Salmos": "sl", "Provérbios": "pv", "Eclesiastes": "ec", "Cânticos": "ct", "Isaías": "is", "Jeremias": "jr", "Lamentações": "lm", "Ezequiel": "ez", "Daniel": "dn", "Oseias": "os", "Joel": "jl", "Amós": "am", "Obadias": "ob", "Jonas": "jn", "Miqueias": "mq", "Naum": "na", "Habacuque": "hc", "Sofonias": "sf", "Ageu": "ag", "Zacarias": "zc", "Malaquias": "ml", "Mateus": "mt", "Marcos": "mc", "Lucas": "lc", "João": "jo", "Atos": "at", "Romanos": "rm", "1 Coríntios": "1co", "2 Coríntios": "2co", "Gálatas": "gl", "Efésios": "ef", "Filipenses": "fp", "Colossenses": "cl", "1 Tessalonicenses": "1ts", "2 Tessalonicenses": "2ts", "1 Timóteo": "1tm", "2 Timóteo": "2tm", "Tito": "tt", "Filemom": "fm", "Hebreus": "hb", "Tiago": "tg", "1 Pedro": "1pe", "2 Pedro": "2pe", "1 João": "1jo", "2 João": "2jo", "3 João": "3jo", "Judas": "jd", "Apocalipse": "ap" };
+        // --- DADOS BÍBLIA (ESTRUTURA) ---
+        // Apenas para gerar os botões. A leitura real virá do JSON.
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
 
         let modoAtual = 'biblia';
-        let hinarioSelecionado = '';
-        let dadosHinario = [];
-
+        
+        // Variáveis Bíblia
+        let bibliaCompleta = null; // Armazena o JSON inteiro da versão carregada
+        let versaoCarregadaNome = "";
+        let livroAtualIndex = 0; // 0 a 65 (Gênesis a Apocalipse)
         let livroAtualNome = "";
         let livroAtualMaxCaps = 0;
         let capituloAtual = 1;
-        let cacheLivroAtual = null;
-        let nomeLivroCache = "";
-        let versaoCache = "";
 
+        // Variáveis Hinário
+        let dadosHinario = [];
         let hinoAtual = 1;
 
+        // Elementos DOM
         const loading = document.getElementById('loading');
         const areaVersao = document.getElementById('area-versao');
         const rodape = document.getElementById('rodape-nav');
@@ -280,16 +284,53 @@
 
         const tabBiblia = document.getElementById('tab-biblia');
         const tabHinarios = document.getElementById('tab-hinarios');
+        
+        // Telas Bíblia
         const telaLivros = document.getElementById('tela-livros');
         const telaCapitulos = document.getElementById('tela-capitulos');
         const telaLeitura = document.getElementById('tela-leitura');
+        const textoBiblico = document.getElementById('texto-biblico');
         
+        // Telas Hinário
         const telaEscolhaHinario = document.getElementById('tela-escolha-hinario');
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
 
         function iniciarApp() {
             renderizarLivros();
+            // Carrega a versão padrão ao iniciar
+            carregarVersaoBiblia(selectVersao.value);
+        }
+
+        // --- GESTÃO DE VERSÕES BÍBLICAS ---
+        async function carregarVersaoBiblia(versao) {
+            if (versaoCarregadaNome === versao && bibliaCompleta) return; // Já carregado
+
+            mostrarLoading(true);
+            try {
+                // Fetch no arquivo JSON local (ex: TB.json, NVT.json)
+                const resp = await fetch(`./${versao}.json`);
+                if(!resp.ok) throw new Error("Arquivo da Bíblia não encontrado.");
+                
+                bibliaCompleta = await resp.json();
+                versaoCarregadaNome = versao;
+                console.log(`Versão ${versao} carregada com sucesso!`);
+
+                // Se estiver lendo, atualiza o texto na hora
+                if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
+                    lerCapitulo(capituloAtual);
+                }
+
+            } catch (e) {
+                alert(`Erro ao carregar a versão ${versao}. Verifique se o arquivo ${versao}.json existe.`);
+                console.error(e);
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function mudarVersao() {
+            carregarVersaoBiblia(selectVersao.value);
         }
 
         function alternarBarras(modo) {
@@ -306,6 +347,7 @@
             modoAtual = aba;
             document.querySelectorAll('.aba').forEach(btn => btn.classList.remove('ativa'));
             document.getElementById(`btn-aba-${aba}`).classList.add('ativa');
+            
             tabBiblia.classList.add('escondido');
             tabHinarios.classList.add('escondido');
             alternarBarras('navegacao');
@@ -314,48 +356,67 @@
                 tabBiblia.classList.remove('escondido');
                 tituloApp.innerText = "Bíblia da Vovó";
                 areaVersao.classList.remove('escondido');
-                if (!telaLeitura.classList.contains('escondido')) renderizarLivros();
+                if (!telaLeitura.classList.contains('escondido')) {
+                    alternarBarras('leitura'); // Mantém barra de leitura se já estava nela
+                } else {
+                    renderizarLivros();
+                }
             } else {
                 tabHinarios.classList.remove('escondido');
                 tituloApp.innerText = "Hinários";
                 areaVersao.classList.add('escondido');
-                telaLeituraHino.classList.add('escondido');
-                telaListaHinos.classList.add('escondido');
-                telaEscolhaHinario.classList.remove('escondido');
+                // Reseta visualização dos hinários se necessário ou mantém estado
+                if (telaLeituraHino.classList.contains('escondido')) {
+                    telaListaHinos.classList.add('escondido');
+                    telaEscolhaHinario.classList.remove('escondido');
+                } else {
+                    alternarBarras('leitura');
+                }
             }
         }
 
-        // --- BÍBLIA ---
+        // --- LÓGICA DA BÍBLIA ---
         function renderizarLivros() {
             telaLivros.innerHTML = "";
             telaCapitulos.classList.add('escondido');
             telaLeitura.classList.add('escondido');
             telaLivros.classList.remove('escondido');
             alternarBarras('navegacao');
-            
-            function criarSecao(titulo, lista) {
+            tituloApp.innerText = "Bíblia da Vovó";
+
+            function criarSecao(titulo, lista, offsetIndex) {
                 const divTitulo = document.createElement('div');
                 divTitulo.className = 'separador-testamento';
                 divTitulo.innerText = titulo;
                 telaLivros.appendChild(divTitulo);
+                
                 const grid = document.createElement('div');
                 grid.className = 'grade-livros';
-                lista.forEach((livro) => {
+                
+                lista.forEach((livro, index) => {
                     const btn = document.createElement('button');
                     btn.className = 'btn-livro';
                     btn.innerText = livro.nome;
-                    btn.onclick = () => abrirCapitulos(livro.nome, livro.caps);
+                    // O índice global é offset + index local
+                    // Ex: Mateus é o primeiro do Novo (index 0), mas na bíblia toda é o 40º (índice 39)
+                    const indiceGlobal = offsetIndex + index;
+                    btn.onclick = () => abrirCapitulos(indiceGlobal, livro.nome, livro.caps);
                     grid.appendChild(btn);
                 });
                 telaLivros.appendChild(grid);
             }
-            criarSecao("Antigo Testamento", antigoTestamento);
-            criarSecao("Novo Testamento", novoTestamento);
+
+            // Antigo Testamento começa no índice 0
+            criarSecao("Antigo Testamento", antigoTestamento, 0);
+            // Novo Testamento começa no índice 39 (após os 39 do antigo)
+            criarSecao("Novo Testamento", novoTestamento, 39);
         }
 
-        function abrirCapitulos(nome, totalCaps) {
+        function abrirCapitulos(indexGlobal, nome, totalCaps) {
+            livroAtualIndex = indexGlobal;
             livroAtualNome = nome;
             livroAtualMaxCaps = totalCaps;
+            
             tituloApp.innerText = nome;
             telaLivros.classList.add('escondido');
             telaCapitulos.classList.remove('escondido');
@@ -365,7 +426,7 @@
             const btnVoltar = document.createElement('button');
             btnVoltar.className = 'btn-voltar-topo';
             btnVoltar.innerHTML = "&#11013; Escolher outro livro"; 
-            btnVoltar.onclick = () => { renderizarLivros(); tituloApp.innerText = "Bíblia da Vovó"; };
+            btnVoltar.onclick = () => { renderizarLivros(); };
             telaCapitulos.appendChild(btnVoltar);
 
             for (let i = 1; i <= totalCaps; i++) {
@@ -377,58 +438,55 @@
             }
         }
 
-        async function lerCapitulo(numero) {
+        function lerCapitulo(numero) {
+            if (!bibliaCompleta) {
+                alert("Aguarde o carregamento da Bíblia...");
+                return;
+            }
+
             capituloAtual = numero;
             mostrarLoading(true);
-            const versao = selectVersao.value;
-            const sigla = livroSiglas[livroAtualNome];
-            const url = `https://raw.githubusercontent.com/thiagobodruk/biblia/master/xml/${versao}/${versao}-${sigla}.xml`;
 
             try {
-                let xmlDoc;
-                if (cacheLivroAtual && nomeLivroCache === livroAtualNome && versaoCache === versao) {
-                    xmlDoc = cacheLivroAtual;
-                } else {
-                    const resposta = await fetch(url);
-                    if (!resposta.ok) throw new Error("Livro não encontrado.");
-                    const textoXML = await resposta.text();
-                    xmlDoc = new DOMParser().parseFromString(textoXML, "text/xml");
-                    cacheLivroAtual = xmlDoc; nomeLivroCache = livroAtualNome; versaoCache = versao;
-                }
-                const capituloElemento = xmlDoc.querySelector(`chapter[number="${capituloAtual}"]`);
-                let textoHTML = capituloElemento ? "" : "<p>Capítulo não encontrado.</p>";
-                if (capituloElemento) {
-                    capituloElemento.querySelectorAll("verse").forEach(v => {
-                        textoHTML += `<span class="versiculo-num">${v.getAttribute("number")}</span> ${v.textContent}<br><br>`;
-                    });
-                }
+                // Acessa o livro pelo índice global
+                const livroDados = bibliaCompleta[livroAtualIndex];
+                
+                if (!livroDados) throw new Error("Livro não encontrado no arquivo JSON.");
+                
+                // Os capítulos no JSON são Arrays. O índice 0 é o capítulo 1.
+                const capituloTextoArray = livroDados.chapters[capituloAtual - 1];
+
+                if (!capituloTextoArray) throw new Error("Capítulo não encontrado.");
+
+                let html = "";
+                // Percorre os versículos (que são strings dentro do array do capítulo)
+                capituloTextoArray.forEach((versiculo, idx) => {
+                    html += `<span class="versiculo-num">${idx + 1}</span> ${versiculo}<br><br>`;
+                });
+
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
-                document.getElementById('texto-biblico').innerHTML = textoHTML;
+                textoBiblico.innerHTML = html;
+                
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
                 window.scrollTo(0,0);
+
             } catch (erro) {
-                alert("Erro ao carregar texto. Verifique a internet.");
+                console.error(erro);
+                textoBiblico.innerHTML = "<p>Erro ao carregar este capítulo. Tente outra versão.</p>";
             } finally {
                 mostrarLoading(false);
             }
         }
 
-        // --- HINÁRIOS (COM CORREÇÃO PARA HARPA E CANTOR) ---
+        // --- HINÁRIOS (LÓGICA JÁ CORRIGIDA) ---
         async function abrirHinario(tipo) {
-            hinarioSelecionado = tipo;
             telaEscolhaHinario.classList.add('escondido');
             mostrarLoading(true);
             
-            let url = "";
-            if(tipo === 'harpa') {
-                url = "./harpa.json";
-                tituloApp.innerText = "Harpa Cristã";
-            } else {
-                url = "./cantor.json";
-                tituloApp.innerText = "Cantor Cristão";
-            }
+            let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
+            tituloApp.innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
 
             try {
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
@@ -436,53 +494,34 @@
                     if(!resp.ok) throw new Error("Erro ao abrir arquivo local");
                     
                     let json = await resp.json();
-                    
-                    // === NORMALIZAÇÃO (TRADUTOR DE ARQUIVOS) ===
                     let listaFinal = [];
 
                     if (Array.isArray(json)) {
-                        // Se for uma lista (Caso Cantor)
-                        // AQUI ESTAVA O ERRO: Adicionei h.id e h.lyrics
                         listaFinal = json.map(h => ({
                             numero: h.numero || h.number || h.id, 
                             titulo: h.titulo || h.title,
                             letra: h.letra || h.text || h.verses || h.lyrics
                         }));
                     } else {
-                        // Se for um dicionário (Caso Harpa)
                         listaFinal = Object.values(json)
                             .filter(obj => obj.hino)
                             .map(obj => {
                                 let partes = obj.hino.split(" - ");
                                 let num = partes[0].trim();
                                 let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
-                                
-                                let letraArr = [];
-                                if (obj.verses && typeof obj.verses === 'object') {
-                                    letraArr = Object.values(obj.verses);
-                                } else {
-                                    letraArr = obj.verses;
-                                }
-
-                                return {
-                                    numero: num,
-                                    titulo: tit,
-                                    letra: letraArr
-                                };
+                                let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
+                                return { numero: num, titulo: tit, letra: letraArr };
                             });
-                        
                         listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
                     }
-
                     dadosHinario = listaFinal;
                     dadosHinario.tipo = tipo; 
                 }
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
             } catch(e) {
-                alert("Erro! Verifique se você subiu o arquivo " + (tipo === 'harpa' ? 'harpa.json' : 'cantor.json') + " no GitHub.");
+                alert("Erro! Verifique o arquivo " + url);
                 telaEscolhaHinario.classList.remove('escondido');
-                console.error(e);
             } finally {
                 mostrarLoading(false);
             }
@@ -493,35 +532,26 @@
             container.innerHTML = "";
             const termo = filtro.toLowerCase();
             dadosHinario.forEach((hino, index) => {
-                let numero = hino.numero;
-                let titulo = hino.titulo;
-                
-                if(String(titulo).toLowerCase().includes(termo) || String(numero).includes(termo)) {
+                if(String(hino.titulo).toLowerCase().includes(termo) || String(hino.numero).includes(termo)) {
                     const div = document.createElement('div');
                     div.className = 'item-hino';
-                    div.innerHTML = `<strong>${numero}.</strong> ${titulo}`;
+                    div.innerHTML = `<strong>${hino.numero}.</strong> ${hino.titulo}`;
                     div.onclick = () => lerHino(index);
                     container.appendChild(div);
                 }
             });
         }
 
-        function filtrarHinos() {
-            renderizarListaHinos(document.getElementById('busca-hino').value);
-        }
+        function filtrarHinos() { renderizarListaHinos(document.getElementById('busca-hino').value); }
 
         function lerHino(index) {
             hinoAtual = index;
             const hino = dadosHinario[index];
-            let titulo = hino.titulo;
-            let numero = hino.numero;
-            let letraHTML = "";
-            
             let letraRaw = hino.letra;
+            let letraHTML = "";
 
-            if (!letraRaw) {
-                letraHTML = "<p style='text-align:center; color:red;'>Letra indisponível.</p>";
-            } else if (Array.isArray(letraRaw)) {
+            if (!letraRaw) letraHTML = "<p>Letra indisponível.</p>";
+            else if (Array.isArray(letraRaw)) {
                 letraRaw.forEach(estrofe => {
                      let texto = (typeof estrofe === 'string') ? estrofe : (estrofe.verse || estrofe.text || "");
                      letraHTML += `<div class="estrofe-hino">${texto.replace(/\n/g, '<br>')}</div>`;
@@ -530,9 +560,8 @@
                 letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
             }
 
-            document.getElementById('titulo-hino-leitura').innerText = `${numero}. ${titulo}`;
+            document.getElementById('titulo-hino-leitura').innerText = `${hino.numero}. ${hino.titulo}`;
             document.getElementById('texto-hino').innerHTML = letraHTML;
-
             telaListaHinos.classList.add('escondido');
             telaLeituraHino.classList.remove('escondido');
             alternarBarras('leitura');
@@ -569,12 +598,7 @@
             }
         }
 
-        function mudarVersao() {
-            if (!telaLeitura.classList.contains('escondido')) lerCapitulo(capituloAtual);
-        }
-        function mostrarLoading(ativo) {
-            loading.style.display = ativo ? 'block' : 'none';
-        }
+        function mostrarLoading(ativo) { loading.style.display = ativo ? 'block' : 'none'; }
 
         iniciarApp();
     </script>
