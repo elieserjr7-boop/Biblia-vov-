@@ -105,6 +105,7 @@
             padding-top: 10px; 
             padding-bottom: 80px; 
             transition: padding-top 0.3s ease;
+            scroll-behavior: smooth; /* Rolagem suave */
         }
 
         /* MODO LEITURA */
@@ -302,7 +303,7 @@
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
                 <option value="NBV">NBV - Nova Bíblia Viva</option>
                 <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
+                <option value="A21">A21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
             </select>
         </div>
@@ -345,7 +346,7 @@
     </main>
 
     <footer id="rodape-nav" class="escondido">
-        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Voltar</button>
+        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Início</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(-1)">&#9664;</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(1)">&#9654;</button>
     </footer>
@@ -389,6 +390,7 @@
         const abasPrincipais = document.getElementById('abas-principais');
         const selectVersao = document.getElementById('select-versao');
         const tituloApp = document.getElementById('titulo-app');
+        const areaPrincipal = document.getElementById('area-principal'); // Captura a área principal
 
         const tabBiblia = document.getElementById('tab-biblia');
         const tabHinarios = document.getElementById('tab-hinarios');
@@ -407,14 +409,10 @@
             carregarTemaSalvo(); 
             renderizarLivros();
             
-            // --- NOVO: RECUPERA A VERSÃO SALVA ---
             const versaoSalva = localStorage.getItem('versaoBiblia');
             if (versaoSalva) {
-                // Se existe uma versão salva, seleciona ela no menu
                 selectVersao.value = versaoSalva;
             }
-            
-            // Carrega a versão que está no seletor (seja a salva ou a padrão)
             carregarVersaoBiblia(selectVersao.value);
         }
 
@@ -464,7 +462,6 @@
         }
 
         function mudarVersao() {
-            // --- NOVO: SALVA A VERSÃO ESCOLHIDA ---
             localStorage.setItem('versaoBiblia', selectVersao.value);
             carregarVersaoBiblia(selectVersao.value);
         }
@@ -615,7 +612,10 @@
                 telaLeitura.classList.remove('escondido');
                 
                 alternarBarras('leitura');
-                window.scrollTo(0,0);
+
+                // --- CORREÇÃO DO SCROLL ---
+                areaPrincipal.scrollTop = 0; // Rola a área principal para o topo
+                window.scrollTo(0,0);        // Garante compatibilidade
 
             } catch (erro) {
                 console.error(erro);
@@ -717,7 +717,10 @@
             telaLeituraHino.classList.remove('escondido');
             
             alternarBarras('leitura');
-            window.scrollTo(0,0);
+
+            // --- CORREÇÃO DO SCROLL ---
+            areaPrincipal.scrollTop = 0; // Rola a área principal para o topo
+            window.scrollTo(0,0);        // Garante compatibilidade
         }
 
         function voltarParaEscolhaHinario() {
