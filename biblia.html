@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bíblia da Vovó</title>
+    <title>Bíblia Sagrada</title>
     
     <link rel="manifest" href="./manifest.json">
 
@@ -415,7 +415,7 @@
             }
         }
 
-        // --- HINÁRIOS (COM CORREÇÃO PARA HARPA) ---
+        // --- HINÁRIOS (COM CORREÇÃO PARA HARPA E CANTOR) ---
         async function abrirHinario(tipo) {
             hinarioSelecionado = tipo;
             telaEscolhaHinario.classList.add('escondido');
@@ -441,24 +441,22 @@
                     let listaFinal = [];
 
                     if (Array.isArray(json)) {
-                        // Se já for uma lista (Caso Cantor)
+                        // Se for uma lista (Caso Cantor)
+                        // AQUI ESTAVA O ERRO: Adicionei h.id e h.lyrics
                         listaFinal = json.map(h => ({
-                            numero: h.numero || h.number,
+                            numero: h.numero || h.number || h.id, 
                             titulo: h.titulo || h.title,
-                            letra: h.letra || h.text || h.verses
+                            letra: h.letra || h.text || h.verses || h.lyrics
                         }));
                     } else {
                         // Se for um dicionário (Caso Harpa)
-                        // Converte objeto em lista, ignorando metadados (quem não tem 'hino')
                         listaFinal = Object.values(json)
                             .filter(obj => obj.hino)
                             .map(obj => {
-                                // Tenta separar "1 - Título"
                                 let partes = obj.hino.split(" - ");
                                 let num = partes[0].trim();
                                 let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
                                 
-                                // Arruma a letra que vem bagunçada como objeto
                                 let letraArr = [];
                                 if (obj.verses && typeof obj.verses === 'object') {
                                     letraArr = Object.values(obj.verses);
@@ -473,7 +471,6 @@
                                 };
                             });
                         
-                        // Ordena a Harpa por número (para garantir ordem 1, 2, 3...)
                         listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
                     }
 
