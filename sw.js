@@ -1,5 +1,5 @@
 // --- IMPORTANTE: Mude este número a cada Deploy (v14, v15, v16...) ---
-const CACHE_NAME = 'biblia-sagrada-v17';
+const CACHE_NAME = 'biblia-sagrada-v18';
 
 // Lista de arquivos
 const urlsToCache = [
