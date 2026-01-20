@@ -1,23 +1,23 @@
-const CACHE_NAME = 'biblia-vovo-v4';
+const CACHE_NAME = 'biblia-vovo-v7';
 const urlsToCache = [
   './biblia.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './harpa.json',
+  './cantor.json'
 ];
 
-// Instalação do Service Worker
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache atualizado (v4) - Ícones Maskable');
+        console.log('Cache atualizado (v7) - Arquivos Locais');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Limpeza de cache antigo
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -32,7 +32,6 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Resposta a requisições
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
