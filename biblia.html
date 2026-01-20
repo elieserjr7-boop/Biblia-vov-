@@ -20,7 +20,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Segoe UI', 'Roboto', sans-serif; /* Fonte mais moderna */
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
             background-color: #fdfbf7;
             color: #111;
             margin: 0;
@@ -83,7 +83,7 @@
             padding: 8px;
             border-radius: 5px;
             border: none;
-            font-size: 14px; /* Fonte menor para caber os nomes */
+            font-size: 14px;
             font-weight: 600;
             color: #2c3e50;
             background-color: #fff;
@@ -107,7 +107,6 @@
 
         body.modo-leitura header { position: fixed; top: 0; left: 0; right: 0; }
         body.modo-leitura main { padding-top: 140px; padding-bottom: 100px; }
-
         body.modo-leitura.imersivo header { transform: translateY(-100%); }
         body.modo-leitura.imersivo #rodape-nav { transform: translateY(100%); }
         body.modo-leitura.imersivo main { padding-top: calc(43px + env(safe-area-inset-top)); padding-bottom: 20px; }
@@ -121,8 +120,9 @@
         }
 
         .grade-livros { 
-            display: grid; gap: 10px; 
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            display: grid; gap: 8px; 
+            /* Grid responsivo ajustado */
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             padding: 0 15px 20px 15px;
         }
 
@@ -133,11 +133,17 @@
 
         .btn-livro, .btn-hinario {
             background-color: #ecf0f1; border: 1px solid #bdc3c7;
-            padding: 12px; font-size: 15px; text-align: center;
+            /* Ajuste para caber nomes grandes */
+            padding: 8px 4px; 
+            font-size: 13px; 
+            min-height: 60px; /* Altura fixa mínima para alinhar */
+            display: flex; align-items: center; justify-content: center;
             border-radius: 8px; cursor: pointer; font-weight: bold; color: #2c3e50;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            line-height: 1.2; /* Espaçamento menor entre linhas */
+            word-break: break-word; /* Quebra palavras se necessário */
         }
-        .btn-hinario { padding: 20px; font-size: 18px; }
+        .btn-hinario { padding: 15px; font-size: 16px; min-height: auto; }
 
         .btn-capitulo {
             padding: 12px; font-size: 18px; background-color: #fff;
@@ -195,7 +201,8 @@
 
         .item-comparacao { border-bottom: 1px solid #f0f0f0; padding: 12px 0; }
         .comp-versao { font-weight: bold; color: #555; font-size: 12px; background: #eee; padding: 2px 5px; border-radius: 3px; }
-        .comp-texto { font-size: 16px; margin-top: 4px; display: block; color: #222; }
+        .comp-texto { font-size: 16px; margin-top: 4px; display: block; color: #222; } /* Cor padrão (Light Mode) */
+        
         .btn-fechar-modal { width: 100%; background: #e74c3c; color: white; border: none; padding: 12px; font-size: 16px; border-radius: 8px; margin-bottom: 10px; position: sticky; top: 0; z-index: 10; }
 
         /* --- NAVEGAÇÃO --- */
@@ -219,7 +226,6 @@
 
         .escondido { display: none !important; }
 
-        /* LOADING DISCRETO */
         #loading {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.8); color: white; padding: 15px 25px;
@@ -239,6 +245,10 @@
         body.modo-escuro .modal-conteudo { background-color: #1f1f1f; color: #eee; }
         body.modo-escuro .item-comparacao { border-color: #333; }
         body.modo-escuro .comp-versao { background-color: #444; color: #fff; }
+        
+        /* Correção: Texto da Comparação em Modo Escuro */
+        body.modo-escuro .comp-texto { color: #e0e0e0; }
+
     </style>
 </head>
 <body id="corpo-app">
@@ -255,7 +265,7 @@
                 <option value="ACF">ACF - Almeida Corrigida Fiel</option>
                 <option value="ARA">ARA - Almeida Revista e Atualizada</option>
                 <option value="ARC">ARC - Almeida Revista e Corrigida</option>
-                <option value="AA">AA - Almeida Atualizada</option>
+                <option value="JFAA">JFA - João Ferreira de Almeida</option>
                 <option value="TB">TB - Tradução Brasileira</option>
                 <option value="KJA">KJA - King James Atualizada</option>
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
@@ -263,7 +273,6 @@
                 <option value="NTLH">NTLH - Nova Tradução na Linguagem de Hoje</option>
                 <option value="AS21">AS21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
-                <option value="JFAA">JFA - João Ferreira de Almeida</option>
             </select>
         </div>
     </header>
@@ -340,7 +349,7 @@
     </nav>
 
     <script>
-        // --- DADOS ESTRUTURAIS FIXOS (Evita erros de "Undefined" na busca) ---
+        // --- DADOS ESTRUTURAIS ---
         const listaLivros = ["Gênesis","Êxodo","Levítico","Números","Deuteronômio","Josué","Juízes","Rute","1 Samuel","2 Samuel","1 Reis","2 Reis","1 Crônicas","2 Crônicas","Esdras","Neemias","Ester","Jó","Salmos","Provérbios","Eclesiastes","Cânticos","Isaías","Jeremias","Lamentações","Ezequiel","Daniel","Oseias","Joel","Amós","Obadias","Jonas","Miqueias","Naum","Habacuque","Sofonias","Ageu","Zacarias","Malaquias","Mateus","Marcos","Lucas","João","Atos","Romanos","1 Coríntios","2 Coríntios","Gálatas","Efésios","Filipenses","Colossenses","1 Tessalonicenses","2 Tessalonicenses","1 Timóteo","2 Timóteo","Tito","Filemom","Hebreus","Tiago","1 Pedro","2 Pedro","1 João","2 João","3 João","Judas","Apocalipse"];
         
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
@@ -365,16 +374,15 @@
             carregarTemaSalvo(); 
             renderizarLivros();
             
-            // Verifica se tem versão salva
             const versaoSalva = localStorage.getItem('versaoBiblia');
             if (versaoSalva) selectVersao.value = versaoSalva;
             
             carregarVersaoBiblia(selectVersao.value);
             
-            // O PULO DO GATO: Cache Silencioso de todas as versões
+            // Cache silencioso para evitar travamentos futuros
             setTimeout(cachearTodasVersoes, 3000); 
 
-            // Service Worker
+            // SW Update
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -398,25 +406,17 @@
             }
         }
 
-        // --- CACHE BACKGROUND (Resolve o "Processando" eterno) ---
         async function cachearTodasVersoes() {
             const todasVersoes = ["NVI", "NVT", "ACF", "ARA", "ARC", "AA", "TB", "KJA", "NAA", "NBV", "NTLH", "AS21", "KJF"];
-            console.log("Iniciando cache silencioso...");
             for (const v of todasVersoes) {
                 if (v !== versaoCarregadaNome) {
-                    try {
-                        // Faz o fetch mas não salva na RAM, apenas força o navegador/SW a guardar no disco
-                        await fetch(`./${v}.json`);
-                    } catch (e) { console.log("Cache falhou para " + v); }
+                    try { await fetch(`./${v}.json`); } catch (e) {}
                 }
             }
-            console.log("Cache silencioso concluído.");
         }
 
         async function carregarVersaoBiblia(versao) {
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
-            
-            // Delay para mostrar loading apenas se demorar mais que 200ms
             loadingTimeout = setTimeout(() => { loading.style.display = 'block'; }, 200);
 
             try {
@@ -425,13 +425,11 @@
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
                 
-                // Se estiver lendo, atualiza o texto imediatamente
                 if (!document.getElementById('tela-leitura').classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
             } catch (e) {
-                console.error(e);
-                alert("Erro ao carregar versão. Verifique sua conexão.");
+                alert("Erro ao carregar versão.");
             } finally {
                 clearTimeout(loadingTimeout);
                 loading.style.display = 'none';
@@ -443,7 +441,6 @@
             carregarVersaoBiblia(selectVersao.value);
         }
 
-        // --- MANIPULAÇÃO DE TEMA ---
         function alternarTema() {
             document.body.classList.toggle('modo-escuro');
             localStorage.setItem('temaEscuro', document.body.classList.contains('modo-escuro'));
@@ -458,7 +455,7 @@
             }
         }
 
-        // --- NAVEGAÇÃO E UI ---
+        // --- NAVEGAÇÃO UI ---
         function alternarBarras(modo) {
             document.body.classList.remove('imersivo');
             const areaVersao = document.getElementById('area-versao');
@@ -512,7 +509,7 @@
             }
         }
 
-        // --- LÓGICA BÍBLIA ---
+        // --- BÍBLIA ---
         function renderizarLivros() {
             const tela = document.getElementById('tela-livros');
             tela.innerHTML = "";
@@ -573,20 +570,16 @@
             capituloAtual = num;
             
             try {
-                // Previne crash se o JSON estiver incompleto
                 if(!bibliaCompleta[livroAtualIndex] || !bibliaCompleta[livroAtualIndex].chapters) {
                    return alert("Erro no arquivo da versão atual.");
                 }
-                
                 const textoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 textoArray.forEach((v, i) => {
                     html += `<span class="versiculo-num">${i + 1}</span> ${v}<br><br>`;
                 });
-                
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
                 document.getElementById('texto-biblico').innerHTML = html;
-                
                 document.getElementById('tela-capitulos').classList.add('escondido');
                 document.getElementById('tela-leitura').classList.remove('escondido');
                 alternarBarras('leitura');
@@ -594,7 +587,7 @@
             } catch (erro) { console.error(erro); }
         }
 
-        // --- LÓGICA DE BUSCA ---
+        // --- BUSCA ---
         function normalizar(txt) {
             return txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,;?!]/g,"");
         }
@@ -626,16 +619,13 @@
             const container = document.getElementById('resultados-busca');
             container.innerHTML = '<div style="text-align:center; padding:20px;">Pesquisando...</div>';
 
-            // Pequeno timeout para renderizar o "Pesquisando"
             setTimeout(() => {
                 const termoNorm = normalizar(termo);
                 const palavras = termoNorm.split(" ").filter(p => p.length > 2);
                 let resultados = [];
 
                 bibliaCompleta.forEach((livroObj, idxLivro) => {
-                    // Proteção contra JSON incompleto
                     if (!livroObj.chapters) return;
-
                     livroObj.chapters.forEach((cap, idxCap) => {
                         cap.forEach((versiculo, idxVer) => {
                             const vNorm = normalizar(versiculo);
@@ -644,18 +634,9 @@
                             else {
                                 palavras.forEach(p => { if (vNorm.includes(p)) pts += 10; });
                             }
-
                             if (pts > 0) {
-                                // CORREÇÃO: Usa listaLivros[idxLivro] ao invés de livroObj.nome
                                 const nomeReal = listaLivros[idxLivro] || livroObj.nome; 
-                                resultados.push({
-                                    livro: nomeReal,
-                                    cap: idxCap + 1,
-                                    ver: idxVer + 1,
-                                    texto: versiculo,
-                                    pontos: pts,
-                                    idxLivro: idxLivro
-                                });
+                                resultados.push({ livro: nomeReal, cap: idxCap + 1, ver: idxVer + 1, texto: versiculo, pontos: pts, idxLivro: idxLivro });
                             }
                         });
                     });
@@ -675,12 +656,10 @@
                         <div class="res-texto">${res.texto}</div>
                         <button class="btn-comparar" onclick="compararVersoes(${res.idxLivro}, ${res.cap}, ${res.ver}, '${res.livro}')">Ver em outras versões</button>
                     `;
-                    // Clique no card (exceto botão) leva ao texto
                     div.onclick = (e) => {
                         if(e.target.className !== 'btn-comparar') {
                             livroAtualIndex = res.idxLivro;
                             livroAtualNome = res.livro;
-                            // Tenta pegar qtd caps, fallback para 50 se der erro
                             livroAtualMaxCaps = (bibliaCompleta[res.idxLivro].chapters || []).length || 50;
                             lerCapitulo(res.cap);
                             mudarAba('biblia');
@@ -701,13 +680,11 @@
 
             const versoes = ["NVI", "NVT", "ACF", "ARA", "ARC", "TB", "KJA", "NAA", "NBV", "NTLH", "AS21", "KJF"];
             
-            // Busca paralela
             const promises = versoes.map(async v => {
                 try {
                     const r = await fetch(`./${v}.json`);
                     if(r.ok) {
                         const j = await r.json();
-                        // Proteção de leitura
                         if(j[idxLivro] && j[idxLivro].chapters && j[idxLivro].chapters[cap-1]) {
                             const txt = j[idxLivro].chapters[cap-1][ver-1];
                             return `<div class="item-comparacao"><span class="comp-versao">${v}</span><span class="comp-texto">${txt}</span></div>`;
@@ -716,14 +693,13 @@
                 } catch(e) {}
                 return "";
             });
-
             const htmls = await Promise.all(promises);
             lista.innerHTML = htmls.join("");
         }
 
         function fecharComparacao() { document.getElementById('modal-comparacao').classList.add('escondido'); }
 
-        // --- HINÁRIOS (Lógica Mantida e Simplificada) ---
+        // --- HINÁRIOS ---
         async function abrirHinario(tipo) {
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
             loading.style.display = 'block';
@@ -734,14 +710,10 @@
                 if(dadosHinario.tipo !== tipo) {
                     const resp = await fetch(url);
                     const json = await resp.json();
-                    
-                    // Normaliza formato
                     let lista = [];
                     if (Array.isArray(json)) {
-                         // Formato Array
                          lista = json.map(h => ({ n: h.numero || h.id, t: h.titulo || h.title, l: h.letra || h.lyrics || h.verses }));
                     } else {
-                        // Formato Objeto
                         lista = Object.values(json).filter(o => o.hino).map(o => {
                             let pts = o.hino.split(" - ");
                             return { n: pts[0].trim(), t: pts.slice(1).join(" - "), l: o.verses };
@@ -768,7 +740,7 @@
             dadosHinario.forEach((h, i) => {
                 if(String(h.n).includes(termo) || h.t.toLowerCase().includes(termo)) {
                     const div = document.createElement('div');
-                    div.className = 'btn-livro'; // Reusa estilo
+                    div.className = 'btn-livro';
                     div.style.marginBottom = '10px';
                     div.style.textAlign = 'left';
                     div.innerHTML = `<strong>${h.n}</strong> - ${h.t}`;
