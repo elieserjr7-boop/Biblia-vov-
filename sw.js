@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblia-vovo-v12';
+const CACHE_NAME = 'biblia-sagrada-v13';
 
 // Lista das 13 versões + arquivos do sistema
 const urlsToCache = [
@@ -8,7 +8,7 @@ const urlsToCache = [
   './icon-512.png',
   './harpa.json',
   './cantor.json',
-  // Versões da Bíblia (nomes devem ser EXATOS aos arquivos na pasta)
+  // Certifique-se que esses arquivos existem no repositório
   './NVI.json',
   './NVT.json',
   './ACF.json',
@@ -28,12 +28,11 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache atualizado (v12) - Todas as versões');
-        // O map e 'no-cors' ajuda a não falhar tudo se um arquivo faltar
+        console.log('Cache atualizado (v13)');
         return Promise.all(
             urlsToCache.map(url => {
                 return cache.add(url).catch(err => {
-                    console.log('Arquivo não encontrado para cache (pode ser opcional): ' + url);
+                    console.log('Arquivo não encontrado (opcional): ' + url);
                 });
             })
         );
