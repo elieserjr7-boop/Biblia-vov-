@@ -45,6 +45,7 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            transition: transform 0.3s ease;
         }
 
         h1 { margin: 0; font-size: 22px; }
@@ -124,6 +125,9 @@
         #texto-biblico, #texto-hino {
             font-size: 26px; line-height: 1.8; padding: 5px;
             text-align: left; margin-bottom: 30px;
+            /* Permite clicar no texto */
+            cursor: pointer; 
+            -webkit-tap-highlight-color: transparent;
         }
         .versiculo-num {
             font-size: 18px; color: #e67e22; font-weight: bold;
@@ -149,6 +153,7 @@
             z-index: 50; 
             padding-bottom: max(10px, env(safe-area-inset-bottom));
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
 
         .btn-nav {
@@ -177,6 +182,11 @@
 
         /* UTILITÁRIOS */
         .escondido { display: none !important; }
+        
+        /* Classes para o modo imersivo (ocultar barras) */
+        .ocultar-topo { transform: translateY(-100%); }
+        .ocultar-rodape { transform: translateY(100%); }
+
         #loading {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 24px; color: #e67e22; background: rgba(255,255,255,0.95);
@@ -189,9 +199,10 @@
 </head>
 <body>
 
-    <header>
-        <h1 id="titulo-app">Bíblia da Vovó</h1>
-        <div id="area-versao" class="seletor-versao-container">
+    <header id="cabecalho-principal">
+        <h1 id="titulo-app">Bíblia Sagrada</h1>
+        
+        <div id="area-versao" class="seletor-versao-container escondido">
             <span class="label-versao">Versão:</span>
             <select id="select-versao" onchange="mudarVersao()">
                 <option value="NVI">NVI - Nova Versão Internacional</option>
@@ -221,7 +232,7 @@
             
             <div id="tela-leitura" class="escondido">
                 <h2 id="titulo-capitulo-leitura" style="text-align:center; color:#2c3e50; margin-top:0;"></h2>
-                <div id="texto-biblico"></div>
+                <div id="texto-biblico" onclick="alternarImersao()"></div>
             </div>
         </div>
 
@@ -241,7 +252,7 @@
 
             <div id="tela-leitura-hino" class="escondido">
                 <h2 id="titulo-hino-leitura" style="text-align:center; color:#2c3e50; margin-top:0;"></h2>
-                <div id="texto-hino"></div>
+                <div id="texto-hino" onclick="alternarImersao()"></div>
             </div>
         </div>
 
@@ -285,6 +296,7 @@
 
         const loading = document.getElementById('loading');
         const areaVersao = document.getElementById('area-versao');
+        const cabecalho = document.getElementById('cabecalho-principal'); // Referência ao cabeçalho
         const rodape = document.getElementById('rodape-nav');
         const abasPrincipais = document.getElementById('abas-principais');
         const selectVersao = document.getElementById('select-versao');
@@ -312,7 +324,6 @@
 
             mostrarLoading(true);
             try {
-                // Tenta carregar o arquivo com o nome exato da versão
                 const resp = await fetch(`./${versao}.json`);
                 if(!resp.ok) throw new Error("Arquivo não encontrado");
                 
@@ -325,7 +336,7 @@
                 }
 
             } catch (e) {
-                alert(`Não foi possível carregar a versão ${versao}. Verifique se o arquivo ${versao}.json está na pasta.`);
+                alert(`Não foi possível carregar a versão ${versao}.`);
                 console.error(e);
             } finally {
                 mostrarLoading(false);
@@ -337,13 +348,33 @@
         }
 
         function alternarBarras(modo) {
+            // Reseta qualquer estado de imersão ao trocar de tela
+            cabecalho.classList.remove('ocultar-topo');
+            rodape.classList.remove('ocultar-rodape');
+
             if (modo === 'leitura') {
                 abasPrincipais.classList.add('escondido');
                 rodape.classList.remove('escondido');
-            } else {
+                
+                // MOSTRAR o seletor de versão APENAS na leitura da Bíblia
+                if(modoAtual === 'biblia') {
+                    areaVersao.classList.remove('escondido');
+                } else {
+                    areaVersao.classList.add('escondido'); // Esconde se for hinário
+                }
+
+            } else { // Navegação (Listas)
                 abasPrincipais.classList.remove('escondido');
                 rodape.classList.add('escondido');
+                areaVersao.classList.add('escondido'); // Esconde o seletor nas listas
             }
+        }
+
+        // --- MODO IMERSIVO (CLICAR NO TEXTO) ---
+        function alternarImersao() {
+            // Adiciona ou remove as classes que jogam o menu para fora da tela
+            cabecalho.classList.toggle('ocultar-topo');
+            rodape.classList.toggle('ocultar-rodape');
         }
 
         function mudarAba(aba) {
@@ -353,12 +384,14 @@
             
             tabBiblia.classList.add('escondido');
             tabHinarios.classList.add('escondido');
+            
+            // Ao mudar de aba, reseta para modo navegação
             alternarBarras('navegacao');
 
             if (aba === 'biblia') {
                 tabBiblia.classList.remove('escondido');
-                tituloApp.innerText = "Bíblia da Vovó";
-                areaVersao.classList.remove('escondido');
+                tituloApp.innerText = "Bíblia Sagrada";
+                
                 if (!telaLeitura.classList.contains('escondido')) {
                     alternarBarras('leitura');
                 } else {
@@ -367,7 +400,7 @@
             } else {
                 tabHinarios.classList.remove('escondido');
                 tituloApp.innerText = "Hinários";
-                areaVersao.classList.add('escondido');
+                
                 if (telaLeituraHino.classList.contains('escondido')) {
                     telaListaHinos.classList.add('escondido');
                     telaEscolhaHinario.classList.remove('escondido');
@@ -382,8 +415,9 @@
             telaCapitulos.classList.add('escondido');
             telaLeitura.classList.add('escondido');
             telaLivros.classList.remove('escondido');
+            
             alternarBarras('navegacao');
-            tituloApp.innerText = "Bíblia da Vovó";
+            tituloApp.innerText = "Bíblia Sagrada";
 
             function criarSecao(titulo, lista, offsetIndex) {
                 const divTitulo = document.createElement('div');
@@ -456,6 +490,8 @@
                 
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
+                
+                // Aqui ativa o modo leitura e mostra o seletor
                 alternarBarras('leitura');
                 window.scrollTo(0,0);
 
@@ -502,7 +538,7 @@
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
             } catch(e) {
-                alert("Erro ao abrir Hinário. Verifique o arquivo JSON.");
+                alert("Erro ao abrir Hinário.");
                 telaEscolhaHinario.classList.remove('escondido');
             } finally {
                 mostrarLoading(false);
@@ -555,6 +591,10 @@
         }
 
         function voltarInicioLeitura() {
+            // Garante que as barras reapareçam ao sair da leitura
+            cabecalho.classList.remove('ocultar-topo');
+            rodape.classList.remove('ocultar-rodape');
+
             alternarBarras('navegacao');
             if (modoAtual === 'biblia') {
                 telaLeitura.classList.add('escondido');
