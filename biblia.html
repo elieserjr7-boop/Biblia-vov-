@@ -29,11 +29,11 @@
             flex-direction: column;
             height: 100vh; 
             overflow: hidden; 
+            transition: background-color 0.3s, color 0.3s; /* Transição suave de tema */
         }
 
         /* --- CABEÇALHO --- */
         header {
-            /* Padrão: Comportamento NORMAL (bloco) para menus */
             position: relative; 
             background-color: #2c3e50;
             color: white;
@@ -42,9 +42,24 @@
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             z-index: 1000;
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s;
             will-change: transform;
             width: 100%;
+        }
+
+        /* Botão de Tema (Posicionado no canto) */
+        #btn-tema {
+            position: absolute;
+            right: 15px;
+            top: max(15px, env(safe-area-inset-top));
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
         }
 
         /* TÍTULO E VERSÃO */
@@ -78,7 +93,7 @@
             flex: 1;
         }
 
-        /* --- CORPO PRINCIPAL (ÁREA DE ROLAGEM) --- */
+        /* --- CORPO PRINCIPAL --- */
         main {
             flex: 1; 
             width: 100%;
@@ -87,44 +102,35 @@
             -webkit-overflow-scrolling: touch; 
             position: relative;
             z-index: 1;
-            
-            /* Padrão (Menus): Padding pequeno */
             padding-top: 10px; 
-            padding-bottom: 80px; /* Espaço para o menu de abas */
+            padding-bottom: 80px; 
             transition: padding-top 0.3s ease;
         }
 
-        /* =========================================
-           MODO LEITURA (Ativado apenas no Texto)
-           ========================================= */
-        
-        /* Quando estiver lendo, o header vira FIXO (Flutuante) */
+        /* MODO LEITURA */
         body.modo-leitura header {
             position: fixed;
             top: 0; left: 0; right: 0;
         }
 
-        /* Quando estiver lendo (COM BARRA VISÍVEL), compensamos a altura dela */
         body.modo-leitura main {
-            padding-top: 140px; /* Altura do cabeçalho + margem */
-            padding-bottom: 100px; /* Rodapé de navegação */
+            padding-top: 140px; 
+            padding-bottom: 100px; 
         }
 
-        /* MODO IMERSIVO (Barras Ocultas) */
+        /* MODO IMERSIVO */
         body.modo-leitura.imersivo header { 
-            transform: translateY(-100%); /* Esconde Header */
+            transform: translateY(-100%); 
         }
         body.modo-leitura.imersivo #rodape-nav { 
-            transform: translateY(100%); /* Esconde Footer */
+            transform: translateY(100%); 
         }
         
-        /* AQUI ESTÁ A CORREÇÃO DA MARGEM: */
+        /* SUA MARGEM PERSONALIZADA (43px) */
         body.modo-leitura.imersivo main {
-            /* Calcula: 25px fixos + a área do notch (se houver) */
             padding-top: calc(43px + env(safe-area-inset-top)); 
             padding-bottom: 20px;
         }
-
 
         /* --- ELEMENTOS VISUAIS --- */
         .separador-testamento {
@@ -141,33 +147,25 @@
         }
 
         .grade-livros { 
-            display: grid; 
-            gap: 12px; 
+            display: grid; gap: 12px; 
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             padding: 0 15px 20px 15px;
         }
 
         .grade-capitulos { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 10px; 
-            padding: 15px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px;
         }
 
-        button { touch-action: manipulation; }
+        button { touch-action: manipulation; transition: background-color 0.3s, color 0.3s; }
         button:active { transform: scale(0.96); opacity: 0.8; }
 
-        .btn-livro {
+        .btn-livro, .btn-hinario {
             background-color: #ecf0f1; border: 2px solid #bdc3c7;
             padding: 15px; font-size: 16px; text-align: center;
             border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
         }
         
-        .btn-hinario {
-            background-color: #ecf0f1; border: 2px solid #bdc3c7;
-            padding: 20px; font-size: 18px; text-align: center;
-            border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
-        }
+        .btn-hinario { padding: 20px; font-size: 18px; }
 
         .btn-capitulo {
             padding: 15px; font-size: 20px; background-color: #fff;
@@ -185,12 +183,8 @@
 
         /* TEXTO DA BÍBLIA */
         #texto-biblico, #texto-hino {
-            font-size: 24px; 
-            line-height: 1.8; 
-            padding: 0 20px;
-            text-align: left; 
-            margin-bottom: 40px;
-            cursor: pointer; 
+            font-size: 24px; line-height: 1.8; padding: 0 20px;
+            text-align: left; margin-bottom: 40px; cursor: pointer; 
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -199,7 +193,6 @@
             vertical-align: super; margin-right: 4px; user-select: none;
         }
 
-        /* HINÁRIOS LISTA */
         .lista-hinos { display: flex; flex-direction: column; gap: 10px; padding: 0 15px; }
         .item-hino {
             background: white; border: 1px solid #bdc3c7; padding: 15px;
@@ -207,20 +200,13 @@
         }
         .estrofe-hino { margin-bottom: 25px; }
 
-        /* --- BARRA DE NAVEGAÇÃO (RODAPÉ LEITURA) --- */
+        /* --- BARRA DE NAVEGAÇÃO --- */
         #rodape-nav {
-            background-color: #ecf0f1; 
-            padding: 10px;
-            display: flex; gap: 15px;
-            border-top: 3px solid #bdc3c7;
-            
-            position: fixed; 
-            bottom: 0; left: 0; right: 0;
-            z-index: 1000; 
-            
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            background-color: #ecf0f1; padding: 10px; display: flex; gap: 15px;
+            border-top: 3px solid #bdc3c7; position: fixed; bottom: 0; left: 0; right: 0;
+            z-index: 1000; padding-bottom: max(10px, env(safe-area-inset-bottom));
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s;
         }
 
         .btn-nav {
@@ -236,8 +222,8 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             height: 70px; background-color: #fff;
             display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 900;
-            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 900; padding-bottom: env(safe-area-inset-bottom);
+            transition: background-color 0.3s;
         }
         .aba {
             flex: 1; border: none; background: transparent;
@@ -258,11 +244,52 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
+        /* =========================================
+           TEMAS (MODO ESCURO)
+           ========================================= */
+        body.modo-escuro {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        
+        body.modo-escuro header { background-color: #1f1f1f; }
+        body.modo-escuro #rodape-nav { background-color: #1f1f1f; border-top-color: #333; }
+        body.modo-escuro #abas-principais { background-color: #1f1f1f; border-top-color: #333; }
+        
+        body.modo-escuro .btn-livro, 
+        body.modo-escuro .btn-hinario {
+            background-color: #2c2c2c; border-color: #444; color: #eee;
+        }
+        
+        body.modo-escuro .btn-capitulo {
+            background-color: #2c2c2c; border-color: #444; color: #eee;
+        }
+        
+        body.modo-escuro .item-hino {
+            background-color: #2c2c2c; border-color: #444; color: #eee;
+        }
+        
+        body.modo-escuro .btn-nav { background-color: #333; }
+        body.modo-escuro .btn-voltar-menu { background-color: #a04000; }
+        
+        body.modo-escuro .aba.ativa { 
+            background-color: #2c2c2c; color: #e0e0e0; border-top-color: #e67e22; 
+        }
+        
+        body.modo-escuro #select-versao {
+            background-color: #333; color: #fff;
+        }
+        
+        body.modo-escuro input#busca-hino {
+            background-color: #333; color: #fff; border-color: #555;
+        }
+
     </style>
 </head>
 <body id="corpo-app">
 
     <header id="cabecalho-principal">
+        <button id="btn-tema" onclick="alternarTema()">🌗</button>
         <h1 id="titulo-app">Bíblia Sagrada</h1>
         
         <div id="area-versao" class="seletor-versao-container escondido">
@@ -279,7 +306,7 @@
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
                 <option value="NBV">NBV - Nova Bíblia Viva</option>
                 <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
+                <option value="A21">A21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
             </select>
         </div>
@@ -294,7 +321,7 @@
             <div id="tela-capitulos" class="grade-capitulos escondido"></div>
             
             <div id="tela-leitura" class="escondido">
-                <h2 id="titulo-capitulo-leitura" style="text-align:center; color:#2c3e50; margin-top:0;"></h2>
+                <h2 id="titulo-capitulo-leitura" style="text-align:center; margin-top:0;"></h2>
                 <div id="texto-biblico" onclick="alternarImersao()"></div>
             </div>
         </div>
@@ -314,7 +341,7 @@
             </div>
 
             <div id="tela-leitura-hino" class="escondido">
-                <h2 id="titulo-hino-leitura" style="text-align:center; color:#2c3e50; margin-top:0;"></h2>
+                <h2 id="titulo-hino-leitura" style="text-align:center; margin-top:0;"></h2>
                 <div id="texto-hino" onclick="alternarImersao()"></div>
             </div>
         </div>
@@ -382,8 +409,32 @@
 
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
+            carregarTemaSalvo(); // Carrega o tema antes de tudo
             renderizarLivros();
             carregarVersaoBiblia(selectVersao.value);
+        }
+
+        // --- GESTÃO DE TEMAS ---
+        function alternarTema() {
+            document.body.classList.toggle('modo-escuro');
+            
+            let escuroAtivo = document.body.classList.contains('modo-escuro');
+            localStorage.setItem('temaEscuro', escuroAtivo);
+            
+            // Muda a cor da barra de status do celular
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if(metaTheme) {
+                metaTheme.setAttribute('content', escuroAtivo ? '#1f1f1f' : '#2c3e50');
+            }
+        }
+
+        function carregarTemaSalvo() {
+            let escuroSalvo = localStorage.getItem('temaEscuro');
+            if (escuroSalvo === 'true') {
+                document.body.classList.add('modo-escuro');
+                let metaTheme = document.querySelector('meta[name="theme-color"]');
+                if(metaTheme) metaTheme.setAttribute('content', '#1f1f1f');
+            }
         }
 
         async function carregarVersaoBiblia(versao) {
@@ -417,11 +468,9 @@
         // --- LÓGICA DE INTERFACE ---
         
         function alternarBarras(modo) {
-            // Remove imersão e modo leitura padrão
             corpoApp.classList.remove('imersivo');
 
             if (modo === 'leitura') {
-                // ATIVA O MODO LEITURA (Header fixo e click para esconder)
                 corpoApp.classList.add('modo-leitura');
                 
                 abasPrincipais.classList.add('escondido');
@@ -430,8 +479,7 @@
                 if(modoAtual === 'biblia') areaVersao.classList.remove('escondido');
                 else areaVersao.classList.add('escondido');
 
-            } else { // Navegação (Menus)
-                // DESATIVA O MODO LEITURA (Header normal)
+            } else { // Navegação
                 corpoApp.classList.remove('modo-leitura');
 
                 abasPrincipais.classList.remove('escondido');
@@ -441,7 +489,6 @@
         }
 
         function alternarImersao() {
-            // Só alterna se estivermos de fato lendo (tiver a classe modo-leitura)
             if (corpoApp.classList.contains('modo-leitura')) {
                 corpoApp.classList.toggle('imersivo');
             }
@@ -455,18 +502,15 @@
             tabBiblia.classList.add('escondido');
             tabHinarios.classList.add('escondido');
             
-            // Ao mudar de aba, sempre voltamos para o estado de navegação padrão
             alternarBarras('navegacao');
 
             if (aba === 'biblia') {
                 tabBiblia.classList.remove('escondido');
                 tituloApp.innerText = "Bíblia Sagrada";
                 
-                // Se já estava lendo, restaura a leitura
                 if (!telaLeitura.classList.contains('escondido')) {
                     alternarBarras('leitura');
                 } else {
-                    // Se não estava lendo, garante que o header está normal
                     renderizarLivros();
                 }
             } else {
@@ -490,7 +534,7 @@
             telaLeitura.classList.add('escondido');
             telaLivros.classList.remove('escondido');
             
-            alternarBarras('navegacao'); // Garante header normal
+            alternarBarras('navegacao'); 
             tituloApp.innerText = "Bíblia Sagrada";
 
             function criarSecao(titulo, lista, offsetIndex) {
@@ -526,7 +570,7 @@
             telaCapitulos.classList.remove('escondido');
             telaCapitulos.innerHTML = "";
             
-            alternarBarras('navegacao'); // Garante header normal
+            alternarBarras('navegacao');
 
             const btnVoltar = document.createElement('button');
             btnVoltar.className = 'btn-voltar-topo';
@@ -566,7 +610,6 @@
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 
-                // AQUI ATIVA O MODO LEITURA (Header flutuante)
                 alternarBarras('leitura');
                 window.scrollTo(0,0);
 
@@ -618,7 +661,7 @@
                 }
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
-                alternarBarras('navegacao'); // Header normal na lista
+                alternarBarras('navegacao');
             } catch(e) {
                 alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
                 telaEscolhaHinario.classList.remove('escondido');
@@ -669,7 +712,6 @@
             telaListaHinos.classList.add('escondido');
             telaLeituraHino.classList.remove('escondido');
             
-            // ATIVA O MODO LEITURA (Header flutuante)
             alternarBarras('leitura');
             window.scrollTo(0,0);
         }
@@ -682,7 +724,6 @@
         }
 
         function voltarInicioLeitura() {
-            // VOLTA AO MODO NORMAL (Header fixo normal)
             alternarBarras('navegacao');
             
             if (modoAtual === 'biblia') {
