@@ -47,7 +47,6 @@
             width: 100%;
         }
 
-        /* Botão de Tema */
         #btn-tema {
             position: absolute;
             right: 15px;
@@ -62,7 +61,6 @@
             z-index: 1001;
         }
 
-        /* TÍTULO E VERSÃO */
         h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 
         .seletor-versao-container {
@@ -105,44 +103,20 @@
             padding-top: 10px; 
             padding-bottom: 80px; 
             transition: padding-top 0.3s ease;
-            /* REMOVIDO: scroll-behavior: smooth; (Isso causava a rolagem lenta) */
         }
 
-        /* MODO LEITURA */
-        body.modo-leitura header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-        }
+        body.modo-leitura header { position: fixed; top: 0; left: 0; right: 0; }
+        body.modo-leitura main { padding-top: 140px; padding-bottom: 100px; }
 
-        body.modo-leitura main {
-            padding-top: 140px; 
-            padding-bottom: 100px; 
-        }
+        body.modo-leitura.imersivo header { transform: translateY(-100%); }
+        body.modo-leitura.imersivo #rodape-nav { transform: translateY(100%); }
+        body.modo-leitura.imersivo main { padding-top: calc(43px + env(safe-area-inset-top)); padding-bottom: 20px; }
 
-        /* MODO IMERSIVO */
-        body.modo-leitura.imersivo header { 
-            transform: translateY(-100%); 
-        }
-        body.modo-leitura.imersivo #rodape-nav { 
-            transform: translateY(100%); 
-        }
-        
-        body.modo-leitura.imersivo main {
-            padding-top: calc(43px + env(safe-area-inset-top)); 
-            padding-bottom: 20px;
-        }
-
-        /* --- ELEMENTOS VISUAIS --- */
+        /* --- BÍBLIA E HINÁRIOS --- */
         .separador-testamento {
-            background-color: #d35400; 
-            color: white; 
-            padding: 12px;
-            font-size: 20px; 
-            font-weight: bold; 
-            text-align: center;
-            border-radius: 8px; 
-            margin: 15px 15px 15px 15px;
-            text-transform: uppercase; 
+            background-color: #d35400; color: white; padding: 12px;
+            font-size: 20px; font-weight: bold; text-align: center;
+            border-radius: 8px; margin: 15px; text-transform: uppercase; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
@@ -152,9 +126,7 @@
             padding: 0 15px 20px 15px;
         }
 
-        .grade-capitulos { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px;
-        }
+        .grade-capitulos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; }
 
         button { touch-action: manipulation; transition: background-color 0.3s, color 0.3s; }
         button:active { transform: scale(0.96); opacity: 0.8; }
@@ -164,7 +136,6 @@
             padding: 15px; font-size: 16px; text-align: center;
             border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
         }
-        
         .btn-hinario { padding: 20px; font-size: 18px; }
 
         .btn-capitulo {
@@ -181,7 +152,6 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
 
-        /* TEXTO DA BÍBLIA */
         #texto-biblico, #texto-hino {
             font-size: 24px; line-height: 1.8; padding: 0 20px;
             text-align: left; margin-bottom: 40px; cursor: pointer; 
@@ -193,12 +163,77 @@
             vertical-align: super; margin-right: 4px; user-select: none;
         }
 
-        .lista-hinos { display: flex; flex-direction: column; gap: 10px; padding: 0 15px; }
-        .item-hino {
-            background: white; border: 1px solid #bdc3c7; padding: 15px;
-            border-radius: 8px; font-size: 18px; color: #2c3e50; text-align: left; cursor: pointer;
+        /* --- ÁREA DE BUSCA --- */
+        .container-busca { padding: 15px; text-align: center; }
+        
+        .wrapper-input {
+            position: relative; display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
         }
-        .estrofe-hino { margin-bottom: 25px; }
+        
+        #input-busca {
+            flex: 1; padding: 15px; border-radius: 25px; border: 2px solid #bdc3c7;
+            font-size: 18px; outline: none;
+        }
+        
+        #btn-mic {
+            background: #e67e22; border: none; color: white;
+            width: 50px; height: 50px; border-radius: 50%;
+            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        #btn-mic.ouvindo {
+            background-color: #e74c3c; animation: pulsando 1.5s infinite;
+        }
+        
+        @keyframes pulsando {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .resultado-item {
+            background: white; border: 1px solid #ddd; padding: 15px;
+            border-radius: 8px; margin-bottom: 15px; text-align: left;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .res-ref { font-weight: bold; color: #d35400; font-size: 16px; margin-bottom: 5px; display: block; }
+        .res-texto { font-size: 16px; color: #333; line-height: 1.5; }
+        
+        .btn-comparar {
+            margin-top: 10px; background-color: #3498db; color: white; border: none;
+            padding: 8px 15px; border-radius: 5px; font-size: 14px; cursor: pointer;
+            width: 100%;
+        }
+
+        /* --- COMPARAÇÃO MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 2000;
+            display: flex; align-items: flex-end; /* Sheet style */
+        }
+        
+        .modal-conteudo {
+            background: #fff; width: 100%; height: 85vh;
+            border-radius: 20px 20px 0 0; padding: 20px;
+            overflow-y: auto; position: relative;
+            animation: subir 0.3s ease-out;
+        }
+        
+        @keyframes subir { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .item-comparacao {
+            border-bottom: 1px solid #eee; padding: 15px 0;
+        }
+        .comp-versao { font-weight: bold; color: #2c3e50; font-size: 14px; background: #ecf0f1; padding: 2px 6px; border-radius: 4px; }
+        .comp-texto { font-size: 18px; margin-top: 5px; display: block; }
+
+        .btn-fechar-modal {
+            position: sticky; top: 0; width: 100%; background: #e74c3c; color: white;
+            border: none; padding: 15px; font-size: 16px; font-weight: bold;
+            border-radius: 10px; margin-bottom: 15px; z-index: 10;
+        }
 
         /* --- BARRA DE NAVEGAÇÃO --- */
         #rodape-nav {
@@ -206,7 +241,6 @@
             border-top: 3px solid #bdc3c7; position: fixed; bottom: 0; left: 0; right: 0;
             z-index: 1000; padding-bottom: max(10px, env(safe-area-inset-bottom));
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s;
         }
 
         .btn-nav {
@@ -223,11 +257,10 @@
             height: 70px; background-color: #fff;
             display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 900; padding-bottom: env(safe-area-inset-bottom);
-            transition: background-color 0.3s;
         }
         .aba {
             flex: 1; border: none; background: transparent;
-            font-size: 14px; font-weight: bold; color: #95a5a6;
+            font-size: 12px; font-weight: bold; color: #95a5a6;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .aba.ativa { color: #2c3e50; background-color: #ecf0f1; border-top: 3px solid #e67e22; }
@@ -245,42 +278,21 @@
         }
 
         /* --- MODO ESCURO --- */
-        body.modo-escuro {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-        
+        body.modo-escuro { background-color: #121212; color: #e0e0e0; }
         body.modo-escuro header { background-color: #1f1f1f; }
-        body.modo-escuro #rodape-nav { background-color: #1f1f1f; border-top-color: #333; }
-        body.modo-escuro #abas-principais { background-color: #1f1f1f; border-top-color: #333; }
+        body.modo-escuro #rodape-nav, body.modo-escuro #abas-principais { background-color: #1f1f1f; border-top-color: #333; }
         
-        body.modo-escuro .btn-livro, 
-        body.modo-escuro .btn-hinario {
+        body.modo-escuro .btn-livro, body.modo-escuro .btn-hinario, body.modo-escuro .btn-capitulo {
             background-color: #2c2c2c; border-color: #444; color: #eee;
         }
         
-        body.modo-escuro .btn-capitulo {
-            background-color: #2c2c2c; border-color: #444; color: #eee;
-        }
-        
-        body.modo-escuro .item-hino {
-            background-color: #2c2c2c; border-color: #444; color: #eee;
-        }
-        
-        body.modo-escuro .btn-nav { background-color: #333; }
-        body.modo-escuro .btn-voltar-menu { background-color: #a04000; }
-        
-        body.modo-escuro .aba.ativa { 
-            background-color: #2c2c2c; color: #e0e0e0; border-top-color: #e67e22; 
-        }
-        
-        body.modo-escuro #select-versao {
-            background-color: #333; color: #fff;
-        }
-        
-        body.modo-escuro input#busca-hino {
-            background-color: #333; color: #fff; border-color: #555;
-        }
+        body.modo-escuro .aba.ativa { background-color: #2c2c2c; color: #e0e0e0; border-top-color: #e67e22; }
+        body.modo-escuro #select-versao, body.modo-escuro #input-busca { background-color: #333; color: #fff; border-color: #555; }
+        body.modo-escuro .resultado-item { background-color: #2c2c2c; border-color: #444; }
+        body.modo-escuro .res-texto { color: #ccc; }
+        body.modo-escuro .modal-conteudo { background-color: #1f1f1f; color: #eee; }
+        body.modo-escuro .item-comparacao { border-color: #333; }
+        body.modo-escuro .comp-versao { background-color: #444; color: #fff; }
 
     </style>
 </head>
@@ -293,31 +305,29 @@
         <div id="area-versao" class="seletor-versao-container escondido">
             <span class="label-versao">Versão:</span>
             <select id="select-versao" onchange="mudarVersao()">
-                <option value="NVI">NVI - Nova Versão Internacional</option>
-                <option value="NVT">NVT - Nova Versão Transformadora</option>
-                <option value="ACF">ACF - Almeida Corrigida Fiel</option>
-                <option value="ARA">ARA - Almeida Revista e Atualizada</option>
-                <option value="ARC">ARC - Almeida Revista e Corrigida</option>
-                <option value="TB">TB - Tradução Brasileira</option>
-                <option value="KJA">KJA - King James Atualizada</option>
-                <option value="NAA">NAA - Nova Almeida Atualizada</option>
-                <option value="NBV">NBV - Nova Bíblia Viva</option>
-                <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
-                <option value="KJF">KJF - King James Fiel</option>
-                <option value="JFAA">JFA - João Ferreira de Almeida</option>
+                <option value="NVI">NVI</option>
+                <option value="NVT">NVT</option>
+                <option value="ACF">ACF</option>
+                <option value="ARA">ARA</option>
+                <option value="ARC">ARC</option>
+                <option value="TB">TB</option>
+                <option value="KJA">KJA</option>
+                <option value="NAA">NAA</option>
+                <option value="NBV">NBV</option>
+                <option value="NTLH">NTLH</option>
+                <option value="A21">A21</option>
+                <option value="KJF">KJF</option>
             </select>
         </div>
     </header>
 
-    <div id="loading">⏳ Carregando...</div>
+    <div id="loading">⏳ Processando...</div>
 
     <main id="area-principal">
         
         <div id="tab-biblia">
             <div id="tela-livros"></div>
             <div id="tela-capitulos" class="grade-capitulos escondido"></div>
-            
             <div id="tela-leitura" class="escondido">
                 <h2 id="titulo-capitulo-leitura" style="text-align:center; margin-top:0;"></h2>
                 <div id="texto-biblico" onclick="alternarImersao()"></div>
@@ -329,7 +339,6 @@
                 <button class="btn-hinario" onclick="abrirHinario('harpa')">🎵 Harpa Cristã</button>
                 <button class="btn-hinario" onclick="abrirHinario('cantor')">🎼 Cantor Cristão</button>
             </div>
-
             <div id="tela-lista-hinos" class="escondido">
                 <button class="btn-voltar-topo" onclick="voltarParaEscolhaHinario()">&#11013; Voltar aos Hinários</button>
                 <input type="text" id="busca-hino" placeholder="Número ou nome..." 
@@ -337,14 +346,33 @@
                        onkeyup="filtrarHinos()">
                 <div id="lista-hinos-container" class="lista-hinos"></div>
             </div>
-
             <div id="tela-leitura-hino" class="escondido">
                 <h2 id="titulo-hino-leitura" style="text-align:center; margin-top:0;"></h2>
                 <div id="texto-hino" onclick="alternarImersao()"></div>
             </div>
         </div>
 
+        <div id="tab-busca" class="escondido">
+            <div class="container-busca">
+                <div class="wrapper-input">
+                    <input type="text" id="input-busca" placeholder="Digite ou fale (ex: Jesus chorou)..." onkeyup="if(event.key === 'Enter') realizarBusca()">
+                    <button id="btn-mic" onclick="ativarMicrofone()">🎤</button>
+                </div>
+                <button class="btn-livro" style="width:100%; padding:10px;" onclick="realizarBusca()">🔍 Pesquisar</button>
+                <br><br>
+                <div id="resultados-busca"></div>
+            </div>
+        </div>
+
     </main>
+
+    <div id="modal-comparacao" class="modal-overlay escondido">
+        <div class="modal-conteudo">
+            <button class="btn-fechar-modal" onclick="fecharComparacao()">X Fechar</button>
+            <h3 id="titulo-comparacao" style="text-align:center; margin-top:0;">Comparando Versões</h3>
+            <div id="lista-comparacao"></div>
+        </div>
+    </div>
 
     <footer id="rodape-nav" class="escondido">
         <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Início</button>
@@ -356,55 +384,41 @@
         <button class="aba ativa" onclick="mudarAba('biblia')" id="btn-aba-biblia">
             <span class="icone-aba">📖</span> Bíblia
         </button>
+        <button class="aba" onclick="mudarAba('busca')" id="btn-aba-busca">
+            <span class="icone-aba">🔍</span> Busca
+        </button>
         <button class="aba" onclick="mudarAba('hinarios')" id="btn-aba-hinarios">
             <span class="icone-aba">🎵</span> Hinários
         </button>
     </nav>
 
     <script>
-        // --- CÓDIGO DE ATUALIZAÇÃO AUTOMÁTICA (SUBSTITUA O ANTIGO POR ESTE) ---
+        // --- SERVICE WORKER COM AUTO-REFRESH ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(registration => {
-                    console.log('SW registrado com sucesso:', registration.scope);
-
-                    // Se já houver uma atualização esperando (baixada mas não ativa)
-                    if (registration.waiting) {
-                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                    }
-
-                    // Detecta quando o navegador encontra uma nova versão no GitHub
+                    if (registration.waiting) { registration.waiting.postMessage({ type: 'SKIP_WAITING' }); }
                     registration.onupdatefound = () => {
                         const installingWorker = registration.installing;
-                        if (installingWorker == null) {
-                            return;
-                        }
                         installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed') {
-                                if (navigator.serviceWorker.controller) {
-                                    // Nova atualização disponível e instalada!
-                                    console.log('Nova versão detectada. O app será recarregado...');
-                                } else {
-                                    console.log('Conteúdo cacheado para uso offline.');
-                                }
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                window.location.reload(); 
                             }
                         };
                     };
-                }).catch(error => {
-                    console.log('Falha ao registrar o SW:', error);
+                    registration.update();
                 });
-            });
-
-            // O PULO DO GATO: Recarrega a página assim que o novo SW assumir o controle
-            let refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                window.location.reload();
-                refreshing = true;
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    window.location.reload();
+                    refreshing = true;
+                });
             });
         }
 
         // --- DADOS ESTRUTURAIS ---
+        const listaLivros = ["Gênesis","Êxodo","Levítico","Números","Deuteronômio","Josué","Juízes","Rute","1 Samuel","2 Samuel","1 Reis","2 Reis","1 Crônicas","2 Crônicas","Esdras","Neemias","Ester","Jó","Salmos","Provérbios","Eclesiastes","Cânticos","Isaías","Jeremias","Lamentações","Ezequiel","Daniel","Oseias","Joel","Amós","Obadias","Jonas","Miqueias","Naum","Habacuque","Sofonias","Ageu","Zacarias","Malaquias","Mateus","Marcos","Lucas","João","Atos","Romanos","1 Coríntios","2 Coríntios","Gálatas","Efésios","Filipenses","Colossenses","1 Tessalonicenses","2 Tessalonicenses","1 Timóteo","2 Timóteo","Tito","Filemom","Hebreus","Tiago","1 Pedro","2 Pedro","1 João","2 João","3 João","Judas","Apocalipse"];
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
 
@@ -432,6 +446,7 @@
         const areaPrincipal = document.getElementById('area-principal');
 
         const tabBiblia = document.getElementById('tab-biblia');
+        const tabBusca = document.getElementById('tab-busca');
         const tabHinarios = document.getElementById('tab-hinarios');
         
         const telaLivros = document.getElementById('tela-livros');
@@ -439,38 +454,24 @@
         const telaLeitura = document.getElementById('tela-leitura');
         const textoBiblico = document.getElementById('texto-biblico');
         
-        const telaEscolhaHinario = document.getElementById('tela-escolha-hinario');
-        const telaListaHinos = document.getElementById('tela-lista-hinos');
-        const telaLeituraHino = document.getElementById('tela-leitura-hino');
-
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
             renderizarLivros();
-            
-            // Carregar versão salva
             const versaoSalva = localStorage.getItem('versaoBiblia');
-            if (versaoSalva) {
-                selectVersao.value = versaoSalva;
-            }
+            if (versaoSalva) selectVersao.value = versaoSalva;
             carregarVersaoBiblia(selectVersao.value);
         }
 
-        // --- GESTÃO DE TEMAS ---
         function alternarTema() {
             document.body.classList.toggle('modo-escuro');
-            let escuroAtivo = document.body.classList.contains('modo-escuro');
-            localStorage.setItem('temaEscuro', escuroAtivo);
-            
+            localStorage.setItem('temaEscuro', document.body.classList.contains('modo-escuro'));
             let metaTheme = document.querySelector('meta[name="theme-color"]');
-            if(metaTheme) {
-                metaTheme.setAttribute('content', escuroAtivo ? '#1f1f1f' : '#2c3e50');
-            }
+            if(metaTheme) metaTheme.setAttribute('content', document.body.classList.contains('modo-escuro') ? '#1f1f1f' : '#2c3e50');
         }
 
         function carregarTemaSalvo() {
-            let escuroSalvo = localStorage.getItem('temaEscuro');
-            if (escuroSalvo === 'true') {
+            if (localStorage.getItem('temaEscuro') === 'true') {
                 document.body.classList.add('modo-escuro');
                 let metaTheme = document.querySelector('meta[name="theme-color"]');
                 if(metaTheme) metaTheme.setAttribute('content', '#1f1f1f');
@@ -479,22 +480,14 @@
 
         async function carregarVersaoBiblia(versao) {
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
-
             mostrarLoading(true);
             try {
                 const resp = await fetch(`./${versao}.json`);
                 if(!resp.ok) throw new Error("Arquivo não encontrado");
-                
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
-                console.log(`Versão ${versao} carregada com sucesso!`);
-
-                if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
-                    lerCapitulo(capituloAtual);
-                }
-
+                if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') lerCapitulo(capituloAtual);
             } catch (e) {
-                alert(`Erro ao carregar a versão ${versao}. Verifique se o arquivo JSON existe.`);
                 console.error(e);
             } finally {
                 mostrarLoading(false);
@@ -506,23 +499,17 @@
             carregarVersaoBiblia(selectVersao.value);
         }
 
-        // --- LÓGICA DE INTERFACE ---
-        
+        // --- INTERFACE ---
         function alternarBarras(modo) {
             corpoApp.classList.remove('imersivo');
-
             if (modo === 'leitura') {
                 corpoApp.classList.add('modo-leitura');
-                
                 abasPrincipais.classList.add('escondido');
                 rodape.classList.remove('escondido');
-                
                 if(modoAtual === 'biblia') areaVersao.classList.remove('escondido');
                 else areaVersao.classList.add('escondido');
-
-            } else { // Navegação
+            } else { 
                 corpoApp.classList.remove('modo-leitura');
-
                 abasPrincipais.classList.remove('escondido');
                 rodape.classList.add('escondido');
                 areaVersao.classList.add('escondido');
@@ -530,9 +517,7 @@
         }
 
         function alternarImersao() {
-            if (corpoApp.classList.contains('modo-leitura')) {
-                corpoApp.classList.toggle('imersivo');
-            }
+            if (corpoApp.classList.contains('modo-leitura')) corpoApp.classList.toggle('imersivo');
         }
 
         function mudarAba(aba) {
@@ -541,6 +526,7 @@
             document.getElementById(`btn-aba-${aba}`).classList.add('ativa');
             
             tabBiblia.classList.add('escondido');
+            tabBusca.classList.add('escondido');
             tabHinarios.classList.add('escondido');
             
             alternarBarras('navegacao');
@@ -548,33 +534,24 @@
             if (aba === 'biblia') {
                 tabBiblia.classList.remove('escondido');
                 tituloApp.innerText = "Bíblia Sagrada";
-                
-                if (!telaLeitura.classList.contains('escondido')) {
-                    alternarBarras('leitura');
-                } else {
-                    renderizarLivros();
-                }
+                if (!telaLeitura.classList.contains('escondido')) alternarBarras('leitura');
+            } else if (aba === 'busca') {
+                tabBusca.classList.remove('escondido');
+                tituloApp.innerText = "Busca Inteligente";
+                document.getElementById('input-busca').focus();
             } else {
                 tabHinarios.classList.remove('escondido');
                 tituloApp.innerText = "Hinários";
-                
-                if (telaLeituraHino.classList.contains('escondido')) {
-                    telaListaHinos.classList.add('escondido');
-                    telaEscolhaHinario.classList.remove('escondido');
-                } else {
-                    alternarBarras('leitura');
-                }
+                if (!document.getElementById('tela-leitura-hino').classList.contains('escondido')) alternarBarras('leitura');
             }
         }
 
-        // --- FUNÇÕES DA BÍBLIA ---
-        
+        // --- BÍBLIA ---
         function renderizarLivros() {
             telaLivros.innerHTML = "";
             telaCapitulos.classList.add('escondido');
             telaLeitura.classList.add('escondido');
             telaLivros.classList.remove('escondido');
-            
             alternarBarras('navegacao'); 
             tituloApp.innerText = "Bíblia Sagrada";
 
@@ -583,10 +560,8 @@
                 divTitulo.className = 'separador-testamento';
                 divTitulo.innerText = titulo;
                 telaLivros.appendChild(divTitulo);
-                
                 const grid = document.createElement('div');
                 grid.className = 'grade-livros';
-                
                 lista.forEach((livro, index) => {
                     const btn = document.createElement('button');
                     btn.className = 'btn-livro';
@@ -605,12 +580,10 @@
             livroAtualIndex = indexGlobal;
             livroAtualNome = nome;
             livroAtualMaxCaps = totalCaps;
-            
             tituloApp.innerText = nome;
             telaLivros.classList.add('escondido');
             telaCapitulos.classList.remove('escondido');
             telaCapitulos.innerHTML = "";
-            
             alternarBarras('navegacao');
 
             const btnVoltar = document.createElement('button');
@@ -632,86 +605,214 @@
             if (!bibliaCompleta) return;
             capituloAtual = numero;
             mostrarLoading(true);
-
             try {
                 const livroDados = bibliaCompleta[livroAtualIndex];
-                if (!livroDados) throw new Error("Livro não encontrado.");
-                
                 const capituloTextoArray = livroDados.chapters[capituloAtual - 1];
-                if (!capituloTextoArray) throw new Error("Capítulo não encontrado.");
-
                 let html = "";
                 capituloTextoArray.forEach((versiculo, idx) => {
                     html += `<span class="versiculo-num">${idx + 1}</span> ${versiculo}<br><br>`;
                 });
-
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
                 textoBiblico.innerHTML = html;
-                
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
-                
                 alternarBarras('leitura');
-                
-                // --- CORREÇÃO DO SCROLL (INSTANTÂNEO) ---
                 areaPrincipal.scrollTop = 0; 
                 window.scrollTo(0,0);
-
             } catch (erro) {
                 console.error(erro);
-                textoBiblico.innerHTML = "<p>Erro ao carregar o texto. Verifique se o arquivo JSON está correto.</p>";
             } finally {
                 mostrarLoading(false);
             }
         }
 
-        // --- FUNÇÕES DOS HINÁRIOS ---
+        // --- BUSCA INTELIGENTE ---
+        function normalizarTexto(txt) {
+            return txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,;?!]/g,"");
+        }
 
-        async function abrirHinario(tipo) {
-            telaEscolhaHinario.classList.add('escondido');
-            mostrarLoading(true);
+        function ativarMicrofone() {
+            const btnMic = document.getElementById('btn-mic');
+            const inputBusca = document.getElementById('input-busca');
             
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert("Seu navegador não suporta reconhecimento de voz.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = false;
+
+            recognition.onstart = function() {
+                btnMic.classList.add('ouvindo');
+                inputBusca.placeholder = "Ouvindo... Pode falar!";
+            };
+
+            recognition.onend = function() {
+                btnMic.classList.remove('ouvindo');
+                inputBusca.placeholder = "Digite ou fale...";
+            };
+
+            recognition.onresult = function(event) {
+                const resultado = event.results[0][0].transcript;
+                inputBusca.value = resultado;
+                realizarBusca();
+            };
+
+            recognition.start();
+        }
+
+        function realizarBusca() {
+            const termoOriginal = document.getElementById('input-busca').value.trim();
+            if (termoOriginal.length < 3) return alert("Digite pelo menos 3 letras.");
+            if (!bibliaCompleta) return alert("Aguarde a Bíblia carregar.");
+
+            mostrarLoading(true);
+            document.getElementById('input-busca').blur();
+            const container = document.getElementById('resultados-busca');
+            container.innerHTML = "";
+
+            const termoNorm = normalizarTexto(termoOriginal);
+            const palavrasChave = termoNorm.split(" ").filter(p => p.length > 2);
+            
+            let resultados = [];
+
+            // Algoritmo de Busca
+            bibliaCompleta.forEach((livro, indexLivro) => {
+                livro.chapters.forEach((capitulo, indexCap) => {
+                    capitulo.forEach((versiculo, indexVer) => {
+                        const versiculoNorm = normalizarTexto(versiculo);
+                        let pontuacao = 0;
+
+                        // 1. Busca Exata (Peso alto)
+                        if (versiculoNorm.includes(termoNorm)) pontuacao += 100;
+
+                        // 2. Busca por Palavras (Peso médio)
+                        let palavrasEncontradas = 0;
+                        palavrasChave.forEach(palavra => {
+                            if (versiculoNorm.includes(palavra)) {
+                                pontuacao += 10;
+                                palavrasEncontradas++;
+                            }
+                        });
+
+                        // Só adiciona se tiver relevância
+                        if (pontuacao > 0) {
+                            resultados.push({
+                                livro: livro.nome,
+                                cap: indexCap + 1,
+                                ver: indexVer + 1,
+                                texto: versiculo,
+                                pontos: pontuacao + (palavrasEncontradas * 5),
+                                rawIndexLivro: indexLivro
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Ordenar por relevância
+            resultados.sort((a, b) => b.pontos - a.pontos);
+            const topResultados = resultados.slice(0, 50); // Limita a 50 resultados para não travar
+
+            if (topResultados.length === 0) {
+                container.innerHTML = "<p>Nenhum resultado encontrado.</p>";
+            } else {
+                topResultados.forEach(res => {
+                    const div = document.createElement('div');
+                    div.className = 'resultado-item';
+                    div.innerHTML = `
+                        <span class="res-ref">${res.livro} ${res.cap}:${res.ver}</span>
+                        <div class="res-texto">${res.texto}</div>
+                        <button class="btn-comparar" onclick="abrirComparacao(${res.rawIndexLivro}, ${res.cap}, ${res.ver}, '${res.livro}')">
+                            🌐 Ver em todas as versões
+                        </button>
+                    `;
+                    div.onclick = (e) => {
+                        if(e.target.className !== 'btn-comparar') {
+                            // Ir para leitura
+                            livroAtualIndex = res.rawIndexLivro;
+                            livroAtualNome = res.livro;
+                            livroAtualMaxCaps = bibliaCompleta[res.rawIndexLivro].chapters.length;
+                            lerCapitulo(res.cap);
+                            mudarAba('biblia');
+                        }
+                    };
+                    container.appendChild(div);
+                });
+            }
+            mostrarLoading(false);
+        }
+
+        // --- COMPARADOR DE VERSÕES ---
+        async function abrirComparacao(idxLivro, cap, ver, nomeLivro) {
+            const modal = document.getElementById('modal-comparacao');
+            const lista = document.getElementById('lista-comparacao');
+            const titulo = document.getElementById('titulo-comparacao');
+            
+            modal.classList.remove('escondido');
+            lista.innerHTML = "<div style='text-align:center; padding:20px;'>Carregando versões...</div>";
+            titulo.innerText = `${nomeLivro} ${cap}:${ver}`;
+
+            const versoesDisponiveis = ["NVI", "NVT", "ACF", "ARA", "ARC", "TB", "KJA", "NAA", "NBV", "NTLH", "A21", "KJF"];
+            let htmlFinal = "";
+
+            // Busca paralela em todos os arquivos (só o necessário)
+            const promessas = versoesDisponiveis.map(async (v) => {
+                try {
+                    // Nota: Isso carrega o arquivo. Em produção real, ideal seria ter endpoints.
+                    // Aqui, confiamos no cache do browser para ser rápido nas próximas vezes.
+                    const resp = await fetch(`./${v}.json`);
+                    if(resp.ok) {
+                        const json = await resp.json();
+                        const texto = json[idxLivro].chapters[cap-1][ver-1];
+                        return `<div class="item-comparacao">
+                                    <span class="comp-versao">${v}</span>
+                                    <span class="comp-texto">${texto}</span>
+                                </div>`;
+                    }
+                } catch(e) { return ""; }
+            });
+
+            const resultados = await Promise.all(promessas);
+            lista.innerHTML = resultados.join("");
+        }
+
+        function fecharComparacao() {
+            document.getElementById('modal-comparacao').classList.add('escondido');
+        }
+
+        // --- HINÁRIOS E NAVEGAÇÃO ---
+        // (Código de hinários permanece igual ao anterior)
+        async function abrirHinario(tipo) {
+            document.getElementById('tela-escolha-hinario').classList.add('escondido');
+            mostrarLoading(true);
             let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
             tituloApp.innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
-
             try {
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
                     const resp = await fetch(url);
-                    if(!resp.ok) throw new Error("Erro de rede");
-                    
                     let json = await resp.json();
                     let listaFinal = [];
-
                     if (Array.isArray(json)) {
-                        listaFinal = json.map(h => ({
-                            numero: h.numero || h.number || h.id, 
-                            titulo: h.titulo || h.title,
-                            letra: h.letra || h.text || h.verses || h.lyrics
-                        }));
+                        listaFinal = json.map(h => ({ numero: h.numero || h.number || h.id, titulo: h.titulo || h.title, letra: h.letra || h.text || h.verses || h.lyrics }));
                     } else {
-                        listaFinal = Object.values(json)
-                            .filter(obj => obj.hino)
-                            .map(obj => {
-                                let partes = obj.hino.split(" - ");
-                                let num = partes[0].trim();
-                                let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
-                                let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
-                                return { numero: num, titulo: tit, letra: letraArr };
-                            });
+                        listaFinal = Object.values(json).filter(obj => obj.hino).map(obj => {
+                            let partes = obj.hino.split(" - ");
+                            return { numero: partes[0].trim(), titulo: partes.slice(1).join(" - ").trim(), letra: obj.verses };
+                        });
                         listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
                     }
                     dadosHinario = listaFinal;
                     dadosHinario.tipo = tipo; 
                 }
                 renderizarListaHinos();
-                telaListaHinos.classList.remove('escondido');
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
                 alternarBarras('navegacao');
-            } catch(e) {
-                alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
-                telaEscolhaHinario.classList.remove('escondido');
-            } finally {
-                mostrarLoading(false);
-            }
+            } catch(e) { alert("Erro ao abrir Hinário."); document.getElementById('tela-escolha-hinario').classList.remove('escondido'); } 
+            finally { mostrarLoading(false); }
         }
 
         function renderizarListaHinos(filtro = "") {
@@ -728,76 +829,51 @@
                 }
             });
         }
-
-        function filtrarHinos() { 
-            renderizarListaHinos(document.getElementById('busca-hino').value); 
-        }
-
+        function filtrarHinos() { renderizarListaHinos(document.getElementById('busca-hino').value); }
         function lerHino(index) {
             hinoAtual = index;
             const hino = dadosHinario[index];
             let letraRaw = hino.letra;
             let letraHTML = "";
-
-            if (!letraRaw) {
-                letraHTML = "<p>Letra indisponível.</p>";
-            } else if (Array.isArray(letraRaw)) {
-                letraRaw.forEach(estrofe => {
-                     let texto = (typeof estrofe === 'string') ? estrofe : (estrofe.verse || estrofe.text || "");
-                     letraHTML += `<div class="estrofe-hino">${texto.replace(/\n/g, '<br>')}</div>`;
-                });
-            } else {
-                letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
-            }
-
+            if (!letraRaw) letraHTML = "<p>Letra indisponível.</p>";
+            else if (Array.isArray(letraRaw)) letraRaw.forEach(e => { letraHTML += `<div class="estrofe-hino">${(typeof e === 'string' ? e : e.text).replace(/\n/g, '<br>')}</div>`; });
+            else letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
             document.getElementById('titulo-hino-leitura').innerText = `${hino.numero}. ${hino.titulo}`;
             document.getElementById('texto-hino').innerHTML = letraHTML;
-            
-            telaListaHinos.classList.add('escondido');
-            telaLeituraHino.classList.remove('escondido');
-            
+            document.getElementById('tela-lista-hinos').classList.add('escondido');
+            document.getElementById('tela-leitura-hino').classList.remove('escondido');
             alternarBarras('leitura');
-            
-            // --- CORREÇÃO DO SCROLL ---
-            areaPrincipal.scrollTop = 0; 
-            window.scrollTo(0,0);
+            areaPrincipal.scrollTop = 0; window.scrollTo(0,0);
         }
-
         function voltarParaEscolhaHinario() {
-            telaListaHinos.classList.add('escondido');
-            telaEscolhaHinario.classList.remove('escondido');
+            document.getElementById('tela-lista-hinos').classList.add('escondido');
+            document.getElementById('tela-escolha-hinario').classList.remove('escondido');
             tituloApp.innerText = "Hinários";
             alternarBarras('navegacao');
         }
-
         function voltarInicioLeitura() {
             alternarBarras('navegacao');
-            
             if (modoAtual === 'biblia') {
                 telaLeitura.classList.add('escondido');
                 telaCapitulos.classList.remove('escondido');
                 tituloApp.innerText = livroAtualNome;
-            } else {
-                telaLeituraHino.classList.add('escondido');
-                telaListaHinos.classList.remove('escondido');
+            } else if (modoAtual === 'hinarios') {
+                document.getElementById('tela-leitura-hino').classList.add('escondido');
+                document.getElementById('tela-lista-hinos').classList.remove('escondido');
             }
         }
-
         function navegarConteudo(direcao) {
             if (modoAtual === 'biblia') {
                 const novoCap = capituloAtual + direcao;
                 if (novoCap < 1 || novoCap > livroAtualMaxCaps) return alert("Fim do livro.");
                 lerCapitulo(novoCap);
-            } else {
+            } else if (modoAtual === 'hinarios') {
                 const novoIndex = hinoAtual + direcao;
                 if (novoIndex < 0 || novoIndex >= dadosHinario.length) return alert("Fim do hinário.");
                 lerHino(novoIndex);
             }
         }
-
-        function mostrarLoading(ativo) { 
-            loading.style.display = ativo ? 'block' : 'none'; 
-        }
+        function mostrarLoading(ativo) { loading.style.display = ativo ? 'block' : 'none'; }
 
         iniciarApp();
     </script>
