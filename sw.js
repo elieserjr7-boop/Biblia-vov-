@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblia-vovo-v7';
+const CACHE_NAME = 'biblia-vovo-v9';
 const urlsToCache = [
   './biblia.html',
   './manifest.json',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache atualizado (v7) - Arquivos Locais');
+        console.log('Cache atualizado (v9) - Correção Harpa');
         return cache.addAll(urlsToCache);
       })
   );
