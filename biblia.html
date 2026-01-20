@@ -361,8 +361,46 @@
     </nav>
 
     <script>
+        // --- CÓDIGO DE ATUALIZAÇÃO AUTOMÁTICA (SUBSTITUA O ANTIGO POR ESTE) ---
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(registration => {
+                    console.log('SW registrado com sucesso:', registration.scope);
+
+                    // Se já houver uma atualização esperando (baixada mas não ativa)
+                    if (registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+
+                    // Detecta quando o navegador encontra uma nova versão no GitHub
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        if (installingWorker == null) {
+                            return;
+                        }
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // Nova atualização disponível e instalada!
+                                    console.log('Nova versão detectada. O app será recarregado...');
+                                } else {
+                                    console.log('Conteúdo cacheado para uso offline.');
+                                }
+                            }
+                        };
+                    };
+                }).catch(error => {
+                    console.log('Falha ao registrar o SW:', error);
+                });
+            });
+
+            // O PULO DO GATO: Recarrega a página assim que o novo SW assumir o controle
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
+            });
         }
 
         // --- DADOS ESTRUTURAIS ---
