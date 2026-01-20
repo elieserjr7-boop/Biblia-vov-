@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" href="./icon-192.png">
 
     <style>
-        /* --- ESTILO (CSS) --- */
+        /* --- ESTILO GERAL (CSS) --- */
         * { box-sizing: border-box; }
 
         body {
@@ -28,132 +28,180 @@
             display: flex;
             flex-direction: column;
             height: 100vh; 
-            overflow: hidden; 
+            overflow: hidden; /* Impede rolagem dupla */
         }
 
-        /* CABEÇALHO */
+        /* --- CABEÇALHO (FIXO/FLUTUANTE) --- */
         header {
+            position: fixed; /* Fica PRESO no topo, sobrepondo o conteúdo */
+            top: 0; left: 0; right: 0;
             background-color: #2c3e50;
             color: white;
-            padding-top: max(20px, env(safe-area-inset-top)); 
+            padding-top: max(15px, env(safe-area-inset-top)); 
             padding-bottom: 15px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 20;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1000; /* Garante que fique acima do texto */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            will-change: transform;
         }
 
-        h1 { margin: 0; font-size: 22px; }
+        h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 
         /* SELETOR DE VERSÃO */
         .seletor-versao-container {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 10px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
             border-radius: 8px;
             width: 90%;
+            max-width: 350px;
+            margin: 10px auto 0 auto; /* Centralizado */
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
+        
         .label-versao { font-size: 14px; font-weight: normal; color: #ecf0f1; white-space: nowrap; }
+        
         #select-versao {
-            padding: 8px; border-radius: 5px; border: none;
-            font-size: 16px; font-weight: bold; color: #2c3e50; background-color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #fff;
             width: 100%;
-            max-width: 200px;
+            flex: 1;
         }
 
-        /* CORPO PRINCIPAL */
+        /* --- CORPO PRINCIPAL (ÁREA DE ROLAGEM) --- */
         main {
             flex: 1; 
-            overflow-y: auto; 
-            padding: 15px;
-            padding-bottom: 100px; 
-            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* Rolagem interna */
+            -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
             position: relative;
+            z-index: 1;
+            
+            /* PADDING INTELIGENTE:
+               Aqui está o segredo. Damos um espaço no topo igual à altura do cabeçalho
+               para o texto não começar escondido.
+            */
+            padding-top: 130px; 
+            padding-bottom: 120px; /* Espaço para o rodapé */
+            
+            /* Transição suave do padding quando entrar no modo imersivo */
+            transition: padding-top 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         /* GERAL - ELEMENTOS VISUAIS */
         .separador-testamento {
-            background-color: #d35400; color: white; padding: 12px;
-            font-size: 20px; font-weight: bold; text-align: center;
-            border-radius: 8px; margin-top: 25px; margin-bottom: 15px;
-            text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background-color: #d35400; 
+            color: white; 
+            padding: 12px;
+            font-size: 20px; 
+            font-weight: bold; 
+            text-align: center;
+            border-radius: 8px; 
+            margin: 25px 15px 15px 15px; /* Margens laterais para não colar na borda */
+            text-transform: uppercase; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .separador-testamento:first-child { margin-top: 0; }
+        .separador-testamento:first-child { margin-top: 10px; }
 
         .grade-livros { 
-            display: grid; gap: 12px; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            padding-bottom: 10px; 
+            display: grid; 
+            gap: 12px; 
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            padding: 0 15px 20px 15px;
         }
 
         .grade-capitulos { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding-bottom: 20px; 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 10px; 
+            padding: 15px;
         }
 
         /* BOTÕES */
         button { touch-action: manipulation; }
         button:active { transform: scale(0.96); opacity: 0.8; }
 
-        .btn-livro, .btn-hinario {
+        .btn-livro {
             background-color: #ecf0f1; border: 2px solid #bdc3c7;
-            padding: 18px; font-size: 18px; text-align: center;
+            padding: 15px; font-size: 16px; text-align: center;
+            border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
+        }
+        
+        .btn-hinario {
+            background-color: #ecf0f1; border: 2px solid #bdc3c7;
+            padding: 20px; font-size: 18px; text-align: center;
             border-radius: 10px; cursor: pointer; font-weight: bold; color: #2c3e50;
         }
 
         .btn-capitulo {
-            padding: 20px; font-size: 24px; background-color: #fff;
-            border: 2px solid #2c3e50; border-radius: 12px; cursor: pointer;
+            padding: 15px; font-size: 20px; background-color: #fff;
+            border: 2px solid #2c3e50; border-radius: 8px; cursor: pointer;
             color: #2c3e50; font-weight: bold;
         }
 
         .btn-voltar-topo {
-            grid-column: 1 / -1; background-color: #e74c3c; color: white; border: none;
-            padding: 15px; font-size: 20px; border-radius: 12px;
-            cursor: pointer; margin-bottom: 10px;
+            grid-column: 1 / -1; 
+            background-color: #e74c3c; color: white; border: none;
+            padding: 15px; font-size: 18px; border-radius: 12px;
+            cursor: pointer; margin: 10px 15px 20px 15px;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
 
-        /* LEITURA */
+        /* ÁREA DE LEITURA (TEXTO) */
         #texto-biblico, #texto-hino {
-            font-size: 26px; line-height: 1.8; padding: 5px;
-            text-align: left; margin-bottom: 30px;
-            /* Permite clicar no texto */
-            cursor: pointer; 
-            -webkit-tap-highlight-color: transparent;
+            font-size: 24px; 
+            line-height: 1.8; 
+            padding: 0 20px;
+            text-align: left; 
+            margin-bottom: 40px;
+            cursor: pointer; /* Indica que é clicável */
+            -webkit-tap-highlight-color: transparent; /* Remove flash azul no clique */
         }
+        
         .versiculo-num {
-            font-size: 18px; color: #e67e22; font-weight: bold;
-            vertical-align: super; margin-right: 5px;
+            font-size: 16px; 
+            color: #e67e22; 
+            font-weight: bold;
+            vertical-align: super; 
+            margin-right: 4px;
+            user-select: none;
         }
 
         /* HINÁRIOS LISTA */
-        .lista-hinos { display: flex; flex-direction: column; gap: 10px; }
+        .lista-hinos { 
+            display: flex; flex-direction: column; gap: 10px; 
+            padding: 0 15px;
+        }
         .item-hino {
             background: white; border: 1px solid #bdc3c7; padding: 15px;
             border-radius: 8px; font-size: 18px; color: #2c3e50; text-align: left; cursor: pointer;
         }
         .estrofe-hino { margin-bottom: 25px; }
 
-        /* --- BARRA DE NAVEGAÇÃO (Leitura) --- */
+        /* --- BARRA DE NAVEGAÇÃO (RODAPÉ FIXO) --- */
         #rodape-nav {
             background-color: #ecf0f1; 
             padding: 10px;
             display: flex; gap: 15px;
             border-top: 3px solid #bdc3c7;
+            
             position: fixed; 
             bottom: 0; left: 0; right: 0;
-            z-index: 50; 
+            z-index: 1000; 
+            
             padding-bottom: max(10px, env(safe-area-inset-bottom));
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .btn-nav {
@@ -164,12 +212,12 @@
         }
         .btn-voltar-menu { background-color: #d35400; font-size: 16px; flex: 1; }
 
-        /* --- BARRA DE ABAS (Menu Principal) --- */
+        /* --- BARRA DE ABAS (MENU PRINCIPAL) --- */
         #abas-principais {
             position: fixed; bottom: 0; left: 0; right: 0;
             height: 70px; background-color: #fff;
             display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 40;
+            z-index: 900;
             padding-bottom: env(safe-area-inset-bottom);
         }
         .aba {
@@ -183,21 +231,35 @@
         /* UTILITÁRIOS */
         .escondido { display: none !important; }
         
-        /* Classes para o modo imersivo (ocultar barras) */
-        .ocultar-topo { transform: translateY(-100%); }
-        .ocultar-rodape { transform: translateY(100%); }
+        /* --- MÁGICA DO MODO IMERSIVO --- */
+        
+        /* 1. Joga o cabeçalho para fora da tela (cima) */
+        body.imersivo header { 
+            transform: translateY(-100%); 
+        }
+        
+        /* 2. Joga o rodapé para fora da tela (baixo) */
+        body.imersivo #rodape-nav { 
+            transform: translateY(100%); 
+        }
+        
+        /* 3. Remove o padding do topo do MAIN, fazendo o texto subir */
+        body.imersivo main {
+            padding-top: env(safe-area-inset-top); /* Deixa apenas a área segura do notch */
+            padding-bottom: 20px;
+        }
 
         #loading {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 24px; color: #e67e22; background: rgba(255,255,255,0.95);
-            padding: 20px; border-radius: 10px; z-index: 60;
+            padding: 20px; border-radius: 10px; z-index: 2000;
             display: none; width: 80%; text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
     </style>
 </head>
-<body>
+<body id="corpo-app">
 
     <header id="cabecalho-principal">
         <h1 id="titulo-app">Bíblia Sagrada</h1>
@@ -216,7 +278,7 @@
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
                 <option value="NBV">NBV - Nova Bíblia Viva</option>
                 <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
+                <option value="A21">A21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
             </select>
         </div>
@@ -238,14 +300,14 @@
 
         <div id="tab-hinarios" class="escondido">
             <div id="tela-escolha-hinario" class="grade-livros" style="margin-top:20px;">
-                <button class="btn-livro" onclick="abrirHinario('harpa')">🎵 Harpa Cristã</button>
-                <button class="btn-livro" onclick="abrirHinario('cantor')">🎼 Cantor Cristão</button>
+                <button class="btn-hinario" onclick="abrirHinario('harpa')">🎵 Harpa Cristã</button>
+                <button class="btn-hinario" onclick="abrirHinario('cantor')">🎼 Cantor Cristão</button>
             </div>
 
             <div id="tela-lista-hinos" class="escondido">
                 <button class="btn-voltar-topo" onclick="voltarParaEscolhaHinario()">&#11013; Voltar aos Hinários</button>
                 <input type="text" id="busca-hino" placeholder="Número ou nome..." 
-                       style="width:100%; padding:15px; margin-bottom:15px; font-size:18px; border-radius:8px; border:1px solid #ccc;"
+                       style="width:90%; padding:15px; margin: 0 auto 15px auto; display:block; font-size:18px; border-radius:8px; border:1px solid #ccc;"
                        onkeyup="filtrarHinos()">
                 <div id="lista-hinos-container" class="lista-hinos"></div>
             </div>
@@ -278,14 +340,15 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
         }
 
-        // --- DADOS BÍBLIA (ESTRUTURA) ---
+        // --- DADOS ESTRUTURAIS ---
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
 
+        // VARIÁVEIS DE ESTADO
         let modoAtual = 'biblia';
-        
         let bibliaCompleta = null;
         let versaoCarregadaNome = "";
+        
         let livroAtualIndex = 0; 
         let livroAtualNome = "";
         let livroAtualMaxCaps = 0;
@@ -294,9 +357,11 @@
         let dadosHinario = [];
         let hinoAtual = 1;
 
+        // ELEMENTOS DOM
+        const corpoApp = document.getElementById('corpo-app');
         const loading = document.getElementById('loading');
+        const cabecalho = document.getElementById('cabecalho-principal');
         const areaVersao = document.getElementById('area-versao');
-        const cabecalho = document.getElementById('cabecalho-principal'); // Referência ao cabeçalho
         const rodape = document.getElementById('rodape-nav');
         const abasPrincipais = document.getElementById('abas-principais');
         const selectVersao = document.getElementById('select-versao');
@@ -314,6 +379,7 @@
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
 
+        // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             renderizarLivros();
             carregarVersaoBiblia(selectVersao.value);
@@ -329,14 +395,15 @@
                 
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
-                console.log(`Versão ${versao} carregada!`);
+                console.log(`Versão ${versao} carregada com sucesso!`);
 
+                // Se estiver lendo, recarrega o capítulo na nova versão
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
 
             } catch (e) {
-                alert(`Não foi possível carregar a versão ${versao}.`);
+                alert(`Erro ao carregar a versão ${versao}. Verifique se o arquivo JSON existe.`);
                 console.error(e);
             } finally {
                 mostrarLoading(false);
@@ -347,34 +414,30 @@
             carregarVersaoBiblia(selectVersao.value);
         }
 
+        // --- LÓGICA DE INTERFACE ---
+        
         function alternarBarras(modo) {
-            // Reseta qualquer estado de imersão ao trocar de tela
-            cabecalho.classList.remove('ocultar-topo');
-            rodape.classList.remove('ocultar-rodape');
+            // Reseta modo imersivo ao trocar de tela
+            corpoApp.classList.remove('imersivo');
 
             if (modo === 'leitura') {
                 abasPrincipais.classList.add('escondido');
                 rodape.classList.remove('escondido');
                 
-                // MOSTRAR o seletor de versão APENAS na leitura da Bíblia
-                if(modoAtual === 'biblia') {
-                    areaVersao.classList.remove('escondido');
-                } else {
-                    areaVersao.classList.add('escondido'); // Esconde se for hinário
-                }
+                // Mostra seletor de versão só na Bíblia
+                if(modoAtual === 'biblia') areaVersao.classList.remove('escondido');
+                else areaVersao.classList.add('escondido');
 
-            } else { // Navegação (Listas)
+            } else { // Navegação
                 abasPrincipais.classList.remove('escondido');
                 rodape.classList.add('escondido');
-                areaVersao.classList.add('escondido'); // Esconde o seletor nas listas
+                areaVersao.classList.add('escondido');
             }
         }
 
-        // --- MODO IMERSIVO (CLICAR NO TEXTO) ---
         function alternarImersao() {
-            // Adiciona ou remove as classes que jogam o menu para fora da tela
-            cabecalho.classList.toggle('ocultar-topo');
-            rodape.classList.toggle('ocultar-rodape');
+            // Essa função ativa o CSS que esconde as barras e ajusta o padding
+            corpoApp.classList.toggle('imersivo');
         }
 
         function mudarAba(aba) {
@@ -385,7 +448,6 @@
             tabBiblia.classList.add('escondido');
             tabHinarios.classList.add('escondido');
             
-            // Ao mudar de aba, reseta para modo navegação
             alternarBarras('navegacao');
 
             if (aba === 'biblia') {
@@ -410,6 +472,8 @@
             }
         }
 
+        // --- FUNÇÕES DA BÍBLIA ---
+        
         function renderizarLivros() {
             telaLivros.innerHTML = "";
             telaCapitulos.classList.add('escondido');
@@ -491,31 +555,35 @@
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 
-                // Aqui ativa o modo leitura e mostra o seletor
                 alternarBarras('leitura');
                 window.scrollTo(0,0);
 
             } catch (erro) {
                 console.error(erro);
-                textoBiblico.innerHTML = "<p>Erro ao carregar texto.</p>";
+                textoBiblico.innerHTML = "<p>Erro ao carregar o texto. Verifique se o arquivo JSON está correto.</p>";
             } finally {
                 mostrarLoading(false);
             }
         }
 
+        // --- FUNÇÕES DOS HINÁRIOS ---
+
         async function abrirHinario(tipo) {
             telaEscolhaHinario.classList.add('escondido');
             mostrarLoading(true);
+            
             let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
             tituloApp.innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
 
             try {
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
                     const resp = await fetch(url);
-                    if(!resp.ok) throw new Error("Erro");
+                    if(!resp.ok) throw new Error("Erro de rede");
+                    
                     let json = await resp.json();
                     let listaFinal = [];
 
+                    // Normalização dos dados (Harpa vs Cantor)
                     if (Array.isArray(json)) {
                         listaFinal = json.map(h => ({
                             numero: h.numero || h.number || h.id, 
@@ -523,13 +591,15 @@
                             letra: h.letra || h.text || h.verses || h.lyrics
                         }));
                     } else {
-                        listaFinal = Object.values(json).filter(obj => obj.hino).map(obj => {
-                            let partes = obj.hino.split(" - ");
-                            let num = partes[0].trim();
-                            let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
-                            let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
-                            return { numero: num, titulo: tit, letra: letraArr };
-                        });
+                        listaFinal = Object.values(json)
+                            .filter(obj => obj.hino)
+                            .map(obj => {
+                                let partes = obj.hino.split(" - ");
+                                let num = partes[0].trim();
+                                let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
+                                let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
+                                return { numero: num, titulo: tit, letra: letraArr };
+                            });
                         listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
                     }
                     dadosHinario = listaFinal;
@@ -538,7 +608,7 @@
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
             } catch(e) {
-                alert("Erro ao abrir Hinário.");
+                alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
                 telaEscolhaHinario.classList.remove('escondido');
             } finally {
                 mostrarLoading(false);
@@ -560,15 +630,19 @@
             });
         }
 
-        function filtrarHinos() { renderizarListaHinos(document.getElementById('busca-hino').value); }
+        function filtrarHinos() { 
+            renderizarListaHinos(document.getElementById('busca-hino').value); 
+        }
 
         function lerHino(index) {
             hinoAtual = index;
             const hino = dadosHinario[index];
             let letraRaw = hino.letra;
             let letraHTML = "";
-            if (!letraRaw) letraHTML = "<p>Letra indisponível.</p>";
-            else if (Array.isArray(letraRaw)) {
+
+            if (!letraRaw) {
+                letraHTML = "<p>Letra indisponível.</p>";
+            } else if (Array.isArray(letraRaw)) {
                 letraRaw.forEach(estrofe => {
                      let texto = (typeof estrofe === 'string') ? estrofe : (estrofe.verse || estrofe.text || "");
                      letraHTML += `<div class="estrofe-hino">${texto.replace(/\n/g, '<br>')}</div>`;
@@ -576,10 +650,13 @@
             } else {
                 letraHTML = `<div class="estrofe-hino">${String(letraRaw).replace(/\n/g, '<br>')}</div>`;
             }
+
             document.getElementById('titulo-hino-leitura').innerText = `${hino.numero}. ${hino.titulo}`;
             document.getElementById('texto-hino').innerHTML = letraHTML;
+            
             telaListaHinos.classList.add('escondido');
             telaLeituraHino.classList.remove('escondido');
+            
             alternarBarras('leitura');
             window.scrollTo(0,0);
         }
@@ -591,11 +668,8 @@
         }
 
         function voltarInicioLeitura() {
-            // Garante que as barras reapareçam ao sair da leitura
-            cabecalho.classList.remove('ocultar-topo');
-            rodape.classList.remove('ocultar-rodape');
-
             alternarBarras('navegacao');
+            
             if (modoAtual === 'biblia') {
                 telaLeitura.classList.add('escondido');
                 telaCapitulos.classList.remove('escondido');
@@ -618,7 +692,9 @@
             }
         }
 
-        function mostrarLoading(ativo) { loading.style.display = ativo ? 'block' : 'none'; }
+        function mostrarLoading(ativo) { 
+            loading.style.display = ativo ? 'block' : 'none'; 
+        }
 
         iniciarApp();
     </script>
