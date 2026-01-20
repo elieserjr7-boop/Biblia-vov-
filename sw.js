@@ -17,6 +17,7 @@ const urlsToCache = [
   './TB.json',
   './KJA.json',
   './NAA.json',
+  './JFAA.json'
   './NBV.json',
   './NTLH.json',
   './AS21.json',
