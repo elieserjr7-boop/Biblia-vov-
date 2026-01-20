@@ -88,7 +88,7 @@
             position: relative;
             z-index: 1;
             
-            /* Padrão (Menus): Padding pequeno, pois o header não está por cima */
+            /* Padrão (Menus): Padding pequeno */
             padding-top: 10px; 
             padding-bottom: 80px; /* Espaço para o menu de abas */
             transition: padding-top 0.3s ease;
@@ -104,21 +104,24 @@
             top: 0; left: 0; right: 0;
         }
 
-        /* Quando estiver lendo, o MAIN ganha padding para compensar o header fixo */
+        /* Quando estiver lendo (COM BARRA VISÍVEL), compensamos a altura dela */
         body.modo-leitura main {
-            padding-top: 130px; /* Altura aproximada do cabeçalho */
+            padding-top: 140px; /* Altura do cabeçalho + margem */
             padding-bottom: 100px; /* Rodapé de navegação */
         }
 
-        /* MODO IMERSIVO (Só funciona se estiver no modo leitura) */
+        /* MODO IMERSIVO (Barras Ocultas) */
         body.modo-leitura.imersivo header { 
             transform: translateY(-100%); /* Esconde Header */
         }
         body.modo-leitura.imersivo #rodape-nav { 
             transform: translateY(100%); /* Esconde Footer */
         }
+        
+        /* AQUI ESTÁ A CORREÇÃO DA MARGEM: */
         body.modo-leitura.imersivo main {
-            padding-top: env(safe-area-inset-top); /* Texto sobe */
+            /* Calcula: 25px fixos + a área do notch (se houver) */
+            padding-top: calc(25px + env(safe-area-inset-top)); 
             padding-bottom: 20px;
         }
 
@@ -255,31 +258,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* --- AJUSTE DE RESPIRO SUPERIOR (Margem de segurança) --- */
-        
-        /* Para o Texto da Bíblia */
-        #conteudo-capitulo {
-            padding: 20px 20px 100px 20px; /* Topo 20px, Dir 20px, Baixo 100px, Esq 20px */
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.8; /* Melhora a leitura */
-        }
-
-        /* Para a Letra do Hino */
-        #letra-hino {
-            padding: 20px 20px 100px 20px; /* Topo 20px, o mesmo aqui */
-            max-width: 600px;
-            margin: 0 auto;
-            white-space: pre-wrap; /* Mantém a quebra de linha do JSON */
-        }
-
-        /* Ajuste extra para celulares com "franja/notch" (iPhone X e novos Androids) */
-        @supports (padding-top: env(safe-area-inset-top)) {
-            #conteudo-capitulo, #letra-hino {
-                padding-top: calc(20px + env(safe-area-inset-top));
-            }
-        }
-
     </style>
 </head>
 <body id="corpo-app">
@@ -301,7 +279,7 @@
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
                 <option value="NBV">NBV - Nova Bíblia Viva</option>
                 <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
+                <option value="A21">A21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
             </select>
         </div>
