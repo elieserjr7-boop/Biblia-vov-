@@ -29,7 +29,7 @@
             flex-direction: column;
             height: 100vh; 
             overflow: hidden; 
-            transition: background-color 0.3s, color 0.3s; /* Transição suave de tema */
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* --- CABEÇALHO --- */
@@ -47,7 +47,7 @@
             width: 100%;
         }
 
-        /* Botão de Tema (Posicionado no canto) */
+        /* Botão de Tema */
         #btn-tema {
             position: absolute;
             right: 15px;
@@ -126,7 +126,6 @@
             transform: translateY(100%); 
         }
         
-        /* SUA MARGEM PERSONALIZADA (43px) */
         body.modo-leitura.imersivo main {
             padding-top: calc(43px + env(safe-area-inset-top)); 
             padding-bottom: 20px;
@@ -244,9 +243,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* =========================================
-           TEMAS (MODO ESCURO)
-           ========================================= */
+        /* --- MODO ESCURO --- */
         body.modo-escuro {
             background-color: #121212;
             color: #e0e0e0;
@@ -305,7 +302,7 @@
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
                 <option value="NBV">NBV - Nova Bíblia Viva</option>
                 <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
+                <option value="A21">A21 - Almeida Século 21</option>
                 <option value="KJF">KJF - King James Fiel</option>
             </select>
         </div>
@@ -348,7 +345,7 @@
     </main>
 
     <footer id="rodape-nav" class="escondido">
-        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Voltar</button>
+        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Início</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(-1)">&#9664;</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(1)">&#9654;</button>
     </footer>
@@ -387,7 +384,6 @@
         // ELEMENTOS DOM
         const corpoApp = document.getElementById('corpo-app');
         const loading = document.getElementById('loading');
-        const cabecalho = document.getElementById('cabecalho-principal');
         const areaVersao = document.getElementById('area-versao');
         const rodape = document.getElementById('rodape-nav');
         const abasPrincipais = document.getElementById('abas-principais');
@@ -408,19 +404,26 @@
 
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
-            carregarTemaSalvo(); // Carrega o tema antes de tudo
+            carregarTemaSalvo(); 
             renderizarLivros();
+            
+            // --- NOVO: RECUPERA A VERSÃO SALVA ---
+            const versaoSalva = localStorage.getItem('versaoBiblia');
+            if (versaoSalva) {
+                // Se existe uma versão salva, seleciona ela no menu
+                selectVersao.value = versaoSalva;
+            }
+            
+            // Carrega a versão que está no seletor (seja a salva ou a padrão)
             carregarVersaoBiblia(selectVersao.value);
         }
 
         // --- GESTÃO DE TEMAS ---
         function alternarTema() {
             document.body.classList.toggle('modo-escuro');
-            
             let escuroAtivo = document.body.classList.contains('modo-escuro');
             localStorage.setItem('temaEscuro', escuroAtivo);
             
-            // Muda a cor da barra de status do celular
             let metaTheme = document.querySelector('meta[name="theme-color"]');
             if(metaTheme) {
                 metaTheme.setAttribute('content', escuroAtivo ? '#1f1f1f' : '#2c3e50');
@@ -461,6 +464,8 @@
         }
 
         function mudarVersao() {
+            // --- NOVO: SALVA A VERSÃO ESCOLHIDA ---
+            localStorage.setItem('versaoBiblia', selectVersao.value);
             carregarVersaoBiblia(selectVersao.value);
         }
 
