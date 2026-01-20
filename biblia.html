@@ -105,7 +105,7 @@
             padding-top: 10px; 
             padding-bottom: 80px; 
             transition: padding-top 0.3s ease;
-            scroll-behavior: smooth; /* Rolagem suave */
+            /* REMOVIDO: scroll-behavior: smooth; (Isso causava a rolagem lenta) */
         }
 
         /* MODO LEITURA */
@@ -390,7 +390,7 @@
         const abasPrincipais = document.getElementById('abas-principais');
         const selectVersao = document.getElementById('select-versao');
         const tituloApp = document.getElementById('titulo-app');
-        const areaPrincipal = document.getElementById('area-principal'); // Captura a área principal
+        const areaPrincipal = document.getElementById('area-principal');
 
         const tabBiblia = document.getElementById('tab-biblia');
         const tabHinarios = document.getElementById('tab-hinarios');
@@ -409,6 +409,7 @@
             carregarTemaSalvo(); 
             renderizarLivros();
             
+            // Carregar versão salva
             const versaoSalva = localStorage.getItem('versaoBiblia');
             if (versaoSalva) {
                 selectVersao.value = versaoSalva;
@@ -612,10 +613,10 @@
                 telaLeitura.classList.remove('escondido');
                 
                 alternarBarras('leitura');
-
-                // --- CORREÇÃO DO SCROLL ---
-                areaPrincipal.scrollTop = 0; // Rola a área principal para o topo
-                window.scrollTo(0,0);        // Garante compatibilidade
+                
+                // --- CORREÇÃO DO SCROLL (INSTANTÂNEO) ---
+                areaPrincipal.scrollTop = 0; 
+                window.scrollTo(0,0);
 
             } catch (erro) {
                 console.error(erro);
@@ -717,10 +718,10 @@
             telaLeituraHino.classList.remove('escondido');
             
             alternarBarras('leitura');
-
+            
             // --- CORREÇÃO DO SCROLL ---
-            areaPrincipal.scrollTop = 0; // Rola a área principal para o topo
-            window.scrollTo(0,0);        // Garante compatibilidade
+            areaPrincipal.scrollTop = 0; 
+            window.scrollTo(0,0);
         }
 
         function voltarParaEscolhaHinario() {
