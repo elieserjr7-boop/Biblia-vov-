@@ -748,36 +748,54 @@
                     menuVersoes.classList.add('escondido');
                 }
             }
-        }
+        } 
         
-        async function mudarVersaoCustom(novaSigla) {
-            // 1. MEMÓRIA: Antes de trocar, grava onde o usuário está na tela
-            const scrollSalvo = areaPrincipal.scrollTop;
-            const scrollJanela = window.scrollY; 
-    
-            // Atualiza o botão e o banco de dados local
-            btnVersao.innerText = novaSigla; 
-            localStorage.setItem('versaoBiblia', novaSigla);
+        async function mudarVersaoCustom(novaVersao) {
+            // --- 1. INTELEGÊNCIA: Descobre qual versículo você está olhando ---
+            let indiceVersiculoFocado = 0;
+            const containerTexto = document.getElementById('conteudo-leitura');
             
-            // Fecha o menu
+            // Margem de segurança (altura do cabeçalho + um pouquinho)
+            const alturaCabecalho = 120; 
+    
+            if (containerTexto && containerTexto.children.length > 0) {
+                const versiculos = Array.from(containerTexto.children);
+                
+                // Procura o primeiro versículo que está "dentro" da tela (abaixo do cabeçalho)
+                const versiculoNoTopo = versiculos.find(v => {
+                    const rect = v.getBoundingClientRect();
+                    return rect.top >= alturaCabecalho; 
+                });
+    
+                if (versiculoNoTopo) {
+                    indiceVersiculoFocado = versiculos.indexOf(versiculoNoTopo);
+                }
+            }
+    
+            // --- Lógica Padrão de Troca ---
+            btnVersao.innerText = novaVersao; 
+            localStorage.setItem('versaoBiblia', novaVersao);
             menuVersoes.classList.add('escondido');
             
-            // Carrega o arquivo da nova bíblia
-            await carregarVersaoBiblia(novaSigla);
+            await carregarVersaoBiblia(novaVersao);
             
-            // Se a pessoa estiver lendo um capítulo agora...
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual); // O app tenta jogar pro topo aqui...
+                lerCapitulo(capituloAtual);
                 
-                // 2. RESTAURAÇÃO: ...mas nós forçamos a voltar para onde estava!
+                // --- 2. RESTAURAÇÃO CIRÚRGICA ---
                 setTimeout(() => {
-                    areaPrincipal.scrollTop = scrollSalvo;
-                    window.scrollTo(0, scrollJanela);
+                    const novosVersiculos = document.getElementById('conteudo-leitura').children;
+                    const alvo = novosVersiculos[indiceVersiculoFocado];
+                    
+                    if (alvo) {
+                        // Rola suavemente até o versículo exato, descontando o cabeçalho
+                        const posicaoExata = alvo.offsetTop - 80; // 80px de respiro para não colar no topo
+                        areaPrincipal.scrollTop = posicaoExata;
+                    }
                 }, 10);
             }
             
-            // Atualiza a lista (pinta de azul a nova versão selecionada)
-            gerarMenuVersoes(novaSigla);
+            gerarMenuVersoes(novaVersao);
         }
        
         // --- INICIALIZAÇÃO ---
