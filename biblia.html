@@ -19,39 +19,41 @@
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
-       /* --- CORREÇÃO DA LISTRA DE FUNDO (OVERSCROLL) --- */
-        html {
-            /* Define a cor de fundo base para evitar listras brancas/azuis */
-            background-color: #fdfbf7; 
-            /* Impede o efeito elástico indesejado no iOS/Android */
-            overscroll-behavior-y: none;
+       html {
             height: 100%;
             width: 100%;
+            /* Garante que o fundo base não seja branco */
+            background-color: #fdfbf7; 
+            /* Impede o efeito elástico no iPhone/Android */
+            overscroll-behavior: none; 
         }
 
         body {
             font-family: 'Verdana', sans-serif;
-            /* Garante que o fundo seja igual ao html para não dar contraste */
-            background-color: #fdfbf7; 
-            color: #111;
             margin: 0;
             padding: 0;
             
-            position: fixed;
+            /* A SOLUÇÃO DA LISTRA: */
+            position: fixed; /* Prega o corpo na tela */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
+            height: 100%;
             
-            /* MUDANÇA AQUI: Usa a altura real disponível do dispositivo */
-            height: 100vh; 
-            height: -webkit-fill-available; 
-            
-            overflow: hidden;
+            /* Organização do layout */
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* O body não rola, quem rola é o conteúdo */
+            
+            /* Cores e transições */
+            background-color: #fdfbf7;
+            color: #111;
             transition: background-color 0.3s, color 0.3s;
-            touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-
+        
         /* --- CABEÇALHO --- */
         header {
             position: relative; 
@@ -914,18 +916,18 @@
         
         // --- GESTÃO DE TEMAS ---
         function atualizarMetaColor(escuro) {
-            // Definição das cores
-            const corFundo = escuro ? "#1f1f1f" : "#fdfbf7"; // Cor do fundo "infinito"
-            const corBarra = escuro ? "#1f1f1f" : "#2c3e50"; // Cor da barra de status
+            const corFundo = escuro ? "#1f1f1f" : "#fdfbf7"; 
+            const corBarra = escuro ? "#1f1f1f" : "#2c3e50"; 
 
-            // 1. Atualiza a meta tag (Barra do navegador)
+            // 1. Barra do navegador
             const metaThemeColor = document.querySelector("meta[name='theme-color']");
             if (metaThemeColor) {
                 metaThemeColor.setAttribute("content", corBarra);
             }
 
-            // 2. O SEGREDO DA LISTRA: Atualiza também o HTML e o BODY
-            // Isso garante que o fundo por trás do app tenha a mesma cor
+            // 2. A CORREÇÃO DA LISTRA:
+            // Pinta o HTML e o BODY da mesma cor. 
+            // Se sobrar algum espacinho, ele terá a cor do tema, ficando invisível.
             document.documentElement.style.backgroundColor = corFundo;
             document.body.style.backgroundColor = corFundo;
         }
