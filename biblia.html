@@ -489,14 +489,16 @@
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
         
-        // Lista de todas as versões disponíveis (para o pré-carregamento)
         const listaVersoesDisponiveis = ["NVI", "NVT", "ACF", "ARA", "ARC", "JFAA", "TB", "KJA", "NAA", "NBV", "NTLH", "AS21", "KJF"];
         
         // --- VARIÁVEIS DE ESTADO ---
         let modoAtual = 'biblia';
         let bibliaCompleta = null;
         let versaoCarregadaNome = "";
-        const cacheVersoes = {}; // Aqui guardamos as bíblias na RAM
+        
+        // CACHES EM MEMÓRIA RAM (Para velocidade instantânea)
+        const cacheVersoes = {}; 
+        const cacheHinarios = {}; 
         
         let livroAtualIndex = 0; 
         let livroAtualNome = "";
@@ -543,41 +545,74 @@
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
             selectVersao.value = versaoSalva;
             
-            // 1. Carrega a versão principal imediatamente
+            // 1. Carrega a versão principal da Bíblia (Prioridade Máxima)
             carregarVersaoBiblia(versaoSalva).then(() => {
-                // 2. Assim que terminar, inicia o pré-carregamento das outras
-                // Espera 2 segundos para não travar a animação de abertura
-                setTimeout(preCarregarTodasVersoes, 2000);
+                // 2. Após 2 segundos, inicia o download silencioso de TUDO (Bíblias + Hinários)
+                setTimeout(preCarregarTudoSilenciosamente, 2000);
             });
         }
         
-        // --- PRÉ-CARREGAMENTO INTELIGENTE ---
-        async function preCarregarTodasVersoes() {
-            console.log("Iniciando pré-carregamento silencioso...");
-            
-            // Percorre todas as versões da lista
+        // --- PRÉ-CARREGAMENTO UNIVERSAL (Bíblias e Hinários) ---
+        async function preCarregarTudoSilenciosamente() {
+            console.log("Iniciando pré-carregamento total...");
+        
+            // A. Baixar Hinários (São leves, baixamos primeiro)
+            const hinarios = ["harpa", "cantor"];
+            for (const h of hinarios) {
+                if (!cacheHinarios[h]) {
+                    try {
+                        const r = await fetch(`./${h}.json`);
+                        if(r.ok) {
+                            const json = await r.json();
+                            processarJsonHinario(json, h); // Já deixa processado na memória
+                        }
+                    } catch(e) { console.warn("Falha pre-load hinario: " + h); }
+                }
+            }
+        
+            // B. Baixar Outras Versões da Bíblia
             for (const versao of listaVersoesDisponiveis) {
-                // Se ainda não estiver no cache, baixa
                 if (!cacheVersoes[versao]) {
                     try {
                         const resp = await fetch(`./${versao}.json`);
                         if (resp.ok) {
-                            const json = await resp.json();
-                            cacheVersoes[versao] = json;
-                            // console.log(`Versão ${versao} pré-carregada!`); // Descomente para debug
+                            cacheVersoes[versao] = await resp.json();
                         }
-                    } catch (e) {
-                        console.warn(`Falha ao pré-carregar ${versao}`);
-                    }
+                    } catch (e) { console.warn(`Falha pre-load ${versao}`); }
                 }
             }
         }
         
-        // --- GESTÃO DE TEMAS (CORRIGIDA) ---
+        // Auxiliar para preparar o JSON do hinário assim que baixar
+        function processarJsonHinario(json, tipo) {
+            let listaFinal = [];
+            if (Array.isArray(json)) {
+                listaFinal = json.map(h => ({
+                    numero: h.numero || h.number || h.id, 
+                    titulo: h.titulo || h.title,
+                    letra: h.letra || h.text || h.verses || h.lyrics
+                }));
+            } else {
+                listaFinal = Object.values(json)
+                    .filter(obj => obj.hino)
+                    .map(obj => {
+                        let partes = obj.hino.split(" - ");
+                        let num = partes[0].trim();
+                        let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
+                        let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
+                        return { numero: num, titulo: tit, letra: letraArr };
+                    });
+                listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
+            }
+            // Salva no Cache de Hinários com uma propriedade extra "tipo"
+            listaFinal.tipo = tipo;
+            cacheHinarios[tipo] = listaFinal;
+        }
+        
+        // --- GESTÃO DE TEMAS ---
         function atualizarMetaColor(escuro) {
             const metaThemeColor = document.querySelector("meta[name='theme-color']");
             if (metaThemeColor) {
-                // Define a cor da barra de status: Cinza escuro se modo noturno, Azul se claro
                 metaThemeColor.setAttribute("content", escuro ? "#1f1f1f" : "#2c3e50");
             }
         }
@@ -597,37 +632,27 @@
             atualizarMetaColor(escuroSalvo);
         }
         
-        // --- CARREGAMENTO DE BÍBLIA (OTIMIZADO) ---
+        // --- CARREGAMENTO DE BÍBLIA ---
         async function carregarVersaoBiblia(versao) {
-            // 1. Verifica se já existe no CACHE (Memória RAM)
             if (cacheVersoes[versao]) {
                 bibliaCompleta = cacheVersoes[versao];
                 versaoCarregadaNome = versao;
-                
-                // Atualiza a tela instantaneamente se estiver lendo
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
-                return; // Retorna imediatamente, sem loading
+                return;
             }
         
-            // 2. Se não está no cache (só acontece na 1ª vez absoluta), baixa
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
         
             loading.style.display = 'block';
-        
             try {
                 const resp = await fetch(`./${versao}.json`);
                 if(!resp.ok) throw new Error("Erro");
-                
                 const dados = await resp.json();
-                
-                // Salva no cache
                 cacheVersoes[versao] = dados;
-                
                 bibliaCompleta = dados;
                 versaoCarregadaNome = versao;
-        
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
@@ -645,10 +670,9 @@
             carregarVersaoBiblia(novaVersao);
         }
         
-        // --- LÓGICA DE INTERFACE ---
+        // --- INTERFACE ---
         function alternarBarras(modo) {
             corpoApp.classList.remove('imersivo');
-        
             if (modo === 'leitura') {
                 corpoApp.classList.add('modo-leitura');
                 abasPrincipais.classList.add('escondido');
@@ -696,7 +720,7 @@
             }
         }
         
-        // --- BÍBLIA ---
+        // --- RENDERIZAÇÃO BÍBLIA ---
         function renderizarLivros() {
             telaLivros.innerHTML = "";
             telaCapitulos.classList.add('escondido');
@@ -771,7 +795,7 @@
             } catch (erro) { console.error(erro); }
         }
         
-        // --- BUSCA INTELIGENTE ---
+        // --- BUSCA ---
         function normalizar(txt) {
             return txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,;?!]/g,"");
         }
@@ -862,20 +886,16 @@
             document.getElementById('titulo-comparacao').innerText = `${nome} ${cap}:${ver}`;
             lista.innerHTML = "Carregando...";
         
-            // Usamos o cacheVersoes aqui também para ser instantâneo se já tiver baixado
             const promises = listaVersoesDisponiveis.map(async v => {
                 try {
                     let dadosVersao;
-                    
-                    // Verifica se está no cache
                     if (cacheVersoes[v]) {
                         dadosVersao = cacheVersoes[v];
                     } else {
-                        // Se não estiver, baixa agora
                         const r = await fetch(`./${v}.json`);
                         if(r.ok) {
                             dadosVersao = await r.json();
-                            cacheVersoes[v] = dadosVersao; // Guarda no cache
+                            cacheVersoes[v] = dadosVersao;
                         }
                     }
         
@@ -893,52 +913,38 @@
         
         function fecharComparacao() { document.getElementById('modal-comparacao').classList.add('escondido'); }
         
-        // --- HINÁRIOS ---
+        // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
         async function abrirHinario(tipo) {
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
-            
-            let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
         
+            // 1. Tenta pegar do Cache RAM (Instantâneo)
+            if (cacheHinarios[tipo]) {
+                dadosHinario = cacheHinarios[tipo];
+                renderizarListaHinos();
+                telaListaHinos.classList.remove('escondido');
+                alternarBarras('navegacao');
+                return; // Sucesso, nem mostra loading
+            }
+        
+            // 2. Se por acaso ainda não baixou (muito raro), baixa agora
+            let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
+            loading.style.display = 'block';
+        
             try {
-                if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
-                    
-                    loading.style.display = 'block'; 
-        
-                    const resp = await fetch(url);
-                    if(!resp.ok) throw new Error("Erro de rede");
-                    
-                    let json = await resp.json();
-                    let listaFinal = [];
-        
-                    if (Array.isArray(json)) {
-                        listaFinal = json.map(h => ({
-                            numero: h.numero || h.number || h.id, 
-                            titulo: h.titulo || h.title,
-                            letra: h.letra || h.text || h.verses || h.lyrics
-                        }));
-                    } else {
-                        listaFinal = Object.values(json)
-                            .filter(obj => obj.hino)
-                            .map(obj => {
-                                let partes = obj.hino.split(" - ");
-                                let num = partes[0].trim();
-                                let tit = partes.length > 1 ? partes.slice(1).join(" - ").trim() : "Sem título";
-                                let letraArr = (obj.verses && typeof obj.verses === 'object') ? Object.values(obj.verses) : obj.verses;
-                                return { numero: num, titulo: tit, letra: letraArr };
-                            });
-                        listaFinal.sort((a, b) => parseInt(a.numero) - parseInt(b.numero));
-                    }
-                    dadosHinario = listaFinal;
-                    dadosHinario.tipo = tipo; 
-                }
+                const resp = await fetch(url);
+                if(!resp.ok) throw new Error("Erro de rede");
+                let json = await resp.json();
                 
+                processarJsonHinario(json, tipo); // Salva no cache
+                dadosHinario = cacheHinarios[tipo]; // Usa o cache processado
+        
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
                 alternarBarras('navegacao');
         
             } catch(e) {
-                alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
+                alert("Erro ao abrir Hinário.");
                 telaEscolhaHinario.classList.remove('escondido');
             } finally {
                 loading.style.display = 'none';
@@ -986,9 +992,7 @@
             
             telaListaHinos.classList.add('escondido');
             telaLeituraHino.classList.remove('escondido');
-            
             alternarBarras('leitura');
-            
             areaPrincipal.scrollTop = 0; 
             window.scrollTo(0,0);
         }
