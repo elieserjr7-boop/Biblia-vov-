@@ -679,32 +679,28 @@
             });
         }
 
-        // --- O SEGREDO DO RETORNO (CORRIGE A LISTRA AO VOLTAR) ---
+        // --- O "CÓDIGO DE CHOQUE" (Simula o efeito do teclado) ---
         document.addEventListener("visibilitychange", function() {
             if (document.visibilityState === "visible") {
-                // O usuário acabou de voltar para o app (tirou do segundo plano)
                 
-                // 1. Força um pequeno tempo para o navegador desenhar as barras
-                setTimeout(() => {
-                    // Pega a altura REAL da janela visível neste exato momento
-                    let alturaReal = window.innerHeight;
-                    
-                    // Aplica essa altura na marra ao corpo do site
-                    document.body.style.height = alturaReal + "px";
-                    
-                    // 2. Garante que as cores do fundo (HTML e BODY) estão certas
-                    let escuro = document.body.classList.contains('modo-escuro');
-                    let cor = escuro ? "#1f1f1f" : "#fdfbf7";
-                    
-                    document.documentElement.style.backgroundColor = cor;
-                    document.body.style.backgroundColor = cor;
-
-                    // 3. Força um "repaint" (desenhar a tela de novo) sem recarregar
-                    document.body.style.display = 'none';
-                    document.body.offsetHeight; // Truque sujo para o navegador processar
-                    document.body.style.display = 'flex';
-                    
-                }, 100); 
+                // Tenta 3 vezes em tempos diferentes para garantir que pegou o navegador "acordado"
+                [50, 150, 300].forEach(tempo => {
+                    setTimeout(() => {
+                        
+                        // 1. Simula que a tela mudou de tamanho (engana o navegador)
+                        window.dispatchEvent(new Event('resize'));
+        
+                        // 2. A "Tremidinha": Rola 1px e volta (força a GPU a redesenhar)
+                        window.scrollBy(0, 1);
+                        window.scrollBy(0, -1);
+        
+                        // 3. Reafirma a altura correta (o código que já tínhamos)
+                        let alturaReal = window.innerHeight;
+                        document.body.style.height = alturaReal + "px";
+                        window.scrollTo(0, 0); // Garante topo
+        
+                    }, tempo);
+                });
             }
         });
 
