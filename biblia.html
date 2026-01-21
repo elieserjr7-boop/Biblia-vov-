@@ -751,23 +751,27 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. CAPTURA EXATA: Qual o número do versículo no topo? ---
+            // --- 1. DETETIVE BLINDADO ---
             let numeroAlvo = null;
-            
-            // CORREÇÃO AQUI: O nome certo da classe no teu CSS é .versiculo-num
-            const numeros = document.querySelectorAll('.versiculo-num');
-            const alturaCabecalho = 120; // Margem de segurança
+            const container = document.getElementById('conteudo-leitura');
+            const alturaBarra = 90; // Altura aproximada do cabeçalho
     
-            // Procura qual número está visível na tela
-            for (let n of numeros) {
-                const rect = n.getBoundingClientRect();
-                if (rect.top > alturaCabecalho) {
-                    numeroAlvo = n.innerText.trim(); // Guarda o número "6", "12", etc.
-                    break; // Achou o primeiro visível, pode parar
+            if (container) {
+                // O [class*="..."] pega qualquer coisa que pareça com versiculo-num
+                const numeros = container.querySelectorAll('[class*="versiculo-num"]');
+                
+                for (let n of numeros) {
+                    const rect = n.getBoundingClientRect();
+                    // A REGRA DE OURO: Se a parte de baixo do número está abaixo da barra, 
+                    // é esse que o usuário está vendo!
+                    if (rect.bottom > alturaBarra) {
+                        numeroAlvo = n.innerText.trim();
+                        break; // Pare assim que achar o primeiro visível
+                    }
                 }
             }
     
-            // --- Lógica de Troca ---
+            // --- 2. TROCA DE VERSÃO ---
             btnVersao.innerText = novaVersao; 
             localStorage.setItem('versaoBiblia', novaVersao);
             menuVersoes.classList.add('escondido');
@@ -775,25 +779,23 @@
             await carregarVersaoBiblia(novaVersao);
             
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual); // O app joga para o 0 (topo) aqui
+                lerCapitulo(capituloAtual); // O sistema joga pro topo (0) aqui...
                 
-                // --- 2. CORREÇÃO FORÇADA ---
+                // --- 3. RESGATE DA POSIÇÃO ---
                 if (numeroAlvo) {
                     setTimeout(() => {
-                        // Busca os números na NOVA versão (com o nome certo da classe)
-                        const novosNumeros = Array.from(document.querySelectorAll('.versiculo-num'));
-                        
-                        // Encontra o mesmo número (ex: "6")
+                        // Procura na NOVA lista (usando o mesmo seletor universal)
+                        const novosNumeros = Array.from(document.querySelectorAll('[class*="versiculo-num"]'));
                         const elAlvo = novosNumeros.find(el => el.innerText.trim() === numeroAlvo);
                         
                         if (elAlvo) {
-                            // Pega o parágrafo inteiro onde esse número está
-                            const paragrafo = elAlvo.parentElement;
+                            // Pega o bloco do versículo inteiro (o pai do número)
+                            const versiculoInteiro = elAlvo.parentElement;
                             
-                            // Rola a tela até ele (descontando o cabeçalho)
-                            areaPrincipal.scrollTop = paragrafo.offsetTop - 90;
+                            // Rola até ele (-80px de desconto para não ficar debaixo da barra)
+                            areaPrincipal.scrollTop = versiculoInteiro.offsetTop - 80;
                         }
-                    }, 150); // Tempo para vencer o scroll=0
+                    }, 200); // 200ms para vencer qualquer lentidão do celular
                 }
             }
             
