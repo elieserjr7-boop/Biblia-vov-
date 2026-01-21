@@ -751,27 +751,25 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. DETETIVE: Descobre qual versículo você está lendo ---
+            // --- 1. MEMÓRIA INTELIGENTE (Lê o número do versículo) ---
+            let numeroVersiculoAlvo = null;
             const container = document.getElementById('conteudo-leitura');
-            let indiceParaSalvar = 0;
-            
-            // Altura do cabeçalho (aprox 80px) + um respiro
-            const alturaCabecalho = 90; 
+            const alturaCabecalho = 100; // Altura segura do topo
     
             if (container && container.children.length > 0) {
-                const versiculos = Array.from(container.children);
+                const lista = Array.from(container.children);
                 
-                // Encontra o primeiro versículo cujo FINAL ainda está visível na tela
-                // ou seja, o versículo que "cruza" a linha do cabeçalho
-                const versiculoVisivel = versiculos.find(v => {
-                    const rect = v.getBoundingClientRect();
-                    // Se a parte de baixo do versículo estiver abaixo do cabeçalho, 
-                    // é ele que estamos lendo!
-                    return rect.bottom > alturaCabecalho; 
+                // Procura o primeiro versículo que está visível na tela
+                const vVisivel = lista.find(el => {
+                    const rect = el.getBoundingClientRect();
+                    // O elemento está visível se a parte de baixo dele passar da barra do topo
+                    return rect.bottom > alturaCabecalho;
                 });
     
-                if (versiculoVisivel) {
-                    indiceParaSalvar = versiculos.indexOf(versiculoVisivel);
+                if (vVisivel) {
+                    // TRUQUE: Pega o texto (ex: "12. Então disse...") e extrai só o "12"
+                    // O parseInt pega automaticamente o primeiro número que aparece
+                    numeroVersiculoAlvo = parseInt(vVisivel.innerText);
                 }
             }
     
@@ -785,17 +783,22 @@
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
                 lerCapitulo(capituloAtual);
                 
-                // --- 2. TELETRANSPORTE: Vai para o mesmo versículo na nova versão ---
+                // --- 2. RESTAURAÇÃO (Procura o número na nova versão) ---
+                // Aumentei o tempo para 100ms para garantir que o celular renderizou tudo
                 setTimeout(() => {
-                    const novosVersiculos = document.getElementById('conteudo-leitura').children;
-                    const alvo = novosVersiculos[indiceParaSalvar];
-                    
-                    if (alvo) {
-                        // Calcula a posição exata dentro da área de rolagem
-                        // Subtrai 80px para o texto não ficar escondido atrás do cabeçalho
-                        areaPrincipal.scrollTop = alvo.offsetTop - 80;
+                    if (numeroVersiculoAlvo !== null) {
+                        const novaLista = Array.from(document.getElementById('conteudo-leitura').children);
+                        
+                        // Encontra o elemento que começa com o mesmo número
+                        const alvo = novaLista.find(el => parseInt(el.innerText) === numeroVersiculoAlvo);
+                        
+                        if (alvo) {
+                            // Rola a tela exatamente para esse elemento
+                            // (-80 serve para o texto não ficar escondido atrás do cabeçalho)
+                            areaPrincipal.scrollTop = alvo.offsetTop - 80;
+                        }
                     }
-                }, 50); // Pequeno atraso para garantir que o texto carregou
+                }, 100); 
             }
             
             gerarMenuVersoes(novaVersao);
