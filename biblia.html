@@ -751,26 +751,17 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. INTELEGÊNCIA: Descobre qual versículo você está olhando ---
-            let indiceVersiculoFocado = 0;
-            const containerTexto = document.getElementById('conteudo-leitura');
+            // 1. CÁLCULO DA PORCENTAGEM: Grava quanto % da tela você já desceu
+            // Ex: Se leu metade, grava 0.5 (50%)
+            const totalAntigo = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+            const posicaoAntiga = areaPrincipal.scrollTop;
             
-            // Margem de segurança (altura do cabeçalho + um pouquinho)
-            const alturaCabecalho = 120; 
-    
-            if (containerTexto && containerTexto.children.length > 0) {
-                const versiculos = Array.from(containerTexto.children);
-                
-                // Procura o primeiro versículo que está "dentro" da tela (abaixo do cabeçalho)
-                const versiculoNoTopo = versiculos.find(v => {
-                    const rect = v.getBoundingClientRect();
-                    return rect.top >= alturaCabecalho; 
-                });
-    
-                if (versiculoNoTopo) {
-                    indiceVersiculoFocado = versiculos.indexOf(versiculoNoTopo);
-                }
+            let porcentagemLida = 0;
+            if (totalAntigo > 0) {
+                porcentagemLida = posicaoAntiga / totalAntigo;
             }
+    
+            const scrollJanela = window.scrollY; // Backup para garantir
     
             // --- Lógica Padrão de Troca ---
             btnVersao.innerText = novaVersao; 
@@ -782,17 +773,15 @@
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
                 lerCapitulo(capituloAtual);
                 
-                // --- 2. RESTAURAÇÃO CIRÚRGICA ---
+                // 2. RESTAURAÇÃO PROPORCIONAL
+                // Aplica a mesma porcentagem ao tamanho do NOVO texto
                 setTimeout(() => {
-                    const novosVersiculos = document.getElementById('conteudo-leitura').children;
-                    const alvo = novosVersiculos[indiceVersiculoFocado];
+                    const novoTotal = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+                    const novaPosicao = porcentagemLida * novoTotal;
                     
-                    if (alvo) {
-                        // Rola suavemente até o versículo exato, descontando o cabeçalho
-                        const posicaoExata = alvo.offsetTop - 80; // 80px de respiro para não colar no topo
-                        areaPrincipal.scrollTop = posicaoExata;
-                    }
-                }, 10);
+                    areaPrincipal.scrollTop = novaPosicao;
+                    window.scrollTo(0, scrollJanela);
+                }, 50); // Aumentei para 50ms para dar tempo do texto renderizar
             }
             
             gerarMenuVersoes(novaVersao);
