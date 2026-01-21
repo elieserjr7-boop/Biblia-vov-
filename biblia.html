@@ -379,8 +379,12 @@
                     <input type="text" id="input-busca" placeholder="Digite ou fale (ex: Jesus chorou)..." onkeyup="if(event.key === 'Enter') realizarBusca()">
                     <button id="btn-mic" onclick="ativarMicrofone()">🎤</button>
                 </div>
-                <button class="btn-livro" style="width:100%; padding:15px; background-color:#3498db; color:white; border:none;" onclick="realizarBusca()">🔍 Pesquisar</button>
-                <br><br>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn-livro" style="flex: 1; padding:15px; background-color:#3498db; color:white; border:none;" onclick="realizarBusca()">🔍 Pesquisar</button>
+                    <button class="btn-livro" style="width: 70px; padding:15px; background-color:#95a5a6; color:white; border:none;" onclick="limparBusca()">🗑</button>
+                </div>
+                
                 <div id="resultados-busca"></div>
             </div>
         </div>
@@ -463,6 +467,12 @@
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
 
+       
+        function limparBusca() {
+            document.getElementById('input-busca').value = ""; 
+            document.getElementById('resultados-busca').innerHTML = ""; 
+            document.getElementById('input-busca').focus(); 
+        }
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
