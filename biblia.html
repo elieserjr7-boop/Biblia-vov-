@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" href="./icon-192.png">
 
     <style>
-        /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO) --- */
+        /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
         body {
@@ -204,7 +204,7 @@
         .aba.ativa { color: #2c3e50; background-color: #ecf0f1; border-top: 3px solid #e67e22; }
         .icone-aba { font-size: 24px; margin-bottom: 2px; }
 
-        /* --- ESTILOS NOVOS DA ABA BUSCA (Mesmo Design Verdana) --- */
+        /* --- ABA BUSCA --- */
         .container-busca { padding: 15px; text-align: center; }
         
         .wrapper-input {
@@ -274,6 +274,7 @@
 
         .escondido { display: none !important; }
 
+        /* Loading */
         #loading {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 24px; color: #e67e22; background: rgba(255,255,255,0.95);
@@ -302,14 +303,13 @@
         body.modo-escuro #select-versao { background-color: #333; color: #fff; }
         body.modo-escuro input#busca-hino { background-color: #333; color: #fff; border-color: #555; }
         
-        /* Ajustes Modo Escuro Busca */
         body.modo-escuro #input-busca { background-color: #333; color: #fff; border-color: #555; }
         body.modo-escuro .resultado-item { background-color: #2c2c2c; border-color: #444; }
         body.modo-escuro .res-texto { color: #ccc; }
         body.modo-escuro .modal-conteudo { background-color: #1f1f1f; color: #eee; }
         body.modo-escuro .item-comparacao { border-color: #333; }
         body.modo-escuro .comp-versao { background-color: #444; color: #fff; }
-        body.modo-escuro .comp-texto { color: #e0e0e0; } /* Correção da cor na comparação */
+        body.modo-escuro .comp-texto { color: #e0e0e0; }
 
     </style>
 </head>
@@ -414,33 +414,16 @@
     </nav>
 
     <script>
-        // --- SERVICE WORKER COM AUTO-REFRESH ---
+        // --- SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(registration => {
                     if (registration.waiting) { registration.waiting.postMessage({ type: 'SKIP_WAITING' }); }
-                    registration.onupdatefound = () => {
-                        const installingWorker = registration.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload(); 
-                            }
-                        };
-                    };
-                    registration.update(); // Força update
-                });
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    window.location.reload();
-                    refreshing = true;
                 });
             });
         }
 
-        // --- LISTA DE LIVROS PARA CORRIGIR O UNDEFINED NA BUSCA ---
         const listaLivros = ["Gênesis","Êxodo","Levítico","Números","Deuteronômio","Josué","Juízes","Rute","1 Samuel","2 Samuel","1 Reis","2 Reis","1 Crônicas","2 Crônicas","Esdras","Neemias","Ester","Jó","Salmos","Provérbios","Eclesiastes","Cânticos","Isaías","Jeremias","Lamentações","Ezequiel","Daniel","Oseias","Joel","Amós","Obadias","Jonas","Miqueias","Naum","Habacuque","Sofonias","Ageu","Zacarias","Malaquias","Mateus","Marcos","Lucas","João","Atos","Romanos","1 Coríntios","2 Coríntios","Gálatas","Efésios","Filipenses","Colossenses","1 Tessalonicenses","2 Tessalonicenses","1 Timóteo","2 Timóteo","Tito","Filemom","Hebreus","Tiago","1 Pedro","2 Pedro","1 João","2 João","3 João","Judas","Apocalipse"];
-
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
 
@@ -480,72 +463,54 @@
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
 
-        let loadingTimeout;
-
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
             renderizarLivros();
             
-            // Versão salva
-            const versaoSalva = localStorage.getItem('versaoBiblia');
-            if (versaoSalva) {
-                selectVersao.value = versaoSalva;
-            }
-            carregarVersaoBiblia(selectVersao.value);
-
-            // CACHE SILENCIOSO (Baixa tudo em background)
-            setTimeout(cachearTodasVersoes, 3000);
-        }
-
-        async function cachearTodasVersoes() {
-            const todas = ["NVI", "NVT", "ACF", "ARA", "ARC", "AA", "TB", "KJA", "NAA", "NBV", "NTLH", "AS21", "KJF"];
-            for (const v of todas) {
-                if (v !== versaoCarregadaNome) {
-                    try { await fetch(`./${v}.json`); } catch (e) {}
-                }
-            }
+            const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
+            selectVersao.value = versaoSalva;
+            carregarVersaoBiblia(versaoSalva);
         }
 
         // --- GESTÃO DE TEMAS ---
         function alternarTema() {
             document.body.classList.toggle('modo-escuro');
-            let escuroAtivo = document.body.classList.contains('modo-escuro');
-            localStorage.setItem('temaEscuro', escuroAtivo);
-            let metaTheme = document.querySelector('meta[name="theme-color"]');
-            if(metaTheme) metaTheme.setAttribute('content', escuroAtivo ? '#1f1f1f' : '#2c3e50');
+            localStorage.setItem('temaEscuro', document.body.classList.contains('modo-escuro'));
         }
 
         function carregarTemaSalvo() {
-            let escuroSalvo = localStorage.getItem('temaEscuro');
-            if (escuroSalvo === 'true') {
+            if (localStorage.getItem('temaEscuro') === 'true') {
                 document.body.classList.add('modo-escuro');
-                let metaTheme = document.querySelector('meta[name="theme-color"]');
-                if(metaTheme) metaTheme.setAttribute('content', '#1f1f1f');
             }
         }
 
+        // --- CORREÇÃO DO CARREGAMENTO INFINITO ---
         async function carregarVersaoBiblia(versao) {
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
 
-            // Só mostra loading se demorar um pouco
-            loadingTimeout = setTimeout(() => { loading.style.display = 'block'; }, 200);
+            // Mostra o loading explicitamente
+            loading.style.display = 'block';
 
             try {
-                const resp = await fetch(`./${versao}.json`);
-                if(!resp.ok) throw new Error("Arquivo não encontrado");
+                // Adiciona timestamp para evitar cache corrompido
+                const resp = await fetch(`./${versao}.json?t=${Date.now()}`);
+                
+                if(!resp.ok) throw new Error(`Arquivo ${versao}.json não encontrado`);
                 
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
 
+                // Se estiver lendo, atualiza o texto na hora
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
 
             } catch (e) {
-                alert(`Erro ao carregar a versão ${versao}.`);
+                console.error(e);
+                alert(`Erro: Não foi possível carregar a versão ${versao}. Verifique se o arquivo .json está na pasta.`);
             } finally {
-                clearTimeout(loadingTimeout);
+                // O MAIS IMPORTANTE: Tira o loading aconteça o que acontecer
                 loading.style.display = 'none';
             }
         }
@@ -663,7 +628,6 @@
         function lerCapitulo(numero) {
             if (!bibliaCompleta) return;
             capituloAtual = numero;
-            // Removed manual loading check as carregarVersao handles it if needed
             
             try {
                 if (!bibliaCompleta[livroAtualIndex] || !bibliaCompleta[livroAtualIndex].chapters) return;
@@ -730,7 +694,6 @@
                                 palavras.forEach(p => { if (vNorm.includes(p)) pts += 10; });
                             }
                             if (pts > 0) {
-                                // CORREÇÃO: Usa listaLivros[idxLivro]
                                 const nomeReal = listaLivros[idxLivro] || livroObj.nome; 
                                 resultados.push({ livro: nomeReal, cap: idxCap + 1, ver: idxVer + 1, texto: versiculo, pontos: pts, idxLivro: idxLivro });
                             }
