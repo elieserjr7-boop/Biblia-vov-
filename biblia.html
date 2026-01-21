@@ -31,22 +31,23 @@
 
         body {
             font-family: 'Verdana', sans-serif;
-            background-color: #fdfbf7; /* Igual ao html */
+            /* Garante que o fundo seja igual ao html para não dar contraste */
+            background-color: #fdfbf7; 
             color: #111;
             margin: 0;
             padding: 0;
             
-            /* Fixa o app na tela para evitar rolagem da interface inteira */
             position: fixed;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
             
+            /* MUDANÇA AQUI: Usa a altura real disponível do dispositivo */
+            height: 100vh; 
+            height: -webkit-fill-available; 
+            
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
-            
-            /* Remove zoom ao tocar duas vezes */
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -805,22 +806,44 @@
             
             gerarMenuVersoes(novaVersao);
         }
+
+        // Função que corrige a altura em celulares
+        function forcarAlturaReal() {
+            // Pega a altura exata da janela visível
+            const alturaReal = window.innerHeight;
+            // Força o corpo do app a ter exatamente essa altura
+            document.body.style.height = `${alturaReal}px`;
+            
+            // Reforça a cor do fundo (para garantir que não falhou)
+            const corAtual = document.body.classList.contains('modo-escuro') ? "#1f1f1f" : "#fdfbf7";
+            document.documentElement.style.backgroundColor = corAtual;
+        }
+
+        // Adiciona um "ouvinte" para corrigir sempre que a tela girar ou mudar
+        window.addEventListener('resize', forcarAlturaReal);
            
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
-            // 1. TEMA: Carrega as cores e o fundo correto imediatamente
+            // 1. CORREÇÃO DE TELA (O Segredo!)
+            // Executa imediatamente para tirar a listra branca
+            forcarAlturaReal();
+            
+            // Executa novamente após meio segundo para garantir (caso a barra do navegador se mova)
+            setTimeout(forcarAlturaReal, 500);
+
+            // 2. TEMA: Carrega as cores e o fundo correto
             carregarTemaSalvo(); 
             
-            // 2. INTERFACE: Renderiza os livros (Isso tem que ficar FORA de qualquer if)
+            // 3. INTERFACE: Renderiza os livros
             renderizarLivros();
             
-            // 3. VERSÃO: Recupera qual bíblia o usuário estava lendo
+            // 4. VERSÃO: Recupera qual bíblia o usuário estava lendo
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
             
             btnVersao.innerText = versaoSalva;
             gerarMenuVersoes(versaoSalva);
             
-            // 4. CARREGAMENTO: Busca o texto da Bíblia
+            // 5. CARREGAMENTO: Busca o texto da Bíblia
             carregarVersaoBiblia(versaoSalva).then(() => {
                 // Inicia o download silencioso do resto após 2 segundos
                 setTimeout(preCarregarTudoSilenciosamente, 2000);
