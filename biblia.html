@@ -440,6 +440,88 @@
             ::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 5px; }
             body.modo-escuro ::-webkit-scrollbar-thumb { background-color: #444; }
         }
+        
+        /* --- ESTILO DO SELETOR CUSTOMIZADO --- */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+            z-index: 1000; /* Garante que fica acima do texto */
+        }
+        
+        /* O Botão que mostra a versão atual */
+        #btn-versao-selecionada {
+            background-color: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: inherit; /* Pega a cor do texto do tema */
+            cursor: pointer;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        /* A Lista Flutuante (O Menu) */
+        .dropdown-menu {
+            position: absolute;
+            top: 110%; /* Fica logo abaixo do botão */
+            right: 0;  /* Alinhado à direita */
+            background-color: #fff;
+            min-width: 120px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        /* Itens da lista */
+        .item-versao {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            font-size: 0.95rem;
+            text-align: center;
+            color: #333; /* Cor padrão no modo claro */
+        }
+        
+        .item-versao:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .item-versao.selecionado {
+            background-color: #e3f2fd; /* Azulzinho claro para o selecionado */
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        
+        /* --- AJUSTES DO MODO ESCURO --- */
+        body.modo-escuro #btn-versao-selecionada {
+            background-color: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        
+        body.modo-escuro .dropdown-menu {
+            background-color: #222;
+            border-color: #444;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        body.modo-escuro .item-versao {
+            color: #e0e0e0;
+        }
+        
+        body.modo-escuro .item-versao:hover {
+            background-color: #333;
+        }
+        
+        body.modo-escuro .item-versao.selecionado {
+            background-color: #444;
+            color: #8ab4f8;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -448,23 +530,13 @@
         <button id="btn-tema" onclick="alternarTema()">🌗</button>
         <h1 id="titulo-app">Bíblia Sagrada</h1>
         
-        <div id="area-versao" class="seletor-versao-container escondido">
-            <span class="label-versao">Versão:</span>
-            <select id="select-versao" onchange="mudarVersao()">
-                <option value="NVI">NVI - Nova Versão Internacional</option>
-                <option value="NVT">NVT - Nova Versão Transformadora</option>
-                <option value="ACF">ACF - Almeida Corrigida Fiel</option>
-                <option value="ARA">ARA - Almeida Revista e Atualizada</option>
-                <option value="ARC">ARC - Almeida Revista e Corrigida</option>
-                <option value="JFAA">JFA - João Ferreira de Almeida</option>
-                <option value="TB">TB - Tradução Brasileira</option>
-                <option value="KJA">KJA - King James Atualizada</option>
-                <option value="NAA">NAA - Nova Almeida Atualizada</option>
-                <option value="NBV">NBV - Nova Bíblia Viva</option>
-                <option value="NTLH">NTLH - Nova Tradução Linguagem de Hoje</option>
-                <option value="AS21">A21 - Almeida Século 21</option>
-                <option value="KJF">KJF - King James Fiel</option>
-            </select>
+        <div id="area-versao" class="dropdown-container seletor-versao-container escondido">
+            
+            <button id="btn-versao-selecionada" onclick="alternarMenuVersoes()">NVI</button>
+
+            <div id="lista-versoes-custom" class="dropdown-menu escondido">
+                </div>
+            
         </div>
     </header>
 
@@ -560,7 +632,22 @@
         const antigoTestamento = [{ nome: "Gênesis", caps: 50 }, { nome: "Êxodo", caps: 40 }, { nome: "Levítico", caps: 27 }, { nome: "Números", caps: 36 }, { nome: "Deuteronômio", caps: 34 }, { nome: "Josué", caps: 24 }, { nome: "Juízes", caps: 21 }, { nome: "Rute", caps: 4 }, { nome: "1 Samuel", caps: 31 }, { nome: "2 Samuel", caps: 24 }, { nome: "1 Reis", caps: 22 }, { nome: "2 Reis", caps: 25 }, { nome: "1 Crônicas", caps: 29 }, { nome: "2 Crônicas", caps: 36 }, { nome: "Esdras", caps: 10 }, { nome: "Neemias", caps: 13 }, { nome: "Ester", caps: 10 }, { nome: "Jó", caps: 42 }, { nome: "Salmos", caps: 150 }, { nome: "Provérbios", caps: 31 }, { nome: "Eclesiastes", caps: 12 }, { nome: "Cânticos", caps: 8 }, { nome: "Isaías", caps: 66 }, { nome: "Jeremias", caps: 52 }, { nome: "Lamentações", caps: 5 }, { nome: "Ezequiel", caps: 48 }, { nome: "Daniel", caps: 12 }, { nome: "Oseias", caps: 14 }, { nome: "Joel", caps: 3 }, { nome: "Amós", caps: 9 }, { nome: "Obadias", caps: 1 }, { nome: "Jonas", caps: 4 }, { nome: "Miqueias", caps: 7 }, { nome: "Naum", caps: 3 }, { nome: "Habacuque", caps: 3 }, { nome: "Sofonias", caps: 3 }, { nome: "Ageu", caps: 2 }, { nome: "Zacarias", caps: 14 }, { nome: "Malaquias", caps: 4 }];
         const novoTestamento = [{ nome: "Mateus", caps: 28 }, { nome: "Marcos", caps: 16 }, { nome: "Lucas", caps: 24 }, { nome: "João", caps: 21 }, { nome: "Atos", caps: 28 }, { nome: "Romanos", caps: 16 }, { nome: "1 Coríntios", caps: 16 }, { nome: "2 Coríntios", caps: 13 }, { nome: "Gálatas", caps: 6 }, { nome: "Efésios", caps: 6 }, { nome: "Filipenses", caps: 4 }, { nome: "Colossenses", caps: 4 }, { nome: "1 Tessalonicenses", caps: 5 }, { nome: "2 Tessalonicenses", caps: 3 }, { nome: "1 Timóteo", caps: 6 }, { nome: "2 Timóteo", caps: 4 }, { nome: "Tito", caps: 3 }, { nome: "Filemom", caps: 1 }, { nome: "Hebreus", caps: 13 }, { nome: "Tiago", caps: 5 }, { nome: "1 Pedro", caps: 5 }, { nome: "2 Pedro", caps: 3 }, { nome: "1 João", caps: 5 }, { nome: "2 João", caps: 1 }, { nome: "3 João", caps: 1 }, { nome: "Judas", caps: 1 }, { nome: "Apocalipse", caps: 22 }];
         
-        const listaVersoesDisponiveis = ["NVI", "NVT", "ACF", "ARA", "ARC", "JFAA", "TB", "KJA", "NAA", "NBV", "NTLH", "AS21", "KJF"];
+        // Lista INTELIGENTE (Sigla para o sistema, Nome para o visual)
+        const listaVersoesDisponiveis = [
+            { sigla: "NVI",  nome: "NVI - Nova Versão Internacional" },
+            { sigla: "NVT",  nome: "NVT - Nova Versão Transformadora" },
+            { sigla: "ACF",  nome: "ACF - Almeida Corrigida Fiel" },
+            { sigla: "ARA",  nome: "ARA - Almeida Revista e Atualizada" },
+            { sigla: "ARC",  nome: "ARC - Almeida Revista e Corrigida" },
+            { sigla: "JFAA", nome: "JFAA - João Ferreira de Almeida" },
+            { sigla: "TB",   nome: "TB - Tradução Brasileira" },
+            { sigla: "KJA",  nome: "KJA - King James Atualizada" },
+            { sigla: "NAA",  nome: "NAA - Nova Almeida Atualizada" },
+            { sigla: "NBV",  nome: "NBV - Nova Bíblia Viva" },
+            { sigla: "NTLH", nome: "NTLH - Nova Tradução Linguagem de Hoje" },
+            { sigla: "AS21", nome: "AS21 - Almeida Século 21" },
+            { sigla: "KJF",  nome: "KJF - King James Fiel" }
+        ];
         
         // --- VARIÁVEIS DE ESTADO ---
         let modoAtual = 'biblia';
@@ -601,6 +688,8 @@
         const telaEscolhaHinario = document.getElementById('tela-escolha-hinario');
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
+        const btnVersao = document.getElementById('btn-versao-selecionada');
+        const menuVersoes = document.getElementById('lista-versoes-custom');
         
         function limparBusca() {
             document.getElementById('input-busca').value = ""; 
@@ -608,13 +697,69 @@
             document.getElementById('input-busca').focus(); 
         }
         
+        function gerarMenuVersoes(versaoAtual) {
+            menuVersoes.innerHTML = ''; // Limpa lista antiga
+            
+            listaVersoesDisponiveis.forEach(itemInfo => {
+                const item = document.createElement('div');
+                item.className = 'item-versao';
+                
+                // AQUI É A MÁGICA: Mostra o nome comprido na lista
+                item.innerText = itemInfo.nome; 
+                
+                // Compara usando a sigla (ex: "NVI")
+                if(itemInfo.sigla === versaoAtual) item.classList.add('selecionado');
+    
+                // Ao clicar, envia apenas a sigla para carregar o arquivo certo
+                item.onclick = () => {
+                    mudarVersaoCustom(itemInfo.sigla);
+                };
+    
+                menuVersoes.appendChild(item);
+            });
+        }
+        
+        function alternarMenuVersoes() {
+            menuVersoes.classList.toggle('escondido');
+        }
+        
+        // Fecha o menu se clicar fora dele
+        window.onclick = function(event) {
+            if (!event.target.matches('#btn-versao-selecionada')) {
+                if (!menuVersoes.classList.contains('escondido')) {
+                    menuVersoes.classList.add('escondido');
+                }
+            }
+        }
+        
+        async function mudarVersaoCustom(novaVersao) {
+            btnVersao.innerText = novaVersao; // Muda o texto do botão
+            localStorage.setItem('versaoBiblia', novaVersao);
+            
+            // Fecha o menu
+            menuVersoes.classList.add('escondido');
+            
+            // Chama a lógica de carregamento
+            await carregarVersaoBiblia(novaVersao);
+            
+            // Atualiza a leitura atual (se estiver lendo)
+            if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
+                lerCapitulo(capituloAtual);
+            }
+            
+            // Regenera o menu para atualizar a cor do item selecionado
+            gerarMenuVersoes(novaVersao);
+        }
+       
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
             renderizarLivros();
             
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
-            selectVersao.value = versaoSalva;
+           
+            btnVersao.innerText = versaoSalva;
+            gerarMenuVersoes(versaoSalva);
             
             // 1. Carrega a versão principal da Bíblia (Prioridade Máxima)
             carregarVersaoBiblia(versaoSalva).then(() => {
