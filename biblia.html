@@ -311,8 +311,7 @@
         body.modo-escuro .comp-versao { background-color: #444; color: #fff; }
         body.modo-escuro .comp-texto { color: #e0e0e0; }
 
-        /* --- LAYOUT PARA PC: TELA CHEIA E PROPORCIONAL --- */
-        /* --- LAYOUT PARA PC: TELA CHEIA E PROPORCIONAL (CORRIGIDO) --- */
+        /* --- LAYOUT PARA PC: TELA CHEIA, PROPORCIONAL E CABEÇALHO CORRIGIDO --- */
         @media screen and (min-width: 768px) {
             
             /* 1. Configuração Padrão (Modo Claro) */
@@ -324,18 +323,71 @@
                 border: none !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
-                background-color: #fdfbf7; /* Cor de fundo clara original */
+                background-color: #fdfbf7; 
             }
 
             /* 2. CORREÇÃO DO MODO ESCURO NO PC */
-            /* Garante que o fundo fica preto ao ativar o modo noturno */
             body.modo-escuro, 
             body.modo-escuro #corpo-app {
                 background-color: #121212 !important; 
                 color: #e0e0e0 !important;
             }
 
-            /* 3. Grade de Livros Inteligente */
+            /* 3. CABEÇALHO PROFISSIONAL (Lado a Lado) */
+            header {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important; /* Espalha os itens */
+                align-items: center !important; /* Centraliza verticalmente */
+                padding: 0 40px !important;
+                height: 80px !important;
+            }
+
+            /* Título à esquerda */
+            #titulo-app {
+                font-size: 1.8rem !important;
+                margin: 0 !important;
+                text-align: left !important;
+                flex-grow: 1; /* Empurra o resto para a direita */
+            }
+
+            /* Botão de tema (Lua) */
+            #btn-tema {
+                position: static !important; /* Remove posição absoluta */
+                margin-right: 20px;
+                font-size: 1.5rem;
+            }
+
+            /* Container da Versão (Removemos o fundo "apagado") */
+            .seletor-versao-container {
+                width: auto !important;
+                max-width: none !important;
+                margin: 0 !important;
+                background: transparent !important; /* Tira o fundo transparente feio */
+                backdrop-filter: none !important;
+                box-shadow: none !important;
+                order: 2; /* Garante que fica à direita */
+            }
+
+            /* O Seletor em si (Design Limpo) */
+            #select-versao {
+                padding: 10px 20px !important;
+                font-size: 1rem !important;
+                border-radius: 8px !important;
+                cursor: pointer;
+                background-color: #fff;
+                color: #2c3e50;
+                border: 1px solid #ccc;
+            }
+
+            /* Ajuste do Seletor no Modo Escuro */
+            body.modo-escuro #select-versao {
+                background-color: #333;
+                color: #fff;
+                border-color: #555;
+            }
+
+            /* 4. Grade de Livros Inteligente */
             .grade-livros {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
@@ -343,14 +395,13 @@
                 padding: 40px; 
             }
 
-            /* Botões mais robustos no PC */
             .btn-livro, .btn-capitulo {
                 height: 70px; 
                 font-size: 1.1rem; 
                 border-radius: 12px;
             }
 
-            /* 4. Lista de Hinos em Grade */
+            /* 5. Lista de Hinos e Leitura */
             #lista-hinos-container {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
@@ -364,13 +415,11 @@
                 background-color: rgba(0,0,0,0.03); 
             }
             
-            /* Correção visual dos hinos no modo escuro */
             body.modo-escuro .item-hino {
                 background-color: #2c2c2c;
                 border-color: #444;
             }
 
-            /* 5. Texto de Leitura Centralizado */
             #texto-biblico, #texto-hino {
                 max-width: 900px; 
                 margin: 0 auto;   
@@ -379,23 +428,10 @@
                 padding-bottom: 100px;
             }
 
-            /* 6. Ajuste do Cabeçalho e Rodapé */
-            header {
-                padding: 0 40px; 
-                height: 70px; 
-            }
+            /* 6. Rodapé e Scroll */
+            #rodape-nav { height: 70px; }
+            .aba { flex-direction: row; gap: 10px; font-size: 1rem; }
             
-            #rodape-nav {
-                height: 70px;
-            }
-
-            .aba {
-                flex-direction: row; 
-                gap: 10px;
-                font-size: 1rem;
-            }
-            
-            /* Barra de rolagem personalizada */
             ::-webkit-scrollbar { width: 10px; }
             ::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 5px; }
             body.modo-escuro ::-webkit-scrollbar-thumb { background-color: #444; }
