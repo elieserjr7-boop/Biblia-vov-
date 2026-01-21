@@ -19,17 +19,36 @@
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
+       /* --- CORREÇÃO DA LISTRA DE FUNDO (OVERSCROLL) --- */
+        html {
+            /* Define a cor de fundo base para evitar listras brancas/azuis */
+            background-color: #fdfbf7; 
+            /* Impede o efeito elástico indesejado no iOS/Android */
+            overscroll-behavior-y: none;
+            height: 100%;
+            width: 100%;
+        }
+
         body {
             font-family: 'Verdana', sans-serif;
-            background-color: #fdfbf7;
+            background-color: #fdfbf7; /* Igual ao html */
             color: #111;
             margin: 0;
             padding: 0;
+            
+            /* Fixa o app na tela para evitar rolagem da interface inteira */
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            
             display: flex;
             flex-direction: column;
-            height: 100vh; 
-            overflow: hidden; 
             transition: background-color 0.3s, color 0.3s;
+            
+            /* Remove zoom ao tocar duas vezes */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- CABEÇALHO --- */
@@ -789,17 +808,21 @@
            
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
+            // 1. TEMA: Carrega as cores e o fundo correto imediatamente
             carregarTemaSalvo(); 
+            
+            // 2. INTERFACE: Renderiza os livros (Isso tem que ficar FORA de qualquer if)
             renderizarLivros();
             
+            // 3. VERSÃO: Recupera qual bíblia o usuário estava lendo
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
-           
+            
             btnVersao.innerText = versaoSalva;
             gerarMenuVersoes(versaoSalva);
             
-            // 1. Carrega a versão principal da Bíblia (Prioridade Máxima)
+            // 4. CARREGAMENTO: Busca o texto da Bíblia
             carregarVersaoBiblia(versaoSalva).then(() => {
-                // 2. Após 2 segundos, inicia o download silencioso de TUDO (Bíblias + Hinários)
+                // Inicia o download silencioso do resto após 2 segundos
                 setTimeout(preCarregarTudoSilenciosamente, 2000);
             });
         }
@@ -868,10 +891,20 @@
         
         // --- GESTÃO DE TEMAS ---
         function atualizarMetaColor(escuro) {
+            // Definição das cores
+            const corFundo = escuro ? "#1f1f1f" : "#fdfbf7"; // Cor do fundo "infinito"
+            const corBarra = escuro ? "#1f1f1f" : "#2c3e50"; // Cor da barra de status
+
+            // 1. Atualiza a meta tag (Barra do navegador)
             const metaThemeColor = document.querySelector("meta[name='theme-color']");
             if (metaThemeColor) {
-                metaThemeColor.setAttribute("content", escuro ? "#1f1f1f" : "#2c3e50");
+                metaThemeColor.setAttribute("content", corBarra);
             }
+
+            // 2. O SEGREDO DA LISTRA: Atualiza também o HTML e o BODY
+            // Isso garante que o fundo por trás do app tenha a mesma cor
+            document.documentElement.style.backgroundColor = corFundo;
+            document.body.style.backgroundColor = corFundo;
         }
         
         function alternarTema() {
