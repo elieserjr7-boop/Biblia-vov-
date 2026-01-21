@@ -499,30 +499,26 @@
         async function carregarVersaoBiblia(versao) {
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
 
-            // Mostra o loading explicitamente
-            loading.style.display = 'block';
+            // O ERRO ESTAVA AQUI: Removi a linha que forçava aparecer o "Carregando"
+            // loading.style.display = 'block'; <--- ISSO FOI REMOVIDO
 
             try {
-                // Adiciona timestamp para evitar cache corrompido
-                const resp = await fetch(`./${versao}.json?t=${Date.now()}`);
+                // Garanta que está SEM o "?t=..." para usar o cache do navegador
+                const resp = await fetch(`./${versao}.json`);
                 
-                if(!resp.ok) throw new Error(`Arquivo ${versao}.json não encontrado`);
+                if(!resp.ok) throw new Error("Erro");
                 
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
 
-                // Se estiver lendo, atualiza o texto na hora
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
 
             } catch (e) {
                 console.error(e);
-                alert(`Erro: Não foi possível carregar a versão ${versao}. Verifique se o arquivo .json está na pasta.`);
-            } finally {
-                // O MAIS IMPORTANTE: Tira o loading aconteça o que acontecer
-                loading.style.display = 'none';
-            }
+            } 
+            // Removi o 'finally' também, pois se não mostramos o loading, não precisamos mandar esconder
         }
 
         function mudarVersao() {
@@ -769,14 +765,21 @@
         function fecharComparacao() { document.getElementById('modal-comparacao').classList.add('escondido'); }
 
         // --- HINÁRIOS ---
+        // --- HINÁRIOS (Versão Otimizada - Sem "pisca" de carregamento) ---
         async function abrirHinario(tipo) {
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
-            loading.style.display = 'block';
+            
+            // Define título e URL
             let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
 
             try {
+                // SÓ carrega se ainda não tiver os dados ou se mudou de hinário
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
+                    
+                    // Só mostra o loading se realmente for baixar o arquivo
+                    loading.style.display = 'block'; 
+
                     const resp = await fetch(url);
                     if(!resp.ok) throw new Error("Erro de rede");
                     
@@ -804,13 +807,17 @@
                     dadosHinario = listaFinal;
                     dadosHinario.tipo = tipo; 
                 }
+                
+                // Se já tinha os dados, pula direto pra cá (Instantâneo)
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
                 alternarBarras('navegacao');
+
             } catch(e) {
                 alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
                 telaEscolhaHinario.classList.remove('escondido');
             } finally {
+                // Garante que o loading suma (seja lá de onde veio)
                 loading.style.display = 'none';
             }
         }
