@@ -751,27 +751,19 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. DETETIVE BLINDADO ---
-            let numeroAlvo = null;
-            const container = document.getElementById('conteudo-leitura');
-            const alturaBarra = 90; // Altura aproximada do cabeçalho
-    
-            if (container) {
-                // O [class*="..."] pega qualquer coisa que pareça com versiculo-num
-                const numeros = container.querySelectorAll('[class*="versiculo-num"]');
-                
-                for (let n of numeros) {
-                    const rect = n.getBoundingClientRect();
-                    // A REGRA DE OURO: Se a parte de baixo do número está abaixo da barra, 
-                    // é esse que o usuário está vendo!
-                    if (rect.bottom > alturaBarra) {
-                        numeroAlvo = n.innerText.trim();
-                        break; // Pare assim que achar o primeiro visível
-                    }
-                }
+            // 1. CÁLCULO DA PORCENTAGEM: Grava quanto % da tela você já desceu
+            // Ex: Se leu metade, grava 0.5 (50%)
+            const totalAntigo = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+            const posicaoAntiga = areaPrincipal.scrollTop;
+            
+            let porcentagemLida = 0;
+            if (totalAntigo > 0) {
+                porcentagemLida = posicaoAntiga / totalAntigo;
             }
     
-            // --- 2. TROCA DE VERSÃO ---
+            const scrollJanela = window.scrollY; // Backup para garantir
+    
+            // --- Lógica Padrão de Troca ---
             btnVersao.innerText = novaVersao; 
             localStorage.setItem('versaoBiblia', novaVersao);
             menuVersoes.classList.add('escondido');
@@ -779,24 +771,17 @@
             await carregarVersaoBiblia(novaVersao);
             
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual); // O sistema joga pro topo (0) aqui...
+                lerCapitulo(capituloAtual);
                 
-                // --- 3. RESGATE DA POSIÇÃO ---
-                if (numeroAlvo) {
-                    setTimeout(() => {
-                        // Procura na NOVA lista (usando o mesmo seletor universal)
-                        const novosNumeros = Array.from(document.querySelectorAll('[class*="versiculo-num"]'));
-                        const elAlvo = novosNumeros.find(el => el.innerText.trim() === numeroAlvo);
-                        
-                        if (elAlvo) {
-                            // Pega o bloco do versículo inteiro (o pai do número)
-                            const versiculoInteiro = elAlvo.parentElement;
-                            
-                            // Rola até ele (-80px de desconto para não ficar debaixo da barra)
-                            areaPrincipal.scrollTop = versiculoInteiro.offsetTop - 80;
-                        }
-                    }, 200); // 200ms para vencer qualquer lentidão do celular
-                }
+                // 2. RESTAURAÇÃO PROPORCIONAL
+                // Aplica a mesma porcentagem ao tamanho do NOVO texto
+                setTimeout(() => {
+                    const novoTotal = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+                    const novaPosicao = porcentagemLida * novoTotal;
+                    
+                    areaPrincipal.scrollTop = novaPosicao;
+                    window.scrollTo(0, scrollJanela);
+                }, 50); // Aumentei para 50ms para dar tempo do texto renderizar
             }
             
             gerarMenuVersoes(novaVersao);
