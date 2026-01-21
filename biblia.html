@@ -769,10 +769,11 @@
         }
         
         // --- PRÉ-CARREGAMENTO UNIVERSAL (Bíblias e Hinários) ---
+        // --- PRÉ-CARREGAMENTO UNIVERSAL (CORRIGIDO) ---
         async function preCarregarTudoSilenciosamente() {
             console.log("Iniciando pré-carregamento total...");
         
-            // A. Baixar Hinários (São leves, baixamos primeiro)
+            // A. Baixar Hinários
             const hinarios = ["harpa", "cantor"];
             for (const h of hinarios) {
                 if (!cacheHinarios[h]) {
@@ -780,21 +781,25 @@
                         const r = await fetch(`./${h}.json`);
                         if(r.ok) {
                             const json = await r.json();
-                            processarJsonHinario(json, h); // Já deixa processado na memória
+                            processarJsonHinario(json, h);
                         }
                     } catch(e) { console.warn("Falha pre-load hinario: " + h); }
                 }
             }
         
-            // B. Baixar Outras Versões da Bíblia
-            for (const versao of listaVersoesDisponiveis) {
-                if (!cacheVersoes[versao]) {
+            // B. Baixar Outras Versões da Bíblia (CORREÇÃO AQUI)
+            // Agora percorremos a lista de objetos e usamos 'versao.sigla'
+            for (const item of listaVersoesDisponiveis) {
+                const sigla = item.sigla; // Pegamos só a sigla (ex: "NVI")
+                
+                if (!cacheVersoes[sigla]) {
                     try {
-                        const resp = await fetch(`./${versao}.json`);
+                        const resp = await fetch(`./${sigla}.json`);
                         if (resp.ok) {
-                            cacheVersoes[versao] = await resp.json();
+                            cacheVersoes[sigla] = await resp.json();
+                            // console.log(`Versão ${sigla} pré-carregada!`);
                         }
-                    } catch (e) { console.warn(`Falha pre-load ${versao}`); }
+                    } catch (e) { console.warn(`Falha pre-load ${sigla}`); }
                 }
             }
         }
@@ -1095,6 +1100,7 @@
         }
         
         // --- COMPARADOR ---
+        // --- COMPARADOR (CORRIGIDO) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
             const modal = document.getElementById('modal-comparacao');
             const lista = document.getElementById('lista-comparacao');
@@ -1102,7 +1108,8 @@
             document.getElementById('titulo-comparacao').innerText = `${nome} ${cap}:${ver}`;
             lista.innerHTML = "Carregando...";
         
-            const promises = listaVersoesDisponiveis.map(async v => {
+            const promises = listaVersoesDisponiveis.map(async item => {
+                const v = item.sigla; // Usamos a sigla do objeto
                 try {
                     let dadosVersao;
                     if (cacheVersoes[v]) {
