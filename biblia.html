@@ -751,29 +751,23 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. MEMÓRIA INTELIGENTE (Lê o número do versículo) ---
-            let numeroVersiculoAlvo = null;
-            const container = document.getElementById('conteudo-leitura');
-            const alturaCabecalho = 100; // Altura segura do topo
+            // --- 1. CAPTURA EXATA: Qual o número do versículo no topo? ---
+            let numeroAlvo = null;
+            
+            // Pega todos os númerozinhos (aqueles <sup> pequenos)
+            const numeros = document.querySelectorAll('.versiculo-numero');
+            const alturaCabecalho = 110; 
     
-            if (container && container.children.length > 0) {
-                const lista = Array.from(container.children);
-                
-                // Procura o primeiro versículo que está visível na tela
-                const vVisivel = lista.find(el => {
-                    const rect = el.getBoundingClientRect();
-                    // O elemento está visível se a parte de baixo dele passar da barra do topo
-                    return rect.bottom > alturaCabecalho;
-                });
-    
-                if (vVisivel) {
-                    // TRUQUE: Pega o texto (ex: "12. Então disse...") e extrai só o "12"
-                    // O parseInt pega automaticamente o primeiro número que aparece
-                    numeroVersiculoAlvo = parseInt(vVisivel.innerText);
+            // Procura qual número está visível na tela
+            for (let n of numeros) {
+                const rect = n.getBoundingClientRect();
+                if (rect.top > alturaCabecalho) {
+                    numeroAlvo = n.innerText.trim(); // Guarda o número "6", "12", etc.
+                    break; // Achou o primeiro visível, pode parar
                 }
             }
     
-            // --- Lógica Padrão de Troca ---
+            // --- Lógica de Troca ---
             btnVersao.innerText = novaVersao; 
             localStorage.setItem('versaoBiblia', novaVersao);
             menuVersoes.classList.add('escondido');
@@ -781,29 +775,31 @@
             await carregarVersaoBiblia(novaVersao);
             
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual);
+                lerCapitulo(capituloAtual); // Aqui o app joga para o 0 (topo)
                 
-                // --- 2. RESTAURAÇÃO (Procura o número na nova versão) ---
-                // Aumentei o tempo para 100ms para garantir que o celular renderizou tudo
-                setTimeout(() => {
-                    if (numeroVersiculoAlvo !== null) {
-                        const novaLista = Array.from(document.getElementById('conteudo-leitura').children);
+                // --- 2. CORREÇÃO FORÇADA ---
+                if (numeroAlvo) {
+                    setTimeout(() => {
+                        // Busca os números na NOVA versão
+                        const novosNumeros = Array.from(document.querySelectorAll('.versiculo-numero'));
                         
-                        // Encontra o elemento que começa com o mesmo número
-                        const alvo = novaLista.find(el => parseInt(el.innerText) === numeroVersiculoAlvo);
+                        // Encontra o mesmo número (ex: "6")
+                        const elAlvo = novosNumeros.find(el => el.innerText.trim() === numeroAlvo);
                         
-                        if (alvo) {
-                            // Rola a tela exatamente para esse elemento
-                            // (-80 serve para o texto não ficar escondido atrás do cabeçalho)
-                            areaPrincipal.scrollTop = alvo.offsetTop - 80;
+                        if (elAlvo) {
+                            // Pega o parágrafo inteiro onde esse número está
+                            const paragrafo = elAlvo.parentElement;
+                            
+                            // Rola a tela até ele (descontando o cabeçalho)
+                            areaPrincipal.scrollTop = paragrafo.offsetTop - 90;
                         }
-                    }
-                }, 100); 
+                    }, 150); // 150ms: Tempo suficiente para vencer o scroll=0 do lerCapitulo
+                }
             }
             
             gerarMenuVersoes(novaVersao);
         }
-       
+           
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
