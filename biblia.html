@@ -327,7 +327,7 @@
                 <option value="ACF">ACF - Almeida Corrigida Fiel</option>
                 <option value="ARA">ARA - Almeida Revista e Atualizada</option>
                 <option value="ARC">ARC - Almeida Revista e Corrigida</option>
-                <option value="JFAA">JFA - João Ferreira de Almeida</option>
+                <option value="AA">AA - Almeida Atualizada</option>
                 <option value="TB">TB - Tradução Brasileira</option>
                 <option value="KJA">KJA - King James Atualizada</option>
                 <option value="NAA">NAA - Nova Almeida Atualizada</option>
@@ -379,12 +379,8 @@
                     <input type="text" id="input-busca" placeholder="Digite ou fale (ex: Jesus chorou)..." onkeyup="if(event.key === 'Enter') realizarBusca()">
                     <button id="btn-mic" onclick="ativarMicrofone()">🎤</button>
                 </div>
-
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button class="btn-livro" style="flex: 1; padding:15px; background-color:#3498db; color:white; border:none;" onclick="realizarBusca()">🔍 Pesquisar</button>
-                    <button class="btn-livro" style="width: 70px; padding:15px; background-color:#95a5a6; color:white; border:none;" onclick="limparBusca()">🗑</button>
-                </div>
-                
+                <button class="btn-livro" style="width:100%; padding:15px; background-color:#3498db; color:white; border:none;" onclick="realizarBusca()">🔍 Pesquisar</button>
+                <br><br>
                 <div id="resultados-busca"></div>
             </div>
         </div>
@@ -400,7 +396,7 @@
     </div>
 
     <footer id="rodape-nav" class="escondido">
-        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Voltar</button>
+        <button type="button" class="btn-nav btn-voltar-menu" onclick="voltarInicioLeitura()">Início</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(-1)">&#9664;</button>
         <button type="button" class="btn-nav" onclick="navegarConteudo(1)">&#9654;</button>
     </footer>
@@ -467,12 +463,6 @@
         const telaListaHinos = document.getElementById('tela-lista-hinos');
         const telaLeituraHino = document.getElementById('tela-leitura-hino');
 
-       
-        function limparBusca() {
-            document.getElementById('input-busca').value = ""; 
-            document.getElementById('resultados-busca').innerHTML = ""; 
-            document.getElementById('input-busca').focus(); 
-        }
         // --- INICIALIZAÇÃO ---
         function iniciarApp() {
             carregarTemaSalvo(); 
@@ -499,26 +489,30 @@
         async function carregarVersaoBiblia(versao) {
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
 
-            // O ERRO ESTAVA AQUI: Removi a linha que forçava aparecer o "Carregando"
-            // loading.style.display = 'block'; <--- ISSO FOI REMOVIDO
+            // Mostra o loading explicitamente
+            loading.style.display = 'block';
 
             try {
-                // Garanta que está SEM o "?t=..." para usar o cache do navegador
-                const resp = await fetch(`./${versao}.json`);
+                // Adiciona timestamp para evitar cache corrompido
+                const resp = await fetch(`./${versao}.json?t=${Date.now()}`);
                 
-                if(!resp.ok) throw new Error("Erro");
+                if(!resp.ok) throw new Error(`Arquivo ${versao}.json não encontrado`);
                 
                 bibliaCompleta = await resp.json();
                 versaoCarregadaNome = versao;
 
+                // Se estiver lendo, atualiza o texto na hora
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
 
             } catch (e) {
                 console.error(e);
-            } 
-            // Removi o 'finally' também, pois se não mostramos o loading, não precisamos mandar esconder
+                alert(`Erro: Não foi possível carregar a versão ${versao}. Verifique se o arquivo .json está na pasta.`);
+            } finally {
+                // O MAIS IMPORTANTE: Tira o loading aconteça o que acontecer
+                loading.style.display = 'none';
+            }
         }
 
         function mudarVersao() {
@@ -765,21 +759,14 @@
         function fecharComparacao() { document.getElementById('modal-comparacao').classList.add('escondido'); }
 
         // --- HINÁRIOS ---
-        // --- HINÁRIOS (Versão Otimizada - Sem "pisca" de carregamento) ---
         async function abrirHinario(tipo) {
             document.getElementById('tela-escolha-hinario').classList.add('escondido');
-            
-            // Define título e URL
+            loading.style.display = 'block';
             let url = (tipo === 'harpa') ? "./harpa.json" : "./cantor.json";
             document.getElementById('titulo-app').innerText = (tipo === 'harpa') ? "Harpa Cristã" : "Cantor Cristão";
 
             try {
-                // SÓ carrega se ainda não tiver os dados ou se mudou de hinário
                 if(dadosHinario.length === 0 || dadosHinario.tipo !== tipo) {
-                    
-                    // Só mostra o loading se realmente for baixar o arquivo
-                    loading.style.display = 'block'; 
-
                     const resp = await fetch(url);
                     if(!resp.ok) throw new Error("Erro de rede");
                     
@@ -807,17 +794,13 @@
                     dadosHinario = listaFinal;
                     dadosHinario.tipo = tipo; 
                 }
-                
-                // Se já tinha os dados, pula direto pra cá (Instantâneo)
                 renderizarListaHinos();
                 telaListaHinos.classList.remove('escondido');
                 alternarBarras('navegacao');
-
             } catch(e) {
                 alert("Erro ao abrir Hinário. Verifique se o arquivo JSON existe.");
                 telaEscolhaHinario.classList.remove('escondido');
             } finally {
-                // Garante que o loading suma (seja lá de onde veio)
                 loading.style.display = 'none';
             }
         }
