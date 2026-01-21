@@ -750,23 +750,34 @@
             }
         }
         
-        async function mudarVersaoCustom(novaVersao) {
-            btnVersao.innerText = novaVersao; // Muda o texto do botão
-            localStorage.setItem('versaoBiblia', novaVersao);
+        async function mudarVersaoCustom(novaSigla) {
+            // 1. MEMÓRIA: Antes de trocar, grava onde o usuário está na tela
+            const scrollSalvo = areaPrincipal.scrollTop;
+            const scrollJanela = window.scrollY; 
+    
+            // Atualiza o botão e o banco de dados local
+            btnVersao.innerText = novaSigla; 
+            localStorage.setItem('versaoBiblia', novaSigla);
             
             // Fecha o menu
             menuVersoes.classList.add('escondido');
             
-            // Chama a lógica de carregamento
-            await carregarVersaoBiblia(novaVersao);
+            // Carrega o arquivo da nova bíblia
+            await carregarVersaoBiblia(novaSigla);
             
-            // Atualiza a leitura atual (se estiver lendo)
+            // Se a pessoa estiver lendo um capítulo agora...
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual);
+                lerCapitulo(capituloAtual); // O app tenta jogar pro topo aqui...
+                
+                // 2. RESTAURAÇÃO: ...mas nós forçamos a voltar para onde estava!
+                setTimeout(() => {
+                    areaPrincipal.scrollTop = scrollSalvo;
+                    window.scrollTo(0, scrollJanela);
+                }, 10);
             }
             
-            // Regenera o menu para atualizar a cor do item selecionado
-            gerarMenuVersoes(novaVersao);
+            // Atualiza a lista (pinta de azul a nova versão selecionada)
+            gerarMenuVersoes(novaSigla);
         }
        
         // --- INICIALIZAÇÃO ---
