@@ -751,23 +751,19 @@
         } 
         
         async function mudarVersaoCustom(novaVersao) {
-            // --- 1. CAPTURA EXATA: Qual o número do versículo no topo? ---
-            let numeroAlvo = null;
+            // 1. CÁLCULO DA PORCENTAGEM: Grava quanto % da tela você já desceu
+            // Ex: Se leu metade, grava 0.5 (50%)
+            const totalAntigo = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+            const posicaoAntiga = areaPrincipal.scrollTop;
             
-            // Pega todos os númerozinhos (aqueles <sup> pequenos)
-            const numeros = document.querySelectorAll('.versiculo-numero');
-            const alturaCabecalho = 110; 
-    
-            // Procura qual número está visível na tela
-            for (let n of numeros) {
-                const rect = n.getBoundingClientRect();
-                if (rect.top > alturaCabecalho) {
-                    numeroAlvo = n.innerText.trim(); // Guarda o número "6", "12", etc.
-                    break; // Achou o primeiro visível, pode parar
-                }
+            let porcentagemLida = 0;
+            if (totalAntigo > 0) {
+                porcentagemLida = posicaoAntiga / totalAntigo;
             }
     
-            // --- Lógica de Troca ---
+            const scrollJanela = window.scrollY; // Backup para garantir
+    
+            // --- Lógica Padrão de Troca ---
             btnVersao.innerText = novaVersao; 
             localStorage.setItem('versaoBiblia', novaVersao);
             menuVersoes.classList.add('escondido');
@@ -775,26 +771,17 @@
             await carregarVersaoBiblia(novaVersao);
             
             if (modoAtual === 'biblia' && !telaLeitura.classList.contains('escondido')) {
-                lerCapitulo(capituloAtual); // Aqui o app joga para o 0 (topo)
+                lerCapitulo(capituloAtual);
                 
-                // --- 2. CORREÇÃO FORÇADA ---
-                if (numeroAlvo) {
-                    setTimeout(() => {
-                        // Busca os números na NOVA versão
-                        const novosNumeros = Array.from(document.querySelectorAll('.versiculo-numero'));
-                        
-                        // Encontra o mesmo número (ex: "6")
-                        const elAlvo = novosNumeros.find(el => el.innerText.trim() === numeroAlvo);
-                        
-                        if (elAlvo) {
-                            // Pega o parágrafo inteiro onde esse número está
-                            const paragrafo = elAlvo.parentElement;
-                            
-                            // Rola a tela até ele (descontando o cabeçalho)
-                            areaPrincipal.scrollTop = paragrafo.offsetTop - 90;
-                        }
-                    }, 150); // 150ms: Tempo suficiente para vencer o scroll=0 do lerCapitulo
-                }
+                // 2. RESTAURAÇÃO PROPORCIONAL
+                // Aplica a mesma porcentagem ao tamanho do NOVO texto
+                setTimeout(() => {
+                    const novoTotal = areaPrincipal.scrollHeight - areaPrincipal.clientHeight;
+                    const novaPosicao = porcentagemLida * novoTotal;
+                    
+                    areaPrincipal.scrollTop = novaPosicao;
+                    window.scrollTo(0, scrollJanela);
+                }, 50); // Aumentei para 50ms para dar tempo do texto renderizar
             }
             
             gerarMenuVersoes(novaVersao);
