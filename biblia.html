@@ -311,6 +311,77 @@
         body.modo-escuro .comp-versao { background-color: #444; color: #fff; }
         body.modo-escuro .comp-texto { color: #e0e0e0; }
 
+        /* --- LAYOUT PARA PC E TABLET (Telas maiores que 768px) --- */
+        @media screen and (min-width: 768px) {
+            
+            /* 1. Fundo da tela do PC (fora do app) */
+            body {
+                background-color: #e0e0e0; /* Cinza claro suave */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+        
+            body.modo-escuro {
+                background-color: #121212; /* Fundo escuro no modo noturno */
+            }
+        
+            /* 2. O corpo do App vira um "Cartão" centralizado */
+            #corpo-app {
+                width: 100%;
+                max-width: 500px; /* Largura ideal para leitura (como um livro) */
+                height: 90vh; /* 90% da altura da tela */
+                border-radius: 20px; /* Bordas arredondadas */
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3); /* Sombra elegante */
+                overflow: hidden; /* Garante que nada saia do cartão */
+                border: 1px solid rgba(0,0,0,0.1);
+                position: relative;
+                background-color: var(--cor-fundo); /* Mantém a cor do tema */
+                margin: auto; /* Centraliza */
+            }
+        
+            /* No modo escuro, ajusta a borda do cartão */
+            body.modo-escuro #corpo-app {
+                border: 1px solid #333;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            }
+        
+            /* 3. Ajuste da Grade de Livros para caber melhor */
+            .grade-livros {
+                grid-template-columns: repeat(3, 1fr) !important; /* 3 colunas fixas */
+                gap: 15px;
+            }
+        
+            /* 4. Barra de rolagem personalizada (mais bonita no PC) */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background-color: rgba(0,0,0,0.2);
+                border-radius: 4px;
+            }
+            body.modo-escuro ::-webkit-scrollbar-thumb {
+                background-color: rgba(255,255,255,0.2);
+            }
+            
+            /* 5. Ajuste fino no cabeçalho e rodapé para não ficarem colados na borda */
+            #rodape-nav {
+                max-width: 500px; /* Garante que o menu acompanhe a largura */
+                margin: 0 auto;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+            }
+            
+            header {
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+            }
+        }
+
     </style>
 </head>
 <body id="corpo-app">
