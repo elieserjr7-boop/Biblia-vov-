@@ -21,20 +21,13 @@
 
            /* --- CSS BLINDADO CONTRA LISTRAS --- */
         html {
-            /* Garante que não há margem padrão do navegador */
-            margin: 0;
-            padding: 0;
-            
-            /* Ocupa 100% real */
-            width: 100%;
-            height: 100%;
-            
-            /* Cor de fundo base (importante para o overscroll) */
+            /* CORREÇÃO DA LISTRA (CAMUFLAGEM): */
+            /* Define a cor de fundo padrão (Modo Claro) no elemento raiz */
             background-color: #fdfbf7; 
             
-            /* Trava o "elástico" da página */
-            overscroll-behavior: none;
-            -webkit-text-size-adjust: 100%;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Quem rola é o body, não o html */
         }
     
         body {
@@ -951,19 +944,27 @@
         }
         
         function atualizarMetaColor(escuro) {
-            // Cores exatas do seu tema
+            // --- DEFINIÇÃO DAS CORES ---
+            // Aqui definimos as cores para Modo Escuro e Claro
+            
+            // Cor do Fundo (e da Listra de baixo)
             const corFundo = escuro ? "#1f1f1f" : "#fdfbf7"; 
-            const corBarra = escuro ? "#1f1f1f" : "#2c3e50"; 
+            
+            // Cor da Barra de Status (Lá no topo, onde fica a bateria)
+            // DICA: Se a listra aparecer no topo, mude esta cor para igual a 'corFundo' também!
+            const corBarraTopo = escuro ? "#1f1f1f" : "#2c3e50"; 
     
-            // 1. Pinta a barra do navegador (Status Bar)
+            // 1. Pinta a Barra de Notificações (Android/Chrome)
             const metaThemeColor = document.querySelector("meta[name='theme-color']");
             if (metaThemeColor) {
-                metaThemeColor.setAttribute("content", corBarra);
+                metaThemeColor.setAttribute("content", corBarraTopo);
             }
     
-            // 2. Pinta o fundo "infinito" (HTML) e o corpo (BODY)
-            // Isso remove a listra branca/azul se a tela esticar
+            // 2. A MÁGICA DA CAMUFLAGEM:
+            // Pinta o elemento <html> (que é a listra de fundo)
             document.documentElement.style.backgroundColor = corFundo;
+            
+            // Pinta o corpo do site
             document.body.style.backgroundColor = corFundo;
         }
         
