@@ -558,15 +558,22 @@
 
         /* --- CORREÇÃO ESPECÍFICA PARA A LISTA DE LIVROS --- */
 
-        /* Remove o espaço interno extra somente da tela de livros */
-        #tela-livros {
-            padding-top: 0px !important; 
+        /* --- CORREÇÃO DO ESPAÇO NO TOPO DA LISTA DE LIVROS --- */
+
+        /* 1. Zera o padding da caixa principal apenas na tela de livros */
+        div#tela-livros.tela-conteudo {
+            padding-top: 5px !important; /* Deixei 5px só pra não colidir, mas pode por 0 */
         }
-        
-        /* Ajusta a margem dos títulos "Antigo Testamento" e "Novo Testamento" */
-        #tela-livros h3 {
-            margin-top: 10px !important; /* Reduz a distância do topo */
-            margin-bottom: 10px !important;
+
+        /* 2. Remove a margem do primeiro título (Antigo Testamento) */
+        div#tela-livros h3:first-child {
+            margin-top: 5px !important; /* Reduz a distância do topo */
+            margin-bottom: 15px !important;
+        }
+
+        /* 3. Garante que a leitura continue com o espaço correto (Proteção) */
+        div#tela-leitura.tela-conteudo {
+            padding-top: 20px !important;
         }
         
     </style>
