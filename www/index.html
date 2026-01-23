@@ -555,6 +555,19 @@
             padding-bottom: 10px;         /* Espaço extra embaixo do título */
             display: block;
         }
+
+        /* --- CORREÇÃO ESPECÍFICA PARA A LISTA DE LIVROS --- */
+
+        /* Remove o espaço interno extra somente da tela de livros */
+        #tela-livros {
+            padding-top: 0px !important; 
+        }
+        
+        /* Ajusta a margem dos títulos "Antigo Testamento" e "Novo Testamento" */
+        #tela-livros h3 {
+            margin-top: 10px !important; /* Reduz a distância do topo */
+            margin-bottom: 10px !important;
+        }
         
     </style>
 </head>
