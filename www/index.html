@@ -126,14 +126,14 @@
             -webkit-overflow-scrolling: touch; 
             position: relative;
             z-index: 1;
-            padding-top: 10px; 
+            padding-top: calc(10px + env(safe-area-inset-top));
             padding-bottom: 80px; 
             transition: padding-top 0.3s ease;
         }
 
         /* MODO LEITURA */
         body.modo-leitura header { position: fixed; top: 0; left: 0; right: 0; }
-        body.modo-leitura main { padding-top: 140px; padding-bottom: 100px; }
+        body.modo-leitura main { padding-top: calc(140px + env(safe-area-inset-top)); padding-bottom: 100px; }
         body.modo-leitura.imersivo header { transform: translateY(-100%); }
         body.modo-leitura.imersivo #rodape-nav { transform: translateY(100%); }
         body.modo-leitura.imersivo main { padding-top: calc(43px + env(safe-area-inset-top)); padding-bottom: 20px; }
