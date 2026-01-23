@@ -23,11 +23,11 @@ jobs:
       - name: Sincronizar Capacitor
         run: npx cap sync
 
-      - name: Configurar Java
+      - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Gerar APK (Debug)
         run: |
