@@ -556,17 +556,27 @@
             display: block;
         }
 
-        /* --- CORREÇÃO DEFINITIVA DO ESPAÇO --- */
+       /* --- CORREÇÃO FINAL (TIRO E QUEDA) --- */
 
-        /* 1. Anula o padding de 20px APENAS na tela de livros */
-        #tela-livros.tela-conteudo {
+        /* 1. Remove qualquer margem interna do container de livros */
+        /* Obs: Tirei o ".tela-conteudo" do seletor para garantir que pegue pelo ID */
+        #tela-livros {
             padding-top: 0px !important;
+            margin-top: -5px !important; /* Truque: Puxa a tela um pouquinho para cima para comer o espaço do <main> */
         }
 
-        /* 2. Sobe o título "Antigo Testamento" removendo a margem padrão dele */
-        #tela-livros h3 {
-            margin-top: 5px !important; /* Deixa só 5px pra não colar no teto do celular */
+        /* 2. Zera a margem do botão laranja "ANTIGO TESTAMENTO" */
+        /* Isso é o que estava criando aquele buraco grande */
+        #tela-livros .separador-testamento {
+            margin-top: 0px !important;
             margin-bottom: 10px !important;
+        }
+
+        /* 3. Se houver algum h3 perdido, zera também */
+        #tela-livros h3 {
+            margin-top: 0px !important;
+            margin-bottom: 0px !important;
+            padding-top: 0px !important;
         }
         
     </style>
