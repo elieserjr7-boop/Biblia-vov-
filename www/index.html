@@ -548,6 +548,37 @@
             background-color: #444;
             color: #8ab4f8;
         }
+        /* --- CORREÇÃO DO MENU DE VERSÕES NO PC --- */
+        #lista-versoes-custom {
+            /* 1. Impede que a lista seja maior que 70% da altura da tela */
+            max-height: 70vh !important; 
+            
+            /* 2. Liga a rolagem automática se a lista for grande */
+            overflow-y: auto !important;
+            
+            /* 3. Garante que fique acima de outros elementos */
+            z-index: 9999;
+        }
+
+        /* --- DEIXAR A BARRA DE ROLAGEM BONITA E VISÍVEL --- */
+        #lista-versoes-custom::-webkit-scrollbar {
+            width: 10px; /* Largura boa para clicar com o mouse */
+        }
+
+        #lista-versoes-custom::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Fundo do trilho */
+            border-radius: 4px;
+        }
+
+        #lista-versoes-custom::-webkit-scrollbar-thumb {
+            background: #888; /* A barra cinza que mexe */
+            border-radius: 4px;
+            border: 2px solid #f1f1f1; /* Espacinho branco em volta */
+        }
+
+        #lista-versoes-custom::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Fica mais escura quando passa o mouse */
+        }
     </style>
 </head>
 <body id="corpo-app">
