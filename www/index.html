@@ -1114,34 +1114,51 @@
         
         /* --- MODO ESCURO: EDITOR DE NOTA --- */
 
-        /* 1. Fundo da Janela de Nota */
+        /* 1. Fundo da Janela de Nota (Mantém cinza escuro) */
         body.modo-escuro #modal-editor-nota > div {
-            background: #222 !important; /* Fundo cinza escuro */
-            color: white !important;     /* Texto branco */
+            background: #222 !important;
+            color: white !important;
             border: 1px solid #444 !important;
         }
         
-        /* 2. Botão "Salvar" (Branco Gelo + Texto Preto) */
-        body.modo-escuro .btn-salvar {
-            background-color: #f0f8ff !important; /* Branco Gelo (AliceBlue) */
-            color: #000000 !important;            /* Texto PRETO (Essencial) */
+        /* 2. Botões de Ação (CORES FIXAS: Verde e Vermelho) */
+        /* Aplicamos tanto no modo claro quanto no escuro para garantir o padrão */
+        .btn-salvar,
+        body.modo-escuro .btn-salvar,
+        button[onclick*="salvar"] {
+            background-color: #27ae60 !important; /* Verde Esmeralda */
+            color: white !important;              /* Texto Branco */
+            border: none !important;
             font-weight: bold !important;
+        }
+        
+        .btn-cancelar,
+        body.modo-escuro .btn-cancelar,
+        button[onclick*="cancelar"] {
+            background-color: #e74c3c !important; /* Vermelho */
+            color: white !important;              /* Texto Branco */
             border: none !important;
         }
         
-        /* 3. Botão "Cancelar" (Cinza discreto) */
-        body.modo-escuro .btn-cancelar {
-            background-color: #333 !important;
-            color: #ccc !important;
-            border: 1px solid #555 !important;
+        /* 3. O "X" de fechar o menu de baixo (Branco Puro) */
+        body.modo-escuro button[onclick="fecharModalVerso()"] {
+            color: #ffffff !important;
+            background: transparent !important;
         }
         
-        /* 4. O "X" de fechar o menu de baixo */
-        /* Ajustado para pegar especificamente o seu <button onclick="fecharModalVerso()"> */
-        body.modo-escuro button[onclick="fecharModalVerso()"] {
-            color: #ffffff !important;       /* X Branco puro */
-            fill: #ffffff !important;        /* Caso mude para ícone SVG no futuro */
-            background: transparent !important;
+        /* 4. Botão "Adicionar/Editar Nota" (Branco Gelo no Modo Escuro) */
+        /* Muda a cor do ícone/texto de nota no menu inferior */
+        body.modo-escuro #modal-verso div[onclick*="notaVerso"], 
+        body.modo-escuro #modal-verso div[onclick*="iniciarComentario"] {
+            color: #f0f8ff !important; /* Branco Gelo */
+        }
+        
+        /* 5. Texto do Versículo Selecionado (Branco Gelo no Modo Escuro) */
+        /* Aquele texto de pré-visualização no menu inferior que estava cinza */
+        body.modo-escuro #modal-verso p,
+        body.modo-escuro #texto-verso-preview {
+            color: #f0f8ff !important; /* Branco Gelo */
+            opacity: 1 !important;
         }
         
     </style>
