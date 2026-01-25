@@ -1081,6 +1081,42 @@
             background-color: rgba(0,0,0,0.5) !important; /* Preto transparente */
             backdrop-filter: blur(2px); /* Efeito de vidro opcional */
         }
+
+        /* --- EDITOR DE NOTA (O MAIS ALTO DE TODOS) --- */
+        #modal-editor-nota {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            
+            /* Ganha do Menu de Versículos (que é 999999) */
+            z-index: 2000000 !important; 
+            
+            background-color: rgba(0,0,0,0.8) !important; /* Fundo escuro para foco */
+            backdrop-filter: blur(5px); /* Efeito bonito de desfoque */
+            
+            /* Centralizar o conteúdo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Opcional: Estilo para a caixinha branca dentro dele, caso não tenha */
+        #modal-editor-nota > div {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        
+        /* Modo escuro */
+        body.modo-escuro #modal-editor-nota > div {
+            background: #222;
+            color: white;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -2393,23 +2429,47 @@
         
         // 3. Salvar Comentário
         function iniciarComentario() {
-            fecharModalVerso(); // Fecha o menu de baixo
+            // 1. Tenta fechar o menu de versículos para limpar a tela
+            // (Verifique se o nome da função de fechar é 'fecharModalVerso' ou 'fecharMenuVersiculo')
+            try { fecharModalVerso(); } catch(e) { /* ignora erro se não existir */ }
             
+            // Tenta fechar o overlay também, só por garantia
+            const overlay = document.getElementById('overlay-verso');
+            if (overlay) overlay.remove();
+        
+            // 2. Prepara os dados
             const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
             const notaSalva = dadosUsuario.notas[chave] ? dadosUsuario.notas[chave].texto : "";
             
-            // Preenche o Modal
+            // 3. Preenche os campos do HTML
             document.getElementById('titulo-editor').innerText = "Editar Anotação";
             document.getElementById('ref-editor').innerText = `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`;
             document.getElementById('texto-nota-input').value = notaSalva;
             
-            // Abre o Modal
-            document.getElementById('modal-editor-nota').classList.remove('escondido');
-            document.getElementById('texto-nota-input').focus();
+            // 4. A CORREÇÃO DE HIERARQUIA (Move para o Body)
+            const modalEditor = document.getElementById('modal-editor-nota');
+            if (modalEditor) {
+                document.body.appendChild(modalEditor); // <--- O SEGREDO ESTÁ AQUI
+                
+                // Remove a classe 'escondido' (ou define display flex)
+                modalEditor.classList.remove('escondido');
+                // Força display flex caso o CSS 'escondido' use display:none
+                modalEditor.style.display = 'flex'; 
+            }
+        
+            // 5. Foca no campo de texto
+            setTimeout(() => {
+                const input = document.getElementById('texto-nota-input');
+                if(input) input.focus();
+            }, 100);
         }
 
         function fecharEditorNota() {
-            document.getElementById('modal-editor-nota').classList.add('escondido');
+            const modal = document.getElementById('modal-editor-nota');
+            if (modal) {
+                modal.classList.add('escondido');
+                modal.style.display = 'none'; // Garante que some
+            }
         }
 
         function salvarNotaPeloModal() {
