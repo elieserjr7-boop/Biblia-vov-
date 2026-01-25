@@ -1320,9 +1320,13 @@
         
         /* Caixa no Modo Escuro */
         body.modo-escuro #modal-confirmacao .caixa-confirmacao {
-            background-color: #34495e !important; /* Azul Profundo */
-            border: 1px solid #4a6278 !important; /* Borda Clara */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            /* Mudei de azul (#34495e) para Cinza Escuro Neutro (#1e1e1e) */
+            background-color: #1e1e1e !important; 
+            
+            /* Borda mais suave para combinar com cinza */
+            border: 1px solid #333 !important; 
+            
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
         }
         
         /* Título no Modo Escuro */
@@ -1332,20 +1336,21 @@
         
         /* Texto no Modo Escuro */
         body.modo-escuro #modal-confirmacao #texto-confirmacao {
-            color: #e0e0e0 !important; /* Branco Suave */
+            color: #ccc !important; /* Cinza claro para leitura */
         }
         
         /* Botão Cancelar no Modo Escuro */
         body.modo-escuro #modal-confirmacao .btn-cancelar {
             background-color: transparent !important;
-            border: 1px solid #bdc3c7 !important;     /* Borda Prata */
-            color: #f8f9fa !important;                /* Texto Branco */
+            border: 1px solid #444 !important;     /* Borda cinza escuro sutil */
+            color: #f8f9fa !important;             /* Texto Branco */
         }
         
-        /* Botão Confirmar no Modo Escuro (Garante visibilidade) */
+        /* Botão Confirmar no Modo Escuro */
         body.modo-escuro #modal-confirmacao .btn-salvar {
             border: none !important;
             color: #fff !important;
+            /* Mantém a cor original do botão (provavelmente verde ou azul) */
         }
         
     </style>
