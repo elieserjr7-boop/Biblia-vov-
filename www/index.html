@@ -708,6 +708,79 @@
         body.modo-escuro .cabecalho-progresso { color: #bdc3c7; }
         body.modo-escuro .barra-trilho { background-color: #444; }
         body.modo-escuro .barra-preenchida { background-color: #00e676; box-shadow: 0 0 12px rgba(0, 230, 118, 0.4); }
+        /* --- ESTILO DO NOVO MENU PERFIL --- */
+        
+        .lista-opcoes-perfil {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+        }
+        
+        .btn-opcao-perfil {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn-opcao-perfil:active { transform: scale(0.98); }
+        
+        .icone-grande { font-size: 28px; margin-right: 15px; }
+        
+        .texto-opcao { flex: 1; }
+        
+        .titulo-opcao { 
+            display: block; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #2c3e50; 
+        }
+        
+        .desc-opcao { 
+            display: block; 
+            font-size: 13px; 
+            color: #7f8c8d; 
+            margin-top: 4px; 
+        }
+        
+        .seta-opcao { font-size: 20px; color: #bdc3c7; }
+        
+        /* Sub-telas */
+        .cabecalho-subtela {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+        
+        .cabecalho-subtela h3 { margin: 0; color: #2c3e50; }
+        
+        .btn-voltar-perfil {
+            background: none;
+            border: 1px solid #bdc3c7;
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: #2c3e50;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* Modo Escuro */
+        body.modo-escuro .btn-opcao-perfil { background: #2c2c2c; border-color: #444; }
+        body.modo-escuro .titulo-opcao { color: #ecf0f1; }
+        body.modo-escuro .cabecalho-subtela { background: #1f1f1f; border-color: #333; }
+        body.modo-escuro .cabecalho-subtela h3 { color: #ecf0f1; }
+        body.modo-escuro .btn-voltar-perfil { color: #ecf0f1; border-color: #555; }
         
     </style>
 </head>
@@ -778,29 +851,55 @@
         </div>
         
         <div id="tela-meus-dados" class="tela-conteudo escondido">
-            <div style="padding: 20px;">
-                <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Meu Progresso</h2>
-            
+        
+            <div id="menu-perfil-principal" class="anime-fade">
+                <h2 style="text-align: center; color: #2c3e50; margin: 20px 0;">Meu Perfil</h2>
+                
+                <div class="lista-opcoes-perfil">
+                    <button class="btn-opcao-perfil" onclick="abrirTelaProgressao()">
+                        <span class="icone-grande">📊</span>
+                        <div class="texto-opcao">
+                            <span class="titulo-opcao">Progressão de Leitura</span>
+                            <span class="desc-opcao">Veja suas estatísticas e livros lidos</span>
+                        </div>
+                        <span class="seta-opcao">➔</span>
+                    </button>
+    
+                    <button class="btn-opcao-perfil" style="opacity: 0.6; cursor: not-allowed;">
+                        <span class="icone-grande">🖍️</span>
+                        <div class="texto-opcao">
+                            <span class="titulo-opcao">Versículos Favoritos</span>
+                            <span class="desc-opcao">Em breve...</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+    
+            <div id="view-progressao" class="sub-tela escondido">
+                <div class="cabecalho-subtela">
+                    <button class="btn-voltar-perfil" onclick="voltarMenuPerfil()">⬅ Voltar</button>
+                    <h3>Estatísticas</h3>
+                </div>
+    
                 <div class="painel-resumo">
                     <div class="card-dado">
                         <span class="dado-valor" id="total-lido-pct">0%</span>
-                        <span class="dado-label">Concluído</span>
+                        <span class="dado-label">Bíblia Completa</span>
                     </div>
                     <div class="card-dado">
                         <span class="dado-valor" id="total-caps-lidos">0</span>
-                        <span class="dado-label">Capítulos</span>
+                        <span class="dado-label">Capítulos Lidos</span>
                     </div>
                 </div>
-
-                <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
-
-                <div id="lista-progresso-livros">
-                    </div>
-
-                <button onclick="resetarProgresso()" class="btn-resetar">🗑️ Zerar Tudo</button>
-            
+    
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    
+                <div id="lista-progresso-livros"></div>
+    
+                <button onclick="resetarProgresso()" class="btn-resetar">🗑️ Zerar Todo Progresso</button>
                 <div style="height: 100px;"></div>
             </div>
+    
         </div>
 
     </main>
@@ -1250,50 +1349,77 @@
             salvarDados();
         }
         
-        function atualizarTelaProgresso() {
+        function abrirTelaProgressao() {
+            // Esconde o menu e mostra a tela de barras
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            document.getElementById('view-progressao').classList.remove('escondido');
+            
+            // Desenha as barras na hora que abre
+            renderizarProgressoCompleto(); 
+        }
+        
+        function voltarMenuPerfil() {
+            // Esconde as barras e volta pro menu
+            document.getElementById('view-progressao').classList.add('escondido');
+            document.getElementById('menu-perfil-principal').classList.remove('escondido');
+        }
+        
+        // 2. Renderização das Barras (Garante que mostra TODOS os livros)
+        function renderizarProgressoCompleto() {
             const container = document.getElementById('lista-progresso-livros');
             container.innerHTML = '';
             
-            let totalCapsGeral = 0;
+            let totalCapsBibia = 0;
             let totalLidosGeral = 0;
-            
-            // Itera sobre todos os livros da Bíblia (precisa ter a variável 'dadosBiblia' carregada)
-            for (let livro in dadosBiblia) {
-                const qtdCaps = dadosBiblia[livro];
-                const lidos = dadosUsuario.progresso[livro] ? dadosUsuario.progresso[livro].length : 0;
-                const pct = Math.round((lidos / qtdCaps) * 100);
+        
+            // Concatena as listas que já existem no seu código para garantir a ordem certa
+            // (Gênesis...Malaquias -> Mateus...Apocalipse)
+            const todosLivros = [...antigoTestamento, ...novoTestamento];
+        
+            todosLivros.forEach(livroObj => {
+                const nomeLivro = livroObj.nome;
+                const totalCaps = livroObj.caps;
                 
-                totalCapsGeral += qtdCaps;
-                totalLidosGeral += lidos;
+                // Verifica o progresso (se não tiver nada, assume array vazio [])
+                const lidosArray = dadosUsuario.progresso[nomeLivro] || [];
+                const qtdLidos = lidosArray.length;
                 
-                // Só mostra livros que você já começou a ler (opcional, se quiser mostrar todos tire o if)
-                // Mas para ficar bonito, vamos mostrar todos:
-                
+                // Calcula porcentagem (Evita divisão por zero se houver erro nos dados)
+                const pct = totalCaps > 0 ? Math.round((qtdLidos / totalCaps) * 100) : 0;
+        
+                // Soma para o cabeçalho geral
+                totalCapsBibia += totalCaps;
+                totalLidosGeral += qtdLidos;
+        
+                // Cor da barra: Verde Escuro se completou (100%), Verde Neon se está lendo
+                const corBarra = pct === 100 ? '#27ae60' : '#39ff14'; 
+        
                 const html = `
                     <div class="item-progresso">
                         <div class="cabecalho-progresso">
-                            <span>${livro}</span>
-                            <span>${pct}% <small style="color:#95a5a6">(${lidos}/${qtdCaps})</small></span>
+                            <span>${nomeLivro}</span>
+                            <span>${pct}% <small style="color:#95a5a6">(${qtdLidos}/${totalCaps})</small></span>
                         </div>
                         <div class="barra-trilho">
-                            <div class="barra-preenchida" style="width: ${pct}%"></div>
+                            <div class="barra-preenchida" style="width: ${pct}%; background-color: ${corBarra}"></div>
                         </div>
                     </div>
                 `;
                 container.innerHTML += html;
-            }
-            
-            // Atualiza resumo do topo
-            const pctTotal = Math.round((totalLidosGeral / totalCapsGeral) * 100) || 0;
-            document.getElementById('total-lido-pct').innerText = pctTotal + "%";
+            });
+        
+            // Atualiza os números grandes lá no topo (Resumo Geral)
+            const pctGeral = totalCapsBibia > 0 ? Math.round((totalLidosGeral / totalCapsBibia) * 100) : 0;
+            document.getElementById('total-lido-pct').innerText = pctGeral + "%";
             document.getElementById('total-caps-lidos').innerText = totalLidosGeral;
         }
         
+        // 3. Função de Resetar (Atualizada para o novo sistema)
         function resetarProgresso() {
-            if(confirm("Tem certeza que deseja apagar todo o seu progresso de leitura?")) {
-                dadosUsuario.progresso = {};
-                salvarDados();
-                atualizarTelaProgresso();
+            if(confirm("Tem certeza que deseja apagar todo o seu histórico de leitura? Essa ação não pode ser desfeita.")) {
+                dadosUsuario.progresso = {}; // Zera o objeto
+                salvarDados(); // Salva no celular
+                renderizarProgressoCompleto(); // Atualiza a tela na hora (tudo volta pra 0%)
             }
         }
         
@@ -1362,12 +1488,12 @@
                 if (!telaLeituraHino.classList.contains('escondido')) alternarBarras('leitura');
         
             } else if (aba === 'dados') {
-                // --- NOVA OPÇÃO ---
                 if(tabDados) tabDados.classList.remove('escondido');
                 titulo.innerText = "Meu Perfil";
-                // Importante: Chama a função que atualiza os gráficos/barras
-                renderizarProgresso(); 
+                // Garante que começa no menu, não na progressão antiga
+                voltarMenuPerfil(); 
             }
+            
         }
         
         // --- RENDERIZAÇÃO BÍBLIA ---
