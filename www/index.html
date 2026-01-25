@@ -1239,6 +1239,40 @@
             color: #f8f9fa; /* Branco Gelo */
         }
         
+        /* ==========================================================================
+           Modal de Confirmação
+           ========================================================================== */
+        .caixa-confirmacao {
+            background: #fff;
+            width: 90%;
+            max-width: 350px; /* Mais pequeno que o editor de notas */
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .caixa-confirmacao h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .caixa-confirmacao p {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        /* --- MODO ESCURO (Dark Mode) --- */
+        body.dark-mode .caixa-confirmacao {
+            background-color: #34495e;
+        }
+        
+        body.dark-mode .caixa-confirmacao h3,
+        body.dark-mode .caixa-confirmacao p {
+            color: #f8f9fa; /* Branco Gelo */
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -1425,6 +1459,23 @@
                 </div>
             </div>
         </div>
+        
+        <div id="modal-confirmacao" class="modal-overlay escondido">
+            <div class="caixa-confirmacao zoom-in">
+                <h3 id="titulo-confirmacao">Confirmação</h3>
+                <p id="texto-confirmacao">Tem certeza que deseja realizar esta ação?</p>
+                
+                <div class="botoes-editor">
+                    <button class="btn-cancelar" onclick="fecharModalConfirmacao()">
+                        Cancelar
+                    </button>
+                    <button class="btn-salvar" onclick="executarAcaoConfirmada()">
+                        Confirmar ✓
+                    </button>
+                </div>
+            </div>
+        </div>
+        
     </main>
 
     <div id="modal-comparacao" class="modal-overlay escondido">
@@ -2013,14 +2064,55 @@
                 nav.classList.add('escondido-nav');
             }
         }
+
+        // Variável para guardar a função que deve ser executada se o usuário disser "Sim"
+        let acaoPendente = null;
+        
+        // 1. Função que CHAMA o modal (Substitui o "if confirm")
+        function mostrarConfirmacao(texto, funcaoCallback) {
+            const modal = document.getElementById('modal-confirmacao');
+            const textoElemento = document.getElementById('texto-confirmacao');
+            
+            // Define o texto da pergunta
+            textoElemento.innerText = texto;
+            
+            // Guarda a ação para usar depois
+            acaoPendente = funcaoCallback;
+            
+            // Mostra o modal
+            modal.classList.remove('escondido');
+        }
+        
+        // 2. Função que FECHA o modal (Botão Cancelar)
+        function fecharModalConfirmacao() {
+            const modal = document.getElementById('modal-confirmacao');
+            modal.classList.add('escondido');
+            acaoPendente = null; // Limpa a ação
+        }
+        
+        // 3. Função que EXECUTA a ação (Botão Confirmar)
+        function executarAcaoConfirmada() {
+            if (acaoPendente) {
+                acaoPendente(); // Executa a função que estava guardada
+            }
+            fecharModalConfirmacao();
+        }
         
         // 3. Função de Resetar (Atualizada para o novo sistema)
         function resetarProgresso() {
-            if(confirm("Tem certeza que deseja apagar todo o seu histórico de leitura? Essa ação não pode ser desfeita.")) {
-                dadosUsuario.progresso = {}; // Zera o objeto
-                salvarDados(); // Salva no celular
-                renderizarProgressoCompleto(); // Atualiza a tela na hora (tudo volta pra 0%)
-            }
+            // Usamos a nossa função personalizada em vez do confirm()
+            mostrarConfirmacao(
+                "Tem certeza que deseja apagar todo o seu histórico de leitura? Essa ação não pode ser desfeita.", 
+                function() {
+                    // O código que roda APENAS se o usuário clicar em "Confirmar"
+                    dadosUsuario.progresso = {};   // Zera o objeto
+                    salvarDados();                 // Salva no celular
+                    renderizarProgressoCompleto(); // Atualiza a tela na hora
+                    
+                    // Opcional: Feedback visual extra para confirmar que foi feito
+                    // alert("Histórico de leitura apagado com sucesso!");
+                }
+            );
         }
         
         function mudarVersao() {
@@ -2685,18 +2777,22 @@
         
         // Funções de Resetar
         function resetarFavoritos() {
-            if(confirm("Apagar todos os destaques coloridos?")) {
+            // Em vez de: if(confirm("...")) { ... }
+            // Usamos:
+            mostrarConfirmacao("Apagar todos os destaques coloridos?", function() {
+                // O código que antes estava dentro do IF vem para aqui
                 dadosUsuario.grifos = {};
                 salvarDados();
                 abrirTelaFavoritos();
-            }
+            });
         }
+        
         function resetarComentarios() {
-            if(confirm("Apagar todas as suas anotações?")) {
+            mostrarConfirmacao("Apagar todas as suas anotações?", function() {
                 dadosUsuario.notas = {};
                 salvarDados();
                 abrirTelaComentarios();
-            }
+            });
         }
         iniciarApp();
     </script>
