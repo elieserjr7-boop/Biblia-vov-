@@ -1931,26 +1931,27 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
+                // 1. GERAÇÃO DO HTML LIMPO (Usando data-attributes)
                 capituloTextoArray.forEach((versiculo, idx) => {
                     const numVerso = idx + 1;
-                    
-                    // Configurações
                     const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
+                    
+                    // Dados de Grifo e Nota
                     const dadosGrifo = dadosUsuario.grifos[chave]; 
                     const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
                     const temNota = dadosUsuario.notas[chave] ? "📝" : "";
+                    
+                    // Codificamos o texto para guardar no atributo HTML
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // --- EVENTOS DE INTERAÇÃO ---
-                    // 1. onclick: 1 Clique (Esquerdo/Toque) -> Alterna Barras (Imersão)
-                    // 2. ondblclick: 2 Cliques (Esquerdo/Toque) -> Abre Menu
-                    // 3. oncontextmenu: Botão Direito (PC) ou Segurar (Celular) -> Abre Menu e bloqueia menu do navegador
-                    
+                    // Note que NÃO tem onclick aqui dentro. O HTML fica limpo.
                     html += `
-                        <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
-                             onclick="alternarModoImersivo()"
-                             ondblclick="abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')"
-                             oncontextmenu="event.preventDefault(); abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}'); return false;">
+                        <div id="verso-${numVerso}" 
+                             class="verso-clicavel ${classeCor}"
+                             data-livro="${livroAtualNome}"
+                             data-cap="${capituloAtual}"
+                             data-num="${numVerso}"
+                             data-texto="${textoSafe}">
                              
                             <span class="versiculo-num">${numVerso}</span> 
                             ${versiculo} 
@@ -1963,7 +1964,31 @@
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
                 textoBiblico.innerHTML = html;
         
-                // BOTÃO FINAL
+                // 2. INSTALAÇÃO DOS EVENTOS (A Mágica acontece aqui)
+                const todosVersiculos = document.querySelectorAll('.verso-clicavel');
+                
+                todosVersiculos.forEach(elemento => {
+                    // A) CLIQUE ESQUERDO / TOQUE RÁPIDO -> Alternar Barras
+                    elemento.addEventListener('click', (e) => {
+                        alternarModoImersivo();
+                    });
+        
+                    // B) BOTÃO DIREITO (PC) ou SEGURAR (Mobile) -> Abrir Menu
+                    elemento.addEventListener('contextmenu', (e) => {
+                        e.preventDefault(); // IMPEDE o menu nativo do navegador!
+                        
+                        // Pega os dados que escondemos no HTML
+                        const livro = elemento.getAttribute('data-livro');
+                        const cap = elemento.getAttribute('data-cap');
+                        const num = elemento.getAttribute('data-num');
+                        const textoCodificado = elemento.getAttribute('data-texto');
+                        
+                        // Abre nosso menu personalizado
+                        abrirMenuVersiculo(livro, cap, num, textoCodificado);
+                    });
+                });
+        
+                // 3. BOTÃO FINAL DE LEITURA
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
                 const btnHTML = `
@@ -1973,12 +1998,12 @@
                         ${jaLeu ? '✅ Leitura Concluída (Desmarcar)' : 'Marcar Leitura como Concluída'}
                     </button>
                 `;
-                textoBiblico.innerHTML += btnHTML;
+                textoBiblico.innerHTML += btnHTML; // Adiciona o botão no fim
                 
+                // Transição de tela
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
-                
                 window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
@@ -2225,23 +2250,16 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // 1. Força esconder o cabeçalho e rodapé para focar no menu
-            const topo = document.querySelector('.barra-topo');
-            const nav = document.querySelector('.barra-navegacao');
-            topo.classList.add('escondido-topo');
-            nav.classList.add('escondido-nav');
+            // Esconde as barras para focar no menu
+            document.querySelector('.barra-topo').classList.add('escondido-topo');
+            document.querySelector('.barra-navegacao').classList.add('escondido-nav');
         
-            // 2. Prepara os dados
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
-            // 3. Preenche e mostra o Modal
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
             document.getElementById('texto-verso-preview').innerText = `"${texto}"`;
             document.getElementById('modal-verso').classList.remove('escondido');
-            
-            // Pequena vibração no celular (se suportado) para indicar o clique longo
-            if (navigator.vibrate) navigator.vibrate(50);
         }
 
         function copiarVersoSelecionado() {
