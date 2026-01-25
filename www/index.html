@@ -932,10 +932,6 @@
             background: #e74c3c; color: white; border: none;
             padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
         }
-        
-        /* --- LEITURA E VERSÍCULOS (AQUI ESTÁ A MÁGICA) --- */
-        
-        /* --- LEITURA E VERSÍCULOS (AQUI ESTÁ A MÁGICA) --- */
 
         .verso-clicavel {
             padding: 8px 5px; /* Mais espaço para o toque */
@@ -1044,6 +1040,25 @@
         }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
+        /* --- CORREÇÃO DE ESPAÇAMENTO (PADDING) --- */
+
+        #texto-biblico {
+            /* Empurra o texto para baixo para não ficar atrás do cabeçalho */
+            padding-top: 80px !important; 
+            
+            /* Espaço em baixo para não ficar atrás do rodapé */
+            padding-bottom: 100px !important;
+            
+            /* Garante que o scroll é suave dentro desta área */
+            display: block;
+            width: 100%;
+        }
+        
+        /* Ajuste fino para o título do capítulo também não sumir */
+        #titulo-capitulo-leitura {
+            margin-top: 20px;
+            padding-top: 60px; /* Reforço extra se necessário */
+        }
         
     </style>
 </head>
@@ -1700,44 +1715,65 @@
             document.getElementById('menu-perfil-principal').classList.remove('escondido');
         }
         
+        // --- FUNÇÃO CORRIGIDA PARA IR AOS FAVORITOS ---
+
         function irParaVersiculo(livro, cap, versiculo) {
-            console.log(`Indo para: ${livro} ${cap}:${versiculo}`);
+            console.log(`Navegando para: ${livro} ${cap}:${versiculo}`);
         
-            // 1. Atualiza o estado global com o local desejado
+            // 1. Define os dados globais
             estadoAtual.livro = livro;
             estadoAtual.capitulo = parseInt(cap);
-            salvarDados();
+            salvarDados(); // Salva onde o usuário está
         
-            // 2. FORÇA a troca visual para a aba de leitura
-            // Isso garante que saímos da aba de perfil/favoritos
-            if (typeof mudarAba === 'function') {
-                mudarAba('leitura');
+            // 2. Força a ida para a aba de Leitura
+            mudarAba('leitura'); 
+        
+            // 3. Carrega o texto
+            // Nota: Se a função correta no seu código for 'lerCapitulo', use ela.
+            // Vou usar a lógica de abrir o capítulo diretamente.
+            
+            // Configura variáveis globais necessárias para lerCapitulo funcionar
+            livroAtualNome = livro;
+            capituloAtual = parseInt(cap);
+            
+            // Precisamos achar o índice do livro para o sistema funcionar
+            // (Procura na lista de livros o índice correto)
+            const indexLivro = listaLivros.findIndex(l => l === livro);
+            if (indexLivro !== -1) {
+                livroAtualIndex = indexLivro;
+                // Atualiza max caps se possível, senão define padrão 50
+                if(bibliaCompleta && bibliaCompleta[indexLivro]) {
+                     livroAtualMaxCaps = bibliaCompleta[indexLivro].chapters.length;
+                }
             }
         
-            // 3. Carrega o texto do capítulo na tela
-            carregarCapitulo(livro, parseInt(cap));
+            // Chama a função que desenha o texto na tela
+            lerCapitulo(parseInt(cap));
         
-            // 4. Rola até o versículo (com um pequeno delay para o HTML ser criado)
+            // 4. Rola até o versículo específico
             setTimeout(() => {
-                // Tenta encontrar o versículo pelo ID (ex: "v10")
-                const idVerso = 'v' + versiculo;
+                // --- AQUI ESTAVA O ERRO ---
+                // O ID correto no HTML é 'verso-X', não 'vX'
+                const idVerso = 'verso-' + versiculo; 
                 const elementoVerso = document.getElementById(idVerso);
                 
                 if (elementoVerso) {
-                    // Rola a tela até deixar o versículo no centro
+                    console.log("Elemento encontrado, rolando...");
+                    
                     elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
-                    // (Opcional) Cria um efeito visual de destaque temporário
-                    elementoVerso.style.transition = "background 0.5s";
-                    elementoVerso.style.backgroundColor = "rgba(255, 235, 59, 0.5)"; // Amarelo destaque
+                    // Destaque visual temporário
+                    elementoVerso.style.transition = "background 1s";
+                    const corOriginal = elementoVerso.style.backgroundColor;
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.3)"; // Dourado suave
                     
                     setTimeout(() => {
-                        elementoVerso.style.backgroundColor = ""; // Remove o destaque
+                        elementoVerso.style.backgroundColor = corOriginal;
                     }, 2000);
                 } else {
-                    console.warn("Elemento do versículo não encontrado para rolagem.");
+                    console.warn(`Versículo não encontrado no DOM: ${idVerso}`);
                 }
-            }, 500); // 500ms de espera para garantir que o texto carregou
+            }, 600); // Tempo seguro para o HTML ser criado
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
