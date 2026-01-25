@@ -291,12 +291,9 @@
 
         /* Modal Comparação */
         .modal-overlay {
-            position: fixed !important; /* Essencial para cobrir tudo */
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 2147483647 !important; /* Valor máximo permitido pelo navegador */
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 2000;
+            display: flex; align-items: flex-end; 
         }
         .modal-conteudo {
             background: #fff; width: 100%; height: 85vh;
@@ -849,8 +846,7 @@
             overflow: visible;     /* Desativa qualquer barra de rolagem */
             
             padding-bottom: 40px;  /* Margem de segurança no fundo */
-            z-index: 2147483647 !important;
-            transform: translateZ(0)
+            z-index: 10001; 
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
@@ -1008,10 +1004,6 @@
             color: #ccc !important;
             border-left-color: #27ae60 !important;
         }
-
-        #modal-verso, .modal-overlay, .modal-bottom-sheet {
-            z-index: 2500 !important; 
-        }
         
         /* --- ANIMAÇÕES E BARRA --- */
         .zoom-in { animation: zoomIn 0.2s ease-out; }
@@ -1020,22 +1012,9 @@
         .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
         .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
         
-        #tela-leitura {
-            background-color: #fdfbf7; /* Garante a cor de papel de fundo */
-            min-height: 100vh; /* Garante que ocupe a altura toda */
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 100; /* Fica acima do fundo base */
-        }
-        body.modo-escuro #tela-leitura {
-            background-color: #121212;
-        }
-        .barra-topo, .barra-navegacao {z-index: 500 !important; transition: transform 0.3s ease; }
+        .barra-topo, .barra-navegacao { transition: transform 0.3s ease; }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
-        
     </style>
 </head>
 <body id="corpo-app">
@@ -1693,65 +1672,32 @@
 
         /* --- NAVEGAÇÃO ENTRE TELAS --- */
         function irParaVersiculo(livroNome, capNumero, versoNumero) {
-            // 1. Esconde PERFIL e sub-telas
-            document.getElementById('tela-perfil').classList.add('escondido');
-            document.getElementById('menu-perfil-principal').classList.add('escondido');
-            esconderTodasSubTelas();
-            
-            // 2. Garante que a Bíblia está carregada
-            if (!bibliaCompleta || bibliaCompleta.length === 0) {
-                alert("Aguarde a Bíblia carregar...");
-                return;
-            }
+            // 1. Acha o índice do livro no array da bíblia
+            const index = bibliaCompleta.findIndex(b => b.name === livroNome);
+            if (index === -1) return;
         
-            // 3. Procura o índice do livro (Ignorando maiúsculas/minúsculas para evitar erros)
-            const index = bibliaCompleta.findIndex(b => b.name.toLowerCase() === livroNome.toLowerCase());
-            
-            if (index === -1) {
-                console.error("Livro não encontrado:", livroNome);
-                // Tenta recuperar caso o nome esteja levemente diferente
-                alert(`Erro ao abrir ${livroNome}. Tente novamente.`);
-                return;
-            }
-        
-            // 4. Configura as variáveis GLOBAIS (Crucial para o lerCapitulo funcionar)
+            // 2. Atualiza as variáveis globais
             livroAtualIndex = index;
-            livroAtualNome = bibliaCompleta[index].name; // Pega o nome oficial do JSON
-            capituloAtual = parseInt(capNumero);
-        
-            // 5. Mostra a tela de leitura ANTES de renderizar
-            const telaLeitura = document.getElementById('tela-leitura');
-            telaLeitura.classList.remove('escondido');
+            livroAtualNome = livroNome;
             
-            // Reset de scroll global
-            window.scrollTo(0, 0);
+            // 3. Renderiza o capítulo
+            lerCapitulo(parseInt(capNumero)); // Converte para número por garantia
         
-            // 6. Chama a renderização
-            lerCapitulo(capituloAtual);
-        
-            // 7. Ajusta a barra de navegação (Visual)
-            document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('ativo'));
-            const btnLeitura = document.querySelector('.fa-book-open');
-            if(btnLeitura) btnLeitura.parentElement.classList.add('ativo');
-        
-            // 8. Rola até o versículo e pisca
+            // 4. Rola até o versículo (com um pequeno delay para dar tempo de desenhar a tela)
             setTimeout(() => {
                 const elementoVerso = document.getElementById(`verso-${versoNumero}`);
                 if (elementoVerso) {
-                    // Rola suave
                     elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
-                    // Pisca amarelo
+                    // Efeito visual: piscar o versículo para destacar
                     elementoVerso.style.transition = "background 0.5s";
-                    const corOriginal = elementoVerso.style.backgroundColor || (document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7');
-                    
-                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.5)"; // Amarelo forte
-                    
+                    const corOriginal = elementoVerso.style.backgroundColor;
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.3)"; // Amarelo suave
                     setTimeout(() => {
-                        elementoVerso.style.backgroundColor = "transparent"; // Volta ao normal
-                    }, 1000);
+                        elementoVerso.style.backgroundColor = corOriginal;
+                    }, 1500);
                 }
-            }, 500); // Delay para dar tempo de desenhar a tela
+            }, 300); // 300ms de espera
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -2311,27 +2257,22 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // --- PARTE NOVA: FORÇA O SUMIÇO DO CABEÇALHO ---
+            // 1. Esconde as barras de navegação (Modo Imersivo forçado)
             const topo = document.querySelector('.barra-topo');
             const nav = document.querySelector('.barra-navegacao');
             
-            // Remove qualquer estilo inline que possa estar prendendo ele
-            if(topo) {
-                topo.style.transform = ''; 
-                topo.classList.add('escondido-topo'); // Usa a classe CSS que joga ele pra cima
-            }
-            if(nav) {
-                nav.classList.add('escondido-nav');
-            }
-            // -----------------------------------------------
+            // Adiciona a classe que esconde (certifique-se que seu CSS tem essas classes)
+            if (topo) topo.classList.add('escondido-topo');
+            if (nav) nav.classList.add('escondido-nav');
         
+            // 2. Prepara e mostra o modal
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
             
-            // Limita texto preview
-            const textoPreview = texto.length > 80 ? texto.substring(0, 80) + "..." : texto;
+            // Limita o tamanho do texto no preview para não ficar gigante
+            const textoPreview = texto.length > 100 ? texto.substring(0, 100) + "..." : texto;
             document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
             
             document.getElementById('modal-verso').classList.remove('escondido');
