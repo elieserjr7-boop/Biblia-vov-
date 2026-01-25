@@ -1733,74 +1733,73 @@
         function irParaVersiculo(livroNome, cap, versiculo) {
             console.log(`Navegando para: ${livroNome} ${cap}:${versiculo}`);
         
-            // VERIFICAÇÃO DE SEGURANÇA 1: A Bíblia carregou?
+            // Verifica se a bíblia carregou
             if (typeof bibliaCompleta === 'undefined' || !bibliaCompleta) {
-                alert("Aguarde o carregamento da Bíblia para navegar.");
+                alert("Aguarde o carregamento da Bíblia.");
                 return;
             }
         
             try {
-                // 1. Descobrir o índice (ID) do livro procurando nas listas oficiais
-                // Gênesis é 0, Malaquias é 38, Mateus é 39...
+                // 1. Achar o Índice do Livro (Correção para não dar erro)
                 let indexEncontrado = -1;
-                let totalCaps = 50; // valor padrão de segurança
+                
+                // Tenta achar na bibliaCompleta
+                indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
         
-                // Procura no Antigo Testamento
-                const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
-                if (idxAntigo !== -1) {
-                    indexEncontrado = idxAntigo;
-                    totalCaps = antigoTestamento[idxAntigo].caps;
-                } else {
-                    // Se não achou, procura no Novo Testamento
-                    const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
-                    if (idxNovo !== -1) {
-                        indexEncontrado = idxNovo + 39; // Soma os 39 do antigo
-                        totalCaps = novoTestamento[idxNovo].caps;
-                    }
+                // Se falhar, tenta nas listas manuais
+                if (indexEncontrado === -1) {
+                     const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
+                     if (idxAntigo !== -1) indexEncontrado = idxAntigo;
+                     else {
+                         const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
+                         if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
+                     }
                 }
         
-                // Se ainda for -1, o nome do livro está errado
                 if (indexEncontrado === -1) {
-                    console.error("Nome do livro não encontrado na lista:", livroNome);
-                    alert(`Erro: Não foi possível localizar o livro "${livroNome}".`);
+                    alert(`Livro não encontrado: ${livroNome}`);
                     return;
                 }
         
-                // 2. Atualiza as variáveis GLOBAIS que o 'lerCapitulo' precisa
+                // 2. Atualiza as variáveis GLOBAIS (Isto é o que faz funcionar)
                 livroAtualIndex = indexEncontrado;
-                livroAtualNome = livroNome;
-                livroAtualMaxCaps = totalCaps;
+                livroAtualNome = livroNome; 
                 capituloAtual = parseInt(cap);
+                
+                // Atualiza max caps
+                if (bibliaCompleta[indexEncontrado]) {
+                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
+                }
         
-                // 3. Salva Estado e Muda Aba
-                estadoAtual.livro = livroNome;
-                estadoAtual.capitulo = capituloAtual;
-                salvarDados();
+                // 3. Salva nos dados do usuário (Correção do erro ReferenceError)
+                // Em vez de 'estadoAtual', usamos 'dadosUsuario' se existir
+                if (typeof dadosUsuario !== 'undefined') {
+                    dadosUsuario.ultimoLivro = indexEncontrado; 
+                    dadosUsuario.ultimoCapitulo = capituloAtual;
+                    salvarDados();
+                }
+        
+                // 4. Muda a aba e carrega
                 mudarAba('leitura');
-        
-                // 4. Carrega o texto
                 lerCapitulo(capituloAtual);
         
-                // 5. Rola até o versículo (Delay aumentado para garantir)
+                // 5. Rola até o versículo
                 setTimeout(() => {
-                    // Tenta achar pelo ID 'verso-X'
                     const idVerso = 'verso-' + versiculo;
                     const elemento = document.getElementById(idVerso);
-        
+                    
                     if (elemento) {
                         elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
-                        // Pisca em amarelo
+                        // Efeito visual
                         elemento.style.transition = "background-color 0.5s";
-                        const corOriginal = elemento.style.backgroundColor;
-                        elemento.style.backgroundColor = "rgba(255, 235, 59, 0.5)";
-                        setTimeout(() => { elemento.style.backgroundColor = corOriginal; }, 1500);
+                        elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
+                        setTimeout(() => { elemento.style.backgroundColor = ""; }, 2000);
                     }
-                }, 800); // 800ms de espera
+                }, 800);
         
             } catch (e) {
-                console.error("Erro fatal na função irParaVersiculo:", e);
-                alert("Erro técnico ao abrir versículo. Detalhes no console.");
+                console.error("Erro ao ir para versículo:", e);
             }
         }
         
