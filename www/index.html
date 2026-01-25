@@ -828,7 +828,7 @@
         </button>
         <button class="aba" onclick="mudarAba('hinarios')" id="btn-aba-hinarios">
             <span class="icone-aba">🎵</span> Hinários
-        <button class="aba" onclick="mudarAba('dados')" id="btn-aba-dados">
+        </button> <button class="aba" onclick="mudarAba('dados')" id="btn-aba-dados">
             <span class="icone-aba">👤</span> Perfil
         </button>
     </nav>
@@ -906,6 +906,13 @@
             { sigla: "AS21", nome: "A21 - Almeida Século 21" },
             { sigla: "KJF",  nome: "KJF - King James Fiel" }
         ];
+        
+        // --- VARIÁVEIS DE DADOS DO USUÁRIO (Restaure isso!) ---
+        let dadosUsuario = JSON.parse(localStorage.getItem('biblia_dados_v1')) || { 
+            progresso: {},
+            favoritos: [],
+            anotacoes: {} 
+        };
         
         // --- VARIÁVEIS DE ESTADO ---
         let modoAtual = 'biblia';
