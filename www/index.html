@@ -292,7 +292,7 @@
         /* Modal Comparação */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); z-index: 2000;
+            background: rgba(0,0,0,0.8); z-index: 2000 !important;
             display: flex; align-items: flex-end; 
         }
         .modal-conteudo {
@@ -846,7 +846,7 @@
             overflow: visible;     /* Desativa qualquer barra de rolagem */
             
             padding-bottom: 40px;  /* Margem de segurança no fundo */
-            z-index: 10001; 
+            z-index: 20001 !important; 
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
@@ -1012,9 +1012,11 @@
         .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
         .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
         
-        .barra-topo, .barra-navegacao { transition: transform 0.3s ease; }
+        
+        .barra-topo, .barra-navegacao { z-index: 1000; transition: transform 0.3s ease; }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -1672,32 +1674,53 @@
 
         /* --- NAVEGAÇÃO ENTRE TELAS --- */
         function irParaVersiculo(livroNome, capNumero, versoNumero) {
-            // 1. Acha o índice do livro no array da bíblia
+            // 1. Encontra o livro
             const index = bibliaCompleta.findIndex(b => b.name === livroNome);
             if (index === -1) return;
         
-            // 2. Atualiza as variáveis globais
+            // 2. Atualiza variáveis globais
             livroAtualIndex = index;
             livroAtualNome = livroNome;
             
-            // 3. Renderiza o capítulo
-            lerCapitulo(parseInt(capNumero)); // Converte para número por garantia
+            // 3. Renderiza o capítulo (cria o HTML dos versículos)
+            lerCapitulo(parseInt(capNumero)); 
         
-            // 4. Rola até o versículo (com um pequeno delay para dar tempo de desenhar a tela)
+            // --- AQUI ESTÁ O PULO DO GATO: TROCAR A TELA VISÍVEL ---
+            
+            // a) Esconde a tela de perfil e sub-menus
+            document.getElementById('tela-perfil').classList.add('escondido');
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas(); // Fecha favoritos/comentários
+            
+            // b) Mostra a tela de leitura
+            document.getElementById('tela-leitura').classList.remove('escondido');
+            document.getElementById('tela-capitulos').classList.add('escondido');
+        
+            // c) Atualiza o ícone da barra de baixo (Tira o destaque do Perfil e põe na Bíblia)
+            document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('ativo'));
+            // Procura o botão que tem o ícone de livro ou chama a função de leitura
+            const btnLeitura = document.querySelector('.fa-book-open')?.parentElement || document.querySelectorAll('.btn-nav')[0];
+            if (btnLeitura) btnLeitura.classList.add('ativo');
+        
+            // -------------------------------------------------------
+        
+            // 4. Rola até o versículo e pisca
             setTimeout(() => {
                 const elementoVerso = document.getElementById(`verso-${versoNumero}`);
                 if (elementoVerso) {
+                    // Rola suavemente
                     elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
-                    // Efeito visual: piscar o versículo para destacar
+                    // Pisca em amarelo
                     elementoVerso.style.transition = "background 0.5s";
-                    const corOriginal = elementoVerso.style.backgroundColor;
-                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.3)"; // Amarelo suave
+                    const corOriginal = elementoVerso.style.backgroundColor || ""; // Pega a cor atual ou vazio
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.4)"; // Amarelo destaque
+                    
                     setTimeout(() => {
-                        elementoVerso.style.backgroundColor = corOriginal;
+                        elementoVerso.style.backgroundColor = corOriginal; // Volta ao normal
                     }, 1500);
                 }
-            }, 300); // 300ms de espera
+            }, 500); // Meio segundo de delay para garantir que a tela trocou
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -2257,25 +2280,32 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // 1. Esconde as barras de navegação (Modo Imersivo forçado)
+            // 1. FORÇA O CABEÇALHO E RODAPÉ A SUMIREM
+            // Isso evita que fiquem por cima do menu ou distraiam a atenção
             const topo = document.querySelector('.barra-topo');
             const nav = document.querySelector('.barra-navegacao');
             
-            // Adiciona a classe que esconde (certifique-se que seu CSS tem essas classes)
             if (topo) topo.classList.add('escondido-topo');
             if (nav) nav.classList.add('escondido-nav');
         
-            // 2. Prepara e mostra o modal
+            // 2. DECODIFICA E GUARDA OS DADOS
             const texto = decodeURIComponent(textoCodificado);
+            
+            // Atualiza a variável global para sabermos qual verso editar/pintar
             versoSelecionado = { livro, cap, num, texto };
             
+            // 3. PREENCHE O MODAL COM AS INFORMAÇÕES
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
             
-            // Limita o tamanho do texto no preview para não ficar gigante
-            const textoPreview = texto.length > 100 ? texto.substring(0, 100) + "..." : texto;
-            document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
-            
+            // Mostra o texto do versículo no preview (entre aspas)
+            // Se quiser limitar o tamanho do texto caso seja muito grande, pode usar .substring
+            document.getElementById('texto-verso-preview').innerText = `"${texto}"`;
+        
+            // 4. MOSTRA O MODAL
             document.getElementById('modal-verso').classList.remove('escondido');
+            
+            // 5. VIBRAÇÃO (Opcional - dá um feedback tátil no celular)
+            if (navigator.vibrate) navigator.vibrate(50);
         }
         function copiarVersoSelecionado() {
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
