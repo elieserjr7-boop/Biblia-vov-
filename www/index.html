@@ -1639,53 +1639,35 @@
             transform: scale(0.98);
         }
         
-        /* --- FORÇAR TELA CHEIA NA COMPARAÇÃO --- */
+        /* --- ESTA REGRA VAI DOMINAR O MODAL --- */
 
-        /* 1. Ajuste do Overlay (O fundo que segura o modal) */
-        .modal-comparacao-overlay {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background-color: #fdfbf7 !important; /* Cor sólida no modo claro */
+        /* 1. O fundo preto/transparente */
+        div#modal-comparacao.modal {
             display: flex !important;
+            align-items: flex-start !important; /* EMPURRA PARA O TOPO */
             justify-content: center !important;
-            align-items: flex-start !important;  /* ISSO FAZ SUBIR PARA O TOPO */
-            z-index: 99999 !important;           /* Fica na frente de tudo */
-            padding: 0 !important;               /* Remove espaços laterais */
+            padding-top: 0 !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
         }
         
-        /* 2. Ajuste do Conteúdo (A lista de versículos) */
-        .modal-comparacao-content {
+        /* 2. A caixa branca (ou escura) com os versículos */
+        div#modal-comparacao .modal-conteudo {
             width: 100% !important;
-            max-width: 100% !important;        /* Ocupa a largura toda */
-            height: 100% !important;           /* Ocupa a altura toda */
-            max-height: 100vh !important;      /* Garante que não pare no meio */
-            border-radius: 0 !important;       /* Remove bordas arredondadas */
+            max-width: 100% !important;
+            height: 100vh !important;    /* OCUPA A TELA TODA */
+            height: 100dvh !important;   /* VERSÃO PARA CELULAR */
+            max-height: 100vh !important;
             margin: 0 !important;
             padding: 20px !important;
-            overflow-y: auto !important;       /* Permite rolar a lista */
-            background: transparent !important; /* Usa a cor do overlay */
+            border-radius: 0 !important; /* REMOVE AS BORDAS ARREDONDADAS */
+            overflow-y: auto !important;
+            background-color: #fdfbf7 !important; /* MODO CLARO */
         }
         
-        /* 3. Ajuste para o MODO ESCURO */
-        body.modo-escuro .modal-comparacao-overlay {
-            background-color: #121212 !important; /* Fundo escuro total */
-        }
-        
-        body.modo-escuro .modal-comparacao-content {
-            color: #ecf0f1 !important;
-        }
-        
-        /* Estilo do botão "Fechar" lá dentro para não sumir */
-        .modal-comparacao-content button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 15px;
-            background-color: #95a5a6;
-            color: white;
-            border: none;
+        /* 3. AJUSTE PARA MODO ESCURO */
+        body.modo-escuro div#modal-comparacao .modal-conteudo {
+            background-color: #1a1a1a !important; /* CINZA FOSCO ESCURO */
+            color: #eee !important;
         }
         
     </style>
