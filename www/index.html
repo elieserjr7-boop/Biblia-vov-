@@ -292,7 +292,7 @@
         /* Modal Comparação */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); z-index: 2000 !important;
+            background: rgba(0,0,0,0.8); z-index: 9998 !important;
             display: flex; align-items: flex-end; 
         }
         .modal-conteudo {
@@ -846,7 +846,8 @@
             overflow: visible;     /* Desativa qualquer barra de rolagem */
             
             padding-bottom: 40px;  /* Margem de segurança no fundo */
-            z-index: 20001 !important; 
+            z-index: 9999 !important;
+            transform: translateZ(0)
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
@@ -1013,7 +1014,10 @@
         .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
         
         
-        .barra-topo, .barra-navegacao { z-index: 1000; transition: transform 0.3s ease; }
+        .barra-topo {
+            z-index: 900 !important; 
+        }
+        .barra-navegacao { z-index: 1000; transition: transform 0.3s ease; }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
         
@@ -1674,53 +1678,49 @@
 
         /* --- NAVEGAÇÃO ENTRE TELAS --- */
         function irParaVersiculo(livroNome, capNumero, versoNumero) {
-            // 1. Encontra o livro
+            console.log("Navegando para:", livroNome, capNumero, versoNumero); // Para debug
+        
+            // 1. FECHA TUDO À FORÇA (Garante que nenhuma tela branca fique na frente)
+            document.querySelectorAll('.tela').forEach(t => t.classList.add('escondido'));
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas();
+        
+            // 2. PREPARA AS VARIÁVEIS
             const index = bibliaCompleta.findIndex(b => b.name === livroNome);
             if (index === -1) return;
-        
-            // 2. Atualiza variáveis globais
+            
             livroAtualIndex = index;
             livroAtualNome = livroNome;
+        
+            // 3. ATIVA A TELA DE LEITURA
+            const telaLeitura = document.getElementById('tela-leitura');
+            telaLeitura.classList.remove('escondido');
             
-            // 3. Renderiza o capítulo (cria o HTML dos versículos)
-            lerCapitulo(parseInt(capNumero)); 
+            // 4. GARANTE QUE O SCROLL DA PÁGINA ESTEJA RESETADO
+            window.scrollTo(0, 0);
         
-            // --- AQUI ESTÁ O PULO DO GATO: TROCAR A TELA VISÍVEL ---
-            
-            // a) Esconde a tela de perfil e sub-menus
-            document.getElementById('tela-perfil').classList.add('escondido');
-            document.getElementById('menu-perfil-principal').classList.add('escondido');
-            esconderTodasSubTelas(); // Fecha favoritos/comentários
-            
-            // b) Mostra a tela de leitura
-            document.getElementById('tela-leitura').classList.remove('escondido');
-            document.getElementById('tela-capitulos').classList.add('escondido');
+            // 5. RENDERIZA O CAPÍTULO
+            lerCapitulo(parseInt(capNumero));
         
-            // c) Atualiza o ícone da barra de baixo (Tira o destaque do Perfil e põe na Bíblia)
-            document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('ativo'));
-            // Procura o botão que tem o ícone de livro ou chama a função de leitura
-            const btnLeitura = document.querySelector('.fa-book-open')?.parentElement || document.querySelectorAll('.btn-nav')[0];
-            if (btnLeitura) btnLeitura.classList.add('ativo');
-        
-            // -------------------------------------------------------
-        
-            // 4. Rola até o versículo e pisca
+            // 6. ROLA ATÉ O VERSO E MARCA O ÍCONE (Com um pequeno delay para o HTML ser criado)
             setTimeout(() => {
+                // Atualiza ícone do rodapé
+                document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('ativo'));
+                const btnLeitura = document.querySelector('.fa-book-open');
+                if(btnLeitura) btnLeitura.parentElement.classList.add('ativo');
+        
+                // Rola até o verso
                 const elementoVerso = document.getElementById(`verso-${versoNumero}`);
                 if (elementoVerso) {
-                    // Rola suavemente
                     elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
-                    // Pisca em amarelo
+                    // Efeito visual amarelo
                     elementoVerso.style.transition = "background 0.5s";
-                    const corOriginal = elementoVerso.style.backgroundColor || ""; // Pega a cor atual ou vazio
-                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.4)"; // Amarelo destaque
-                    
-                    setTimeout(() => {
-                        elementoVerso.style.backgroundColor = corOriginal; // Volta ao normal
-                    }, 1500);
+                    const corOriginal = elementoVerso.style.backgroundColor;
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
+                    setTimeout(() => { elementoVerso.style.backgroundColor = corOriginal; }, 1500);
                 }
-            }, 500); // Meio segundo de delay para garantir que a tela trocou
+            }, 300);
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -2280,32 +2280,30 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // 1. FORÇA O CABEÇALHO E RODAPÉ A SUMIREM
-            // Isso evita que fiquem por cima do menu ou distraiam a atenção
+            // --- PARTE NOVA: FORÇA O SUMIÇO DO CABEÇALHO ---
             const topo = document.querySelector('.barra-topo');
             const nav = document.querySelector('.barra-navegacao');
             
-            if (topo) topo.classList.add('escondido-topo');
-            if (nav) nav.classList.add('escondido-nav');
+            // Remove qualquer estilo inline que possa estar prendendo ele
+            if(topo) {
+                topo.style.transform = ''; 
+                topo.classList.add('escondido-topo'); // Usa a classe CSS que joga ele pra cima
+            }
+            if(nav) {
+                nav.classList.add('escondido-nav');
+            }
+            // -----------------------------------------------
         
-            // 2. DECODIFICA E GUARDA OS DADOS
             const texto = decodeURIComponent(textoCodificado);
-            
-            // Atualiza a variável global para sabermos qual verso editar/pintar
             versoSelecionado = { livro, cap, num, texto };
             
-            // 3. PREENCHE O MODAL COM AS INFORMAÇÕES
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
             
-            // Mostra o texto do versículo no preview (entre aspas)
-            // Se quiser limitar o tamanho do texto caso seja muito grande, pode usar .substring
-            document.getElementById('texto-verso-preview').innerText = `"${texto}"`;
-        
-            // 4. MOSTRA O MODAL
-            document.getElementById('modal-verso').classList.remove('escondido');
+            // Limita texto preview
+            const textoPreview = texto.length > 80 ? texto.substring(0, 80) + "..." : texto;
+            document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
             
-            // 5. VIBRAÇÃO (Opcional - dá um feedback tátil no celular)
-            if (navigator.vibrate) navigator.vibrate(50);
+            document.getElementById('modal-verso').classList.remove('escondido');
         }
         function copiarVersoSelecionado() {
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
