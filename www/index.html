@@ -1639,45 +1639,53 @@
             transform: scale(0.98);
         }
         
-        /* --- ESTILO TELA CHEIA PARA "OUTRAS VERSÕES" --- */
+        /* --- FORÇAR TELA CHEIA NA COMPARAÇÃO --- */
 
-        /* 1. O Fundo (Overlay) agora será Sólido e ocupará tudo */
+        /* 1. Ajuste do Overlay (O fundo que segura o modal) */
         .modal-comparacao-overlay {
-            background-color: #fdfbf7 !important; /* Cor de fundo do teu Modo Claro */
-            backdrop-filter: none;       /* Remove borrão se houver */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding-top: 10px;           /* Um pequeno espaço no topo */
-            z-index: 9999;               /* Garante que fica em cima de tudo */
-            display: flex;
-            flex-direction: column;
-            align-items: center;         /* Centraliza o conteúdo */
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #fdfbf7 !important; /* Cor sólida no modo claro */
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;  /* ISSO FAZ SUBIR PARA O TOPO */
+            z-index: 99999 !important;           /* Fica na frente de tudo */
+            padding: 0 !important;               /* Remove espaços laterais */
         }
         
-        /* 2. A Caixa de Conteúdo (onde está o texto) */
+        /* 2. Ajuste do Conteúdo (A lista de versículos) */
         .modal-comparacao-content {
-            background: transparent;     /* Remove o fundo branco do card, já que o fundo geral é solido */
-            box-shadow: none;            /* Remove a sombra (não precisa mais) */
-            width: 100%;
-            max-width: 800px;            /* Limite para não ficar gigante em PC */
-            height: 100%;                /* Ocupa a altura toda */
-            overflow-y: auto;            /* Permite rolar a lista se for grande */
-            border-radius: 0;            /* Remove bordas arredondadas */
-            padding: 20px;
+            width: 100% !important;
+            max-width: 100% !important;        /* Ocupa a largura toda */
+            height: 100% !important;           /* Ocupa a altura toda */
+            max-height: 100vh !important;      /* Garante que não pare no meio */
+            border-radius: 0 !important;       /* Remove bordas arredondadas */
+            margin: 0 !important;
+            padding: 20px !important;
+            overflow-y: auto !important;       /* Permite rolar a lista */
+            background: transparent !important; /* Usa a cor do overlay */
         }
         
-        /* 3. Ajuste para o MODO ESCURO (Fundo Cinza/Preto) */
+        /* 3. Ajuste para o MODO ESCURO */
         body.modo-escuro .modal-comparacao-overlay {
-            background-color: #121212 !important; /* Cor de fundo Sólida Escura */
+            background-color: #121212 !important; /* Fundo escuro total */
         }
         
-        /* Ajuste das letras no modo escuro para essa tela específica */
-        body.modo-escuro .modal-comparacao-content h3 {
-            color: #ecf0f1;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
+        body.modo-escuro .modal-comparacao-content {
+            color: #ecf0f1 !important;
+        }
+        
+        /* Estilo do botão "Fechar" lá dentro para não sumir */
+        .modal-comparacao-content button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 15px;
+            background-color: #95a5a6;
+            color: white;
+            border: none;
         }
         
     </style>
