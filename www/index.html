@@ -932,7 +932,9 @@
             background: #e74c3c; color: white; border: none;
             padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
         }
-
+        
+        /* --- LEITURA E VERSÍCULOS (AQUI ESTÁ A MÁGICA) --- */
+        
         .verso-clicavel {
             padding: 8px 5px; /* Mais espaço para o toque */
             border-radius: 4px;
@@ -1007,12 +1009,6 @@
             border-left-color: #27ae60 !important;
         }
         
-        /* --- CORREÇÃO IMPORTANTE DE Z-INDEX --- */
-        /* Isso garante que o modal fique ACIMA do cabeçalho */
-        #modal-verso, .modal-overlay, .modal-bottom-sheet {
-            z-index: 2500 !important; 
-        }
-        
         /* --- ANIMAÇÕES E BARRA --- */
         .zoom-in { animation: zoomIn 0.2s ease-out; }
         @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -1029,65 +1025,12 @@
             left: 0;
             z-index: 100; /* Fica acima do fundo base */
         }
-
-        body:not(.modo-imersivo) #tela-leitura {
-            padding-top: 150px !important; /* Espaço para o cabeçalho fixo */
-        }
-        
         body.modo-escuro #tela-leitura {
             background-color: #121212;
         }
-        
-        /* Barras topo e navegação */
-        .barra-topo, .barra-navegacao {
-            z-index: 500 !important; /* Modal é 2500, então Modal vence */
-            transition: transform 0.3s ease; 
-        }
+        .barra-topo, .barra-navegacao {z-index: 500 !important; transition: transform 0.3s ease; }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
-       /* --- CSS DE MODO IMERSIVO (FORÇA BRUTA) --- */
-
-        /* 1. REGRA: Quando imersivo ativado, ESCONDE TUDO que é interface */
-        body.modo-imersivo header,           /* O Cabeçalho */
-        body.modo-imersivo nav,              /* O Rodapé */
-        body.modo-imersivo button,           /* <<< AQUI: TODOS OS BOTÕES DO SITE SOMEM */
-        body.modo-imersivo .botao-flutuante, /* Qualquer div flutuante */
-        body.modo-imersivo .seta-navegacao,  /* Setas específicas */
-        body.modo-imersivo #btn-voltar,      /* Tenta pegar por ID comum */
-        body.modo-imersivo .container-botoes {
-            opacity: 0 !important;
-            pointer-events: none !important; /* Impede de clicar no invisível */
-            visibility: hidden !important;   /* Garante que o navegador ignora */
-            transition: opacity 0.2s ease !important;
-        }
-        
-        /* 2. TEXTO OCUPA TUDO */
-        #tela-leitura {
-            /* Garante que a área de clique é a tela toda */
-            min-height: 100vh;
-            width: 100%;
-            
-            /* Posição normal (com cabeçalho) */
-            padding-top: 150px !important;
-            padding-bottom: 100px !important;
-            
-            transition: padding-top 0.3s ease;
-        }
-        
-        /* Quando imersivo, o texto sobe */
-        body.modo-imersivo #tela-leitura {
-            padding-top: 40px !important; 
-            padding-bottom: 20px !important;
-        }
-        
-        /* EXCEÇÃO IMPORTANTE: Não esconder os botões DENTRO do menu de opções do versículo */
-        /* Se o menu de cor abrir, os botões DELE têm que aparecer */
-        body.modo-imersivo .opcoes-versiculo button,
-        body.modo-imersivo .menu-flutuante button {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            visibility: visible !important;
-        }
         
     </style>
 </head>
@@ -1533,57 +1476,25 @@
             // Executa imediatamente para tirar a listra branca
             forcarAlturaReal();
             
-            // Executa novamente após meio segundo para garantir
+            // Executa novamente após meio segundo para garantir (caso a barra do navegador se mova)
             setTimeout(forcarAlturaReal, 500);
-        
+
             // 2. TEMA: Carrega as cores e o fundo correto
             carregarTemaSalvo(); 
             
-            // 3. INTERFACE: Renderiza os livros na tela inicial
+            // 3. INTERFACE: Renderiza os livros
             renderizarLivros();
             
             // 4. VERSÃO: Recupera qual bíblia o usuário estava lendo
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
             
-            if (typeof btnVersao !== 'undefined') {
-                btnVersao.innerText = versaoSalva;
-            }
+            btnVersao.innerText = versaoSalva;
             gerarMenuVersoes(versaoSalva);
-        
-            // --- 5. MODO IMERSIVO (CLIQUE UNIVERSAL) ---
-            // --- MODO IMERSIVO ---
-            const areaLeitura = document.getElementById('tela-leitura');
-            if (areaLeitura) {
-                // Remove qualquer lixo anterior
-                areaLeitura.onclick = null; 
-        
-                areaLeitura.onclick = function(e) {
-                    const alvo = e.target;
-                    if (!alvo) return;
-        
-                    // 1. O que IGNORAR (para não bugar)
-                    // Se for menu de cor ou opções de versículo, não faz nada
-                    if (alvo.closest('.menu-flutuante') || alvo.closest('.opcoes-versiculo')) return;
-        
-                    // Se for o numerozinho do versículo
-                    if (alvo.tagName === 'SUP' || alvo.classList.contains('numero-verso')) return;
-        
-                    // 2. AÇÃO
-                    // Clicou no texto, no fundo branco, no topo, na base?
-                    // Alterna o modo no body. O CSS "Matador" acima fará o resto.
-                    document.body.classList.toggle('modo-imersivo');
-                };
-            }
             
-            // 6. CARREGAMENTO: Busca o texto da Bíblia
+            // 5. CARREGAMENTO: Busca o texto da Bíblia
             carregarVersaoBiblia(versaoSalva).then(() => {
                 // Inicia o download silencioso do resto após 2 segundos
                 setTimeout(preCarregarTudoSilenciosamente, 2000);
-                
-                // Se tiver dados salvos de leitura anterior, carrega eles (Opcional)
-                if (typeof dadosUsuario !== 'undefined' && dadosUsuario.ultimoLivro !== undefined) {
-                     // Lógica para abrir onde parou (se quiser implementar depois)
-                }
             });
         }
         
@@ -1775,88 +1686,68 @@
             esconderTodasSubTelas();
             document.getElementById('menu-perfil-principal').classList.remove('escondido');
         }
-        
-        // --- FUNÇÃO CORRIGIDA PARA IR AOS FAVORITOS ---
 
-        /* --- FUNÇÃO CORRIGIDA E ROBUSTA DE NAVEGAÇÃO --- */
-        /* --- FUNÇÃO SEGURA DE NAVEGAÇÃO --- */
-        function irParaVersiculo(livroNome, cap, versiculo) {
-            console.log(`Navegando para: ${livroNome} ${cap}:${versiculo}`);
-        
-            // VERIFICAÇÃO 1: A Bíblia carregou?
-            if (typeof bibliaCompleta === 'undefined' || !bibliaCompleta) {
-                alert("Aguarde o carregamento da Bíblia.");
+        /* --- NAVEGAÇÃO ENTRE TELAS --- */
+        function irParaVersiculo(livroNome, capNumero, versoNumero) {
+            // 1. Esconde PERFIL e sub-telas
+            document.getElementById('tela-perfil').classList.add('escondido');
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas();
+            
+            // 2. Garante que a Bíblia está carregada
+            if (!bibliaCompleta || bibliaCompleta.length === 0) {
+                alert("Aguarde a Bíblia carregar...");
                 return;
             }
         
-            try {
-                // 1. Busca Segura do Índice
-                let indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
-                
-                // Fallback (Procura manual se falhar)
-                if (indexEncontrado === -1) {
-                    const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
-                    if (idxAntigo !== -1) indexEncontrado = idxAntigo;
-                    else {
-                        const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
-                        if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
-                    }
-                }
-        
-                if (indexEncontrado === -1) {
-                    console.error("Livro não encontrado:", livroNome);
-                    return;
-                }
-        
-                // 2. Atualiza Globais
-                livroAtualIndex = indexEncontrado;
-                livroAtualNome = livroNome;
-                capituloAtual = parseInt(cap);
-                
-                if (bibliaCompleta[indexEncontrado]) {
-                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
-                }
-        
-                // 3. Salva Estado (se existir)
-                if (typeof dadosUsuario !== 'undefined') {
-                    dadosUsuario.ultimoLivro = indexEncontrado;
-                    dadosUsuario.ultimoCapitulo = capituloAtual;
-                    salvarDados();
-                }
-        
-                // --- CORREÇÃO DO ERRO DE TELA BRANCA ---
-                
-                // A. Garante que saímos do modo imersivo (Mostra cabeçalho)
-                // Usamos document.body porque ele SEMPRE existe (evita o erro 'null')
-                document.body.classList.remove('modo-imersivo');
-        
-                // B. Muda a aba para Leitura
-                mudarAba('leitura');
-        
-                // C. Espera 100ms para a aba aparecer visualmente antes de desenhar o texto
-                // Isso impede que o navegador tente desenhar num elemento oculto
-                setTimeout(() => {
-                    lerCapitulo(capituloAtual);
-        
-                    // D. Espera o texto ser desenhado para rolar até ele
-                    setTimeout(() => {
-                        const idVerso = 'verso-' + versiculo;
-                        const elemento = document.getElementById(idVerso);
-                        
-                        if (elemento) {
-                            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            
-                            // Pisca para destacar
-                            elemento.style.transition = "background-color 0.5s";
-                            elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
-                            setTimeout(() => { elemento.style.backgroundColor = ""; }, 2000);
-                        }
-                    }, 300); // Tempo para o texto renderizar
-                }, 100); // Tempo para a aba trocar
-        
-            } catch (erro) {
-                console.error("Erro em irParaVersiculo:", erro);
+            // 3. Procura o índice do livro (Ignorando maiúsculas/minúsculas para evitar erros)
+            const index = bibliaCompleta.findIndex(b => b.name.toLowerCase() === livroNome.toLowerCase());
+            
+            if (index === -1) {
+                console.error("Livro não encontrado:", livroNome);
+                // Tenta recuperar caso o nome esteja levemente diferente
+                alert(`Erro ao abrir ${livroNome}. Tente novamente.`);
+                return;
             }
+        
+            // 4. Configura as variáveis GLOBAIS (Crucial para o lerCapitulo funcionar)
+            livroAtualIndex = index;
+            livroAtualNome = bibliaCompleta[index].name; // Pega o nome oficial do JSON
+            capituloAtual = parseInt(capNumero);
+        
+            // 5. Mostra a tela de leitura ANTES de renderizar
+            const telaLeitura = document.getElementById('tela-leitura');
+            telaLeitura.classList.remove('escondido');
+            
+            // Reset de scroll global
+            window.scrollTo(0, 0);
+        
+            // 6. Chama a renderização
+            lerCapitulo(capituloAtual);
+        
+            // 7. Ajusta a barra de navegação (Visual)
+            document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('ativo'));
+            const btnLeitura = document.querySelector('.fa-book-open');
+            if(btnLeitura) btnLeitura.parentElement.classList.add('ativo');
+        
+            // 8. Rola até o versículo e pisca
+            setTimeout(() => {
+                const elementoVerso = document.getElementById(`verso-${versoNumero}`);
+                if (elementoVerso) {
+                    // Rola suave
+                    elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Pisca amarelo
+                    elementoVerso.style.transition = "background 0.5s";
+                    const corOriginal = elementoVerso.style.backgroundColor || (document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7');
+                    
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.5)"; // Amarelo forte
+                    
+                    setTimeout(() => {
+                        elementoVerso.style.backgroundColor = "transparent"; // Volta ao normal
+                    }, 1000);
+                }
+            }, 500); // Delay para dar tempo de desenhar a tela
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -2416,35 +2307,30 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // 1. FORÇA O SUMIÇO DO CABEÇALHO E RODAPÉ (Correção de Sobreposição)
+            // --- PARTE NOVA: FORÇA O SUMIÇO DO CABEÇALHO ---
             const topo = document.querySelector('.barra-topo');
             const nav = document.querySelector('.barra-navegacao');
             
-            // Adiciona as classes que escondem as barras
-            if(topo) topo.classList.add('escondido-topo');
-            if(nav) nav.classList.add('escondido-nav');
-            
-            // Garante que o container de leitura saia do modo imersivo visual se necessário
-            // (opcional, mas ajuda a manter o layout estável)
-            document.getElementById('corpo-app').classList.add('imersivo');
+            // Remove qualquer estilo inline que possa estar prendendo ele
+            if(topo) {
+                topo.style.transform = ''; 
+                topo.classList.add('escondido-topo'); // Usa a classe CSS que joga ele pra cima
+            }
+            if(nav) {
+                nav.classList.add('escondido-nav');
+            }
+            // -----------------------------------------------
         
-            // 2. Prepara os dados do versículo
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
-            // 3. Atualiza os textos do Modal (Janela de Opções)
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
             
-            // Cria um resumo do texto para mostrar no topo do modal
+            // Limita texto preview
             const textoPreview = texto.length > 80 ? texto.substring(0, 80) + "..." : texto;
             document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
             
-            // 4. Mostra o Modal
-            const modal = document.getElementById('modal-verso');
-            modal.classList.remove('escondido');
-            
-            // Adiciona classe para animação de subida (se houver no CSS)
-            modal.classList.add('ativo'); 
+            document.getElementById('modal-verso').classList.remove('escondido');
         }
         function copiarVersoSelecionado() {
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
