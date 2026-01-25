@@ -1112,11 +1112,40 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         
-        /* Modo escuro */
+        /* --- MODO ESCURO: EDITOR DE NOTA --- */
         body.modo-escuro #modal-editor-nota > div {
-            background: #222;
-            color: white;
+            background: #222; /* Fundo cinza escuro */
+            color: white;      /* Texto branco */
+            border: 1px solid #444; /* Borda sutil */
         }
+        
+        /* 1. Botão "Salvar" ou "Adicionar" (Branco Gelo) */
+        /* Procure pela classe que você usa no botão de salvar, assumindo que seja .btn-salvar ou similar */
+        body.modo-escuro #modal-editor-nota button.btn-salvar,
+        body.modo-escuro #modal-editor-nota button[onclick*="salvar"] {
+            background-color: #f0f8ff !important; /* Cor Branco Gelo (AliceBlue) */
+            color: #000000 !important; /* Texto PRETO para contraste (muito importante) */
+            font-weight: bold;
+            border: none;
+        }
+        
+        /* 2. Botão "Cancelar" (Para não ficar brilhante demais, deixamos cinza) */
+        body.modo-escuro #modal-editor-nota button.btn-cancelar {
+            background-color: #333 !important;
+            color: #ccc !important;
+            border: 1px solid #555;
+        }
+        
+        /* --- MODO ESCURO: MENU DE VERSÍCULOS (O "X") --- */
+        
+        /* 3. O "X" de fechar o menu de baixo */
+        /* Isso afeta qualquer elemento com classe btn-fechar dentro do modal-verso */
+        body.modo-escuro #modal-verso .btn-fechar,
+        body.modo-escuro #modal-verso span[onclick*="fechar"] {
+            color: #ffffff !important; /* X Branco puro */
+            opacity: 1 !important;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
