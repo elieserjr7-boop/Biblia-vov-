@@ -876,6 +876,7 @@
         }
         
         /* Item da Lista de Favoritos/Comentários */
+        /* --- ESTILOS DOS ITENS (Favoritos, Comentários, etc) --- */
         .item-ref {
             background: white;
             padding: 15px;
@@ -890,6 +891,8 @@
         .item-ref.rosa { border-left-color: #ff4081; }
         .item-ref.verde { border-left-color: #43a047; }
         .item-ref.vermelho { border-left-color: #d32f2f; }
+        
+        /* --- EDITOR DE NOTAS --- */
         .caixa-editor {
             background: white;
             width: 90%;
@@ -900,7 +903,7 @@
             display: flex;
             flex-direction: column;
         }
-
+        
         #texto-nota-input {
             width: 100%;
             height: 150px;
@@ -909,12 +912,13 @@
             border-radius: 8px;
             font-size: 16px;
             font-family: sans-serif;
-            resize: none; /* Impede puxar o tamanho */
+            resize: none;
             margin-bottom: 15px;
             background-color: #f9f9f9;
             color: #333;
         }
         #texto-nota-input:focus { outline: 2px solid #3498db; background-color: #fff; }
+        
         .botoes-editor { display: flex; gap: 10px; justify-content: flex-end; }
         .btn-salvar {
             background: #27ae60; color: white; border: none;
@@ -925,68 +929,92 @@
             padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
         }
         
-        /* Modo Escuro do Editor */
+        /* --- LEITURA E VERSÍCULOS (AQUI ESTÁ A MÁGICA) --- */
+        
+        .verso-clicavel {
+            padding: 8px 5px; /* Mais espaço para o toque */
+            border-radius: 4px;
+            cursor: pointer; 
+            line-height: 1.6; /* Altura da linha para não grudar */
+            
+            /* Impede seleção de texto (tela azul) */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .verso-clicavel:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+        
+        /* O BOTÃO DO NÚMERO DO VERSÍCULO */
+        .versiculo-num {
+            display: inline-block;
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            margin-right: 8px;
+            
+            /* Aparência de botão */
+            background-color: #eee;
+            padding: 2px 8px;
+            border-radius: 12px; /* Arredondado (Pill shape) */
+            cursor: pointer;
+            transition: background 0.2s;
+            
+            /* Alinhamento */
+            vertical-align: middle;
+        }
+        
+        /* Efeito ao tocar/passar mouse no número */
+        .versiculo-num:hover, .versiculo-num:active {
+            background-color: #ccc;
+            color: #000;
+            transform: scale(1.05); /* Leve zoom */
+        }
+        
+        
+        /* --- MODO ESCURO E ADAPTAÇÕES --- */
         body.modo-escuro .caixa-editor { background: #2c2c2c; color: #ecf0f1; }
         body.modo-escuro #titulo-editor { color: #ecf0f1; }
         body.modo-escuro #texto-nota-input { background: #333; border-color: #444; color: #ecf0f1; }
         body.modo-escuro #texto-nota-input:focus { outline-color: #27ae60; }
         
-        /* Animação de Zoom */
-        .zoom-in { animation: zoomIn 0.2s ease-out; }
-        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
-        .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
-        .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
-        
-        /* Ajuste Modo Escuro */
         body.modo-escuro .modal-bottom-sheet { background: #1f1f1f; }
         body.modo-escuro #titulo-modal-verso { color: #ccc; }
         body.modo-escuro .btn-modal-acao { background: #333; color: #fff; }
         body.modo-escuro .item-ref { background: #2c2c2c; }
         body.modo-escuro .texto-ref-b { color: #aaa; }
         body.modo-escuro .nota-usuario { background: #3e3825; color: #ddd; }
-
-        /* --- MODO IMERSIVO (EFEITO DE SLIDE) --- */
-        .barra-topo {
-            transition: transform 0.3s ease; /* Animação suave */
+        
+        /* Adaptação do NÚMERO no modo escuro */
+        body.modo-escuro .versiculo-num {
+            background-color: #444;
+            color: #ddd;
         }
-        .barra-navegacao {
-            transition: transform 0.3s ease;
+        body.modo-escuro .versiculo-num:hover {
+            background-color: #666;
+            color: #fff;
         }
         
-        /* Quando estiver escondido, move para fora da tela */
-        .escondido-topo {
-            transform: translateY(-100%); /* Sobe tudo */
-        }
-        .escondido-nav {
-            transform: translateY(100%); /* Desce tudo */
-        }
-        
-        /* Ajuste para o texto do preview no modo escuro */
+        /* Preview do texto no modal */
         body.modo-escuro #texto-verso-preview {
             background: #333 !important;
             color: #ccc !important;
             border-left-color: #27ae60 !important;
         }
-        .verso-clicavel {
-            padding: 5px;
-            border-radius: 4px;
-            cursor: pointer; /* Mostra a mãozinha no PC */
-            
-            /* --- IMPEDE QUE O TEXTO SEJA SELECIONADO NATIVAMENTE --- */
-            -webkit-user-select: none; /* Safari / Chrome */
-            -moz-user-select: none;    /* Firefox */
-            -ms-user-select: none;     /* Edge / IE */
-            user-select: none;         /* Padrão moderno */
-            
-            /* Remove aquela cor azul de clique padrão no celular */
-            -webkit-tap-highlight-color: transparent; 
-        }
         
-        /* Opcional: Efeito hover para saber onde está o mouse no PC */
-        .verso-clicavel:hover {
-            background-color: rgba(0,0,0,0.03);
-        }
+        /* --- ANIMAÇÕES E BARRA --- */
+        .zoom-in { animation: zoomIn 0.2s ease-out; }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
+        .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
+        
+        .barra-topo, .barra-navegacao { transition: transform 0.3s ease; }
+        .escondido-topo { transform: translateY(-100%); }
+        .escondido-nav { transform: translateY(100%); }
     </style>
 </head>
 <body id="corpo-app">
@@ -1931,29 +1959,32 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
-                // 1. GERAÇÃO DO HTML LIMPO (Usando data-attributes)
                 capituloTextoArray.forEach((versiculo, idx) => {
                     const numVerso = idx + 1;
-                    const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
                     
-                    // Dados de Grifo e Nota
+                    // Dados para o sistema
+                    const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
                     const dadosGrifo = dadosUsuario.grifos[chave]; 
                     const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
                     const temNota = dadosUsuario.notas[chave] ? "📝" : "";
-                    
-                    // Codificamos o texto para guardar no atributo HTML
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // Note que NÃO tem onclick aqui dentro. O HTML fica limpo.
+                    /* --- NOVA LÓGICA DE INTERAÇÃO ---
+                       1. A DIV inteira (o texto) tem onclick="alternarModoImersivo()"
+                       2. O SPAN do número tem onclick="abrirMenu...; event.stopPropagation()"
+                       
+                       O stopPropagation impede que o clique no número ative o modo imersivo.
+                    */
+                    
                     html += `
-                        <div id="verso-${numVerso}" 
-                             class="verso-clicavel ${classeCor}"
-                             data-livro="${livroAtualNome}"
-                             data-cap="${capituloAtual}"
-                             data-num="${numVerso}"
-                             data-texto="${textoSafe}">
+                        <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
+                             onclick="alternarModoImersivo()">
                              
-                            <span class="versiculo-num">${numVerso}</span> 
+                            <span class="versiculo-num" 
+                                  onclick="event.stopPropagation(); abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
+                                ${numVerso}
+                            </span> 
+                            
                             ${versiculo} 
                             <span class="icone-nota">${temNota}</span>
                         </div>
@@ -1964,31 +1995,7 @@
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
                 textoBiblico.innerHTML = html;
         
-                // 2. INSTALAÇÃO DOS EVENTOS (A Mágica acontece aqui)
-                const todosVersiculos = document.querySelectorAll('.verso-clicavel');
-                
-                todosVersiculos.forEach(elemento => {
-                    // A) CLIQUE ESQUERDO / TOQUE RÁPIDO -> Alternar Barras
-                    elemento.addEventListener('click', (e) => {
-                        alternarModoImersivo();
-                    });
-        
-                    // B) BOTÃO DIREITO (PC) ou SEGURAR (Mobile) -> Abrir Menu
-                    elemento.addEventListener('contextmenu', (e) => {
-                        e.preventDefault(); // IMPEDE o menu nativo do navegador!
-                        
-                        // Pega os dados que escondemos no HTML
-                        const livro = elemento.getAttribute('data-livro');
-                        const cap = elemento.getAttribute('data-cap');
-                        const num = elemento.getAttribute('data-num');
-                        const textoCodificado = elemento.getAttribute('data-texto');
-                        
-                        // Abre nosso menu personalizado
-                        abrirMenuVersiculo(livro, cap, num, textoCodificado);
-                    });
-                });
-        
-                // 3. BOTÃO FINAL DE LEITURA
+                // BOTÃO FINAL
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
                 const btnHTML = `
@@ -1998,12 +2005,12 @@
                         ${jaLeu ? '✅ Leitura Concluída (Desmarcar)' : 'Marcar Leitura como Concluída'}
                     </button>
                 `;
-                textoBiblico.innerHTML += btnHTML; // Adiciona o botão no fim
+                textoBiblico.innerHTML += btnHTML;
                 
-                // Transição de tela
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
+                
                 window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
@@ -2250,18 +2257,26 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // Esconde as barras para focar no menu
-            document.querySelector('.barra-topo').classList.add('escondido-topo');
-            document.querySelector('.barra-navegacao').classList.add('escondido-nav');
+            // 1. Esconde as barras de navegação (Modo Imersivo forçado)
+            const topo = document.querySelector('.barra-topo');
+            const nav = document.querySelector('.barra-navegacao');
+            
+            // Adiciona a classe que esconde (certifique-se que seu CSS tem essas classes)
+            if (topo) topo.classList.add('escondido-topo');
+            if (nav) nav.classList.add('escondido-nav');
         
+            // 2. Prepara e mostra o modal
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
-            document.getElementById('texto-verso-preview').innerText = `"${texto}"`;
+            
+            // Limita o tamanho do texto no preview para não ficar gigante
+            const textoPreview = texto.length > 100 ? texto.substring(0, 100) + "..." : texto;
+            document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
+            
             document.getElementById('modal-verso').classList.remove('escondido');
         }
-
         function copiarVersoSelecionado() {
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
             
