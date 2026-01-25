@@ -814,7 +814,7 @@
         /* Classes de Cores (Marca Texto) */
         .grifo-azul { background-color: rgba(66, 165, 245, 0.4); border-bottom: 2px solid #2196f3; }
         .grifo-amarelo { background-color: rgba(255, 238, 88, 0.4); border-bottom: 2px solid #fbc02d; }
-        .grifo-rosa { background-color: rgba(239, 83, 80, 0.3); border-bottom: 2px solid #e53935; }
+        .grifo-rosa { background-color: rgba(255, 64, 129, 0.35); border-bottom: 2px solid #ff4081; }
         .grifo-verde { background-color: rgba(102, 187, 106, 0.4); border-bottom: 2px solid #43a047; }
         .grifo-vermelho { background-color: rgba(255, 82, 82, 0.3); border-bottom: 2px solid #d32f2f; }
         
@@ -849,7 +849,7 @@
         
         .cor-azul { background-color: #42a5f5; }
         .cor-amarelo { background-color: #ffee58; }
-        .cor-rosa { background-color: #ef5350; }
+        .cor-rosa { background-color: #ff4081; border: 2px solid #f50057; }
         .cor-verde { background-color: #66bb6a; }
         .cor-vermelho { background-color: #d32f2f; }
         .cor-limpar { background-color: white; color: #555; font-weight: bold; font-size: 16px; }
@@ -878,9 +878,53 @@
         }
         .item-ref.azul { border-left-color: #2196f3; }
         .item-ref.amarelo { border-left-color: #fbc02d; }
-        .item-ref.rosa { border-left-color: #e53935; }
+        .item-ref.rosa { border-left-color: #ff4081; }
         .item-ref.verde { border-left-color: #43a047; }
         .item-ref.vermelho { border-left-color: #d32f2f; }
+        .caixa-editor {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #texto-nota-input {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: sans-serif;
+            resize: none; /* Impede puxar o tamanho */
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        #texto-nota-input:focus { outline: 2px solid #3498db; background-color: #fff; }
+        .botoes-editor { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-salvar {
+            background: #27ae60; color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .btn-cancelar {
+            background: #e74c3c; color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        
+        /* Modo Escuro do Editor */
+        body.modo-escuro .caixa-editor { background: #2c2c2c; color: #ecf0f1; }
+        body.modo-escuro #titulo-editor { color: #ecf0f1; }
+        body.modo-escuro #texto-nota-input { background: #333; border-color: #444; color: #ecf0f1; }
+        body.modo-escuro #texto-nota-input:focus { outline-color: #27ae60; }
+        
+        /* Animação de Zoom */
+        .zoom-in { animation: zoomIn 0.2s ease-out; }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
         .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
@@ -1055,7 +1099,20 @@
                 </button>
             </div>
         </div>
-        
+            
+        <div id="modal-editor-nota" class="modal-overlay escondido">
+            <div class="caixa-editor zoom-in">
+                <h3 id="titulo-editor" style="margin-top:0; color:#2c3e50;">Minha Anotação</h3>
+                <p id="ref-editor" style="color:#7f8c8d; font-size: 14px; margin-bottom: 10px;">Gênesis 1:1</p>
+                
+                <textarea id="texto-nota-input" placeholder="Escreva sua reflexão aqui..."></textarea>
+                
+                <div class="botoes-editor">
+                    <button class="btn-cancelar" onclick="fecharEditorNota()">Cancelar</button>
+                    <button class="btn-salvar" onclick="salvarNotaPeloModal()">Salvar</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div id="modal-comparacao" class="modal-overlay escondido">
@@ -1525,14 +1582,38 @@
             document.getElementById('menu-perfil-principal').classList.remove('escondido');
         }
 
-        function irParaVersiculo(livro, cap) {
-            mudarAba('biblia');
-            const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
+        function irParaVersiculo(livroNome, capNum, versoNum = 1) {
+            // 1. Encontra o índice do livro na biblioteca carregada atualmente
+            const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livroNome);
+            
             if (index >= 0) {
+                // Configura o ambiente
                 livroAtualIndex = index;
-                livroAtualNome = livro;
+                livroAtualNome = livroNome;
                 livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
-                lerCapitulo(parseInt(cap));
+                
+                // Carrega o capítulo
+                lerCapitulo(parseInt(capNum));
+                
+                // 2. O Pulo do Gato: Espera 300ms para a tela desenhar e rola até o ID
+                setTimeout(() => {
+                    const elementoVerso = document.getElementById(`verso-${versoNum}`);
+                    if (elementoVerso) {
+                        // Rola suavemente até o elemento ficar no centro da tela
+                        elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Efeito visual de "flash" para destacar
+                        elementoVerso.style.transition = "background 0.5s";
+                        const corOriginal = elementoVerso.style.backgroundColor;
+                        elementoVerso.style.backgroundColor = "rgba(255, 235, 59, 0.5)"; // Amarelo flash
+                        
+                        setTimeout(() => {
+                            elementoVerso.style.backgroundColor = corOriginal; // Volta ao normal
+                        }, 1000);
+                    }
+                }, 300); // Tempo para o DOM renderizar
+            } else {
+                alert("Livro não encontrado nesta versão.");
             }
         }
         
@@ -1761,18 +1842,18 @@
                     
                     // Verifica se tem Grifo (Cor)
                     const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
-                    const dadosGrifo = dadosUsuario.grifos[chave]; // Pode ser undefined
+                    const dadosGrifo = dadosUsuario.grifos[chave]; 
                     const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
                     
                     // Verifica se tem Nota
                     const temNota = dadosUsuario.notas[chave] ? "📝" : "";
                     
-                    // Codifica o texto para passar na função onclick sem quebrar as aspas
+                    // Codifica o texto para passar na função onclick
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // Monta o HTML do versículo clicável
+                    // --- AQUI ESTÁ A MUDANÇA IMPORTANTE (O ID) ---
                     html += `
-                        <div class="verso-clicavel ${classeCor}" 
+                        <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
                              onclick="abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
                             <span class="versiculo-num">${numVerso}</span> 
                             ${versiculo} 
@@ -1787,7 +1868,7 @@
                 // 2. Coloca os versículos na tela
                 textoBiblico.innerHTML = html;
         
-                // --- BOTÃO DE LEITURA CONCLUÍDA (MANTIDO) ---
+                // --- BOTÃO DE LEITURA CONCLUÍDA ---
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
                 const btnHTML = `
@@ -1798,15 +1879,15 @@
                     </button>
                 `;
                 textoBiblico.innerHTML += btnHTML;
-                // ---------------------------------------------
-        
+                
+                // Troca as telas
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
                 
-                // Só rola para o topo se não for um "reload" de pintar cor
-                // (Isso é um detalhe de UX, mas vamos deixar simples rolando pro topo por enquanto)
-                // window.scrollTo(0,0);
+                // Rola para o topo (importante para leitura normal)
+                // A função irParaVersiculo vai sobrescrever isso se for chamada
+                window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
         }
@@ -2084,21 +2165,42 @@
         
         // 3. Salvar Comentário
         function iniciarComentario() {
+            fecharModalVerso(); // Fecha o menu de baixo
+            
             const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
-            const notaAtual = dadosUsuario.notas[chave] ? dadosUsuario.notas[chave].texto : "";
+            const notaSalva = dadosUsuario.notas[chave] ? dadosUsuario.notas[chave].texto : "";
             
-            const novaNota = prompt("Digite sua reflexão sobre este versículo:", notaAtual);
+            // Preenche o Modal
+            document.getElementById('titulo-editor').innerText = "Editar Anotação";
+            document.getElementById('ref-editor').innerText = `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`;
+            document.getElementById('texto-nota-input').value = notaSalva;
             
-            if (novaNota !== null) {
-                if (novaNota.trim() === "") {
-                    delete dadosUsuario.notas[chave];
-                } else {
-                    dadosUsuario.notas[chave] = { texto: novaNota, ref: `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`, timestamp: Date.now() };
-                }
-                salvarDados();
-                fecharModalVerso();
-                lerCapitulo(capituloAtual);
+            // Abre o Modal
+            document.getElementById('modal-editor-nota').classList.remove('escondido');
+            document.getElementById('texto-nota-input').focus();
+        }
+
+        function fecharEditorNota() {
+            document.getElementById('modal-editor-nota').classList.add('escondido');
+        }
+
+        function salvarNotaPeloModal() {
+            const textoDigitado = document.getElementById('texto-nota-input').value;
+            const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
+            
+            if (textoDigitado.trim() === "") {
+                delete dadosUsuario.notas[chave]; // Se deixar vazio, apaga
+            } else {
+                dadosUsuario.notas[chave] = { 
+                    texto: textoDigitado, 
+                    ref: `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`, 
+                    timestamp: Date.now() 
+                };
             }
+            
+            salvarDados();
+            fecharEditorNota();
+            lerCapitulo(capituloAtual); // Atualiza a tela para aparecer o ícone 📝
         }
         
         // 4. Renderizar Tela de Favoritos
@@ -2107,9 +2209,11 @@
             esconderTodasSubTelas();
             document.getElementById('view-favoritos').classList.remove('escondido');
             
-            // Lógica de renderizar (colada aqui para garantir funcionamento)
+            // Lógica de renderizar
             const container = document.getElementById('lista-favoritos-container');
             container.innerHTML = "";
+            
+            // Pega a lista de grifos
             const lista = Object.entries(dadosUsuario.grifos || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
@@ -2118,11 +2222,18 @@
             }
             
             lista.forEach(([chave, dados]) => {
+                // Separa a chave "Gênesis_1_1" em variáveis
                 const [livro, cap, num] = chave.split("_");
+                
                 const div = document.createElement('div');
-                div.className = `item-ref ${dados.cor}`; // Usa a cor salva
+                div.className = `item-ref ${dados.cor}`; 
                 div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="texto-ref-b">"${dados.texto}..."</div>`;
-                div.onclick = () => irParaVersiculo(livro, cap);
+                
+                // --- AQUI É A MUDANÇA IMPORTANTÍSSIMA: ---
+                // Adicionamos o 'num' (versículo) para a função de navegação saber onde rolar
+                div.onclick = () => irParaVersiculo(livro, cap, num);
+                // ------------------------------------------
+                
                 container.appendChild(div);
             });
         }
@@ -2136,6 +2247,8 @@
             // Lógica de renderizar
             const container = document.getElementById('lista-comentarios-container');
             container.innerHTML = "";
+            
+            // Pega a lista de notas/comentários
             const lista = Object.entries(dadosUsuario.notas || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
@@ -2144,11 +2257,18 @@
             }
             
             lista.forEach(([chave, dados]) => {
+                // Separa a chave em Livro, Capítulo e Versículo
                 const [livro, cap, num] = chave.split("_");
+                
                 const div = document.createElement('div');
                 div.className = "item-ref";
                 div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="nota-usuario">📝 ${dados.texto}</div>`;
-                div.onclick = () => irParaVersiculo(livro, cap);
+                
+                // --- AQUI ESTÁ A CORREÇÃO ---
+                // Adicionamos o 'num' para ele rolar até o comentário
+                div.onclick = () => irParaVersiculo(livro, cap, num);
+                // -----------------------------
+                
                 container.appendChild(div);
             });
         }
