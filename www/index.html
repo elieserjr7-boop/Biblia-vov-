@@ -1044,7 +1044,7 @@
 
         #texto-biblico {
             /* Empurra o texto para baixo para não ficar atrás do cabeçalho */
-            padding-top: 80px !important; 
+            padding-top: 150px !important; 
             
             /* Espaço em baixo para não ficar atrás do rodapé */
             padding-bottom: 100px !important;
@@ -1717,63 +1717,79 @@
         
         // --- FUNÇÃO CORRIGIDA PARA IR AOS FAVORITOS ---
 
-        function irParaVersiculo(livro, cap, versiculo) {
-            console.log(`Navegando para: ${livro} ${cap}:${versiculo}`);
+        function irParaVersiculo(livroNome, cap, versiculo) {
+            console.log(`Tentando ir para: ${livroNome} ${cap}:${versiculo}`);
         
-            // 1. Define os dados globais
-            estadoAtual.livro = livro;
-            estadoAtual.capitulo = parseInt(cap);
-            salvarDados(); // Salva onde o usuário está
+            try {
+                // 1. Precisamos descobrir qual é o ID (index) desse livro
+                // Vamos procurar na bibliaCompleta ou nas listas de testamento
+                let indexEncontrado = -1;
         
-            // 2. Força a ida para a aba de Leitura
-            mudarAba('leitura'); 
-        
-            // 3. Carrega o texto
-            // Nota: Se a função correta no seu código for 'lerCapitulo', use ela.
-            // Vou usar a lógica de abrir o capítulo diretamente.
-            
-            // Configura variáveis globais necessárias para lerCapitulo funcionar
-            livroAtualNome = livro;
-            capituloAtual = parseInt(cap);
-            
-            // Precisamos achar o índice do livro para o sistema funcionar
-            // (Procura na lista de livros o índice correto)
-            const indexLivro = listaLivros.findIndex(l => l === livro);
-            if (indexLivro !== -1) {
-                livroAtualIndex = indexLivro;
-                // Atualiza max caps se possível, senão define padrão 50
-                if(bibliaCompleta && bibliaCompleta[indexLivro]) {
-                     livroAtualMaxCaps = bibliaCompleta[indexLivro].chapters.length;
+                // Tenta achar na Bíblia carregada
+                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta.length > 0) {
+                    indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
                 }
-            }
         
-            // Chama a função que desenha o texto na tela
-            lerCapitulo(parseInt(cap));
+                // Se não achou (ou bibliaCompleta ainda não carregou), procura nas listas de nomes
+                if (indexEncontrado === -1) {
+                    // Cria uma lista temporária com todos os nomes para buscar
+                    const todosLivros = [...antigoTestamento, ...novoTestamento]; 
+                    indexEncontrado = todosLivros.findIndex(l => l.nome === livroNome);
+                }
         
-            // 4. Rola até o versículo específico
-            setTimeout(() => {
-                // --- AQUI ESTAVA O ERRO ---
-                // O ID correto no HTML é 'verso-X', não 'vX'
-                const idVerso = 'verso-' + versiculo; 
-                const elementoVerso = document.getElementById(idVerso);
+                // Se mesmo assim não achou, avisa o usuário e para
+                if (indexEncontrado === -1) {
+                    alert(`Erro: O livro "${livroNome}" não foi encontrado no sistema.`);
+                    return;
+                }
+        
+                // 2. Atualiza as variáveis globais fundamentais
+                livroAtualIndex = indexEncontrado;
+                livroAtualNome = livroNome;
+                capituloAtual = parseInt(cap); // Garante que é número
                 
-                if (elementoVerso) {
-                    console.log("Elemento encontrado, rolando...");
-                    
-                    elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Destaque visual temporário
-                    elementoVerso.style.transition = "background 1s";
-                    const corOriginal = elementoVerso.style.backgroundColor;
-                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.3)"; // Dourado suave
-                    
-                    setTimeout(() => {
-                        elementoVerso.style.backgroundColor = corOriginal;
-                    }, 2000);
-                } else {
-                    console.warn(`Versículo não encontrado no DOM: ${idVerso}`);
+                // Atualiza max caps para evitar erros de navegação futura
+                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta[indexEncontrado]) {
+                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
                 }
-            }, 600); // Tempo seguro para o HTML ser criado
+        
+                // 3. Salva no histórico do usuário
+                estadoAtual.livro = livroNome;
+                estadoAtual.capitulo = capituloAtual;
+                salvarDados();
+        
+                // 4. Muda a aba visualmente
+                mudarAba('leitura');
+        
+                // 5. Carrega o texto na tela
+                lerCapitulo(capituloAtual);
+        
+                // 6. Rola até o versículo (com delay para dar tempo de renderizar)
+                setTimeout(() => {
+                    const idVerso = 'verso-' + versiculo;
+                    const elemento = document.getElementById(idVerso);
+                    
+                    if (elemento) {
+                        // Rola para o centro da tela
+                        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Pisca o versículo em amarelo/dourado
+                        elemento.style.transition = "background-color 0.5s";
+                        const corAntiga = elemento.style.backgroundColor;
+                        elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
+                        
+                        setTimeout(() => {
+                            elemento.style.backgroundColor = corAntiga;
+                        }, 1500);
+                    } else {
+                        console.warn("Versículo visual não encontrado:", idVerso);
+                    }
+                }, 600); // 600ms de espera
+        
+            } catch (erro) {
+                console.error("Erro fatal em irParaVersiculo:", erro);
+                alert("Ocorreu um erro ao abrir o versículo. Verifique o console.");
+            }
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
