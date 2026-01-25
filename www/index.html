@@ -1072,24 +1072,22 @@
             margin-top: 10px; 
         }
 
-        body.modo-imersivo #tela-leitura {
-            padding-top: 40px !important; /* Sobe quase até o topo (respeita a barra do telemóvel) */
-            padding-bottom: 20px !important; /* Remove espaço do rodapé também */
-        }
-        
-        /* Esconder Cabeçalho e Rodapé suavemente */
-        header, nav {
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        
-        body.modo-imersivo header {
-            transform: translateY(-100%); /* Cabeçalho sobe e sai da tela */
+        /* --- AJUSTES DO MODO IMERSIVO --- */
+
+        /* Quando estiver em modo imersivo, esconde também os botões flutuantes de navegação */
+        body.modo-imersivo .botao-flutuante,
+        body.modo-imersivo #btn-proximo-cap, 
+        body.modo-imersivo #btn-anterior-cap,
+        body.modo-imersivo .seta-navegacao { /* Tenta cobrir vários nomes possíveis */
             opacity: 0;
+            pointer-events: none; /* Impede clicar no botão invisível */
+            transition: opacity 0.3s ease;
         }
         
-        body.modo-imersivo nav {
-            transform: translateY(100%); /* Rodapé desce e sai da tela */
-            opacity: 0;
+        /* Garante que o texto ocupe a tela toda */
+        #tela-leitura {
+            min-height: 100vh; /* Ocupa pelo menos a altura toda */
+            cursor: pointer; /* Indica que é clicável */
         }
         
     </style>
@@ -1556,18 +1554,29 @@
             // --- NOVO: 5. MODO IMERSIVO (Clica e Esconde) ---
             // Adiciona o evento de clique na tela de leitura
             const areaLeitura = document.getElementById('tela-leitura');
+            
             if (areaLeitura) {
-                areaLeitura.addEventListener('click', function(e) {
-                    // Verificação de Segurança:
-                    // Se o clique foi num botão ou menu dentro do texto, não esconde o cabeçalho.
-                    // Apenas se foi no texto ou no fundo.
-                    if (e.target.tagName === 'BUTTON' || e.target.closest('.menu-flutuante')) {
+                areaLeitura.onclick = function(e) {
+                    const alvo = e.target;
+        
+                    // 1. LISTA DE PROIBIÇÕES (Onde NÃO deve ativar o modo imersivo)
+                    // Se clicou num botão, no menu de opções, ou num link
+                    if (alvo.tagName === 'BUTTON' || alvo.closest('button')) return;
+                    if (alvo.closest('.menu-flutuante')) return; // Menu de cor
+                    if (alvo.closest('.opcoes-versiculo')) return; // Menu de opções
+        
+                    // 2. DETECÇÃO DO NÚMERO DO VERSÍCULO
+                    // Verifica se clicou no numerozinho (geralmente é <sup>, <b> ou tem classe num)
+                    // Ajuste conforme seu HTML gera o número, mas isso cobre a maioria:
+                    if (alvo.tagName === 'SUP' || alvo.classList.contains('numero-verso') || alvo.classList.contains('versiculo-num')) {
+                        console.log("Clicou no número, não alterna modo imersivo.");
                         return;
                     }
         
-                    // Adiciona ou remove a classe que move o CSS
+                    // 3. SE PASSOU POR TUDO ISSO, ALTERNA O MODO
+                    // Isso pega cliques no texto, no fundo branco, nas margens, etc.
                     document.body.classList.toggle('modo-imersivo');
-                });
+                };
             }
             
             // 6. CARREGAMENTO: Busca o texto da Bíblia
@@ -1777,57 +1786,61 @@
         function irParaVersiculo(livroNome, cap, versiculo) {
             console.log(`Navegando para: ${livroNome} ${cap}:${versiculo}`);
         
-            // Verifica se a bíblia carregou
+            // VERIFICAÇÃO DE SEGURANÇA
             if (typeof bibliaCompleta === 'undefined' || !bibliaCompleta) {
                 alert("Aguarde o carregamento da Bíblia.");
                 return;
             }
         
-            try {
-                // 1. Achar o Índice do Livro (Correção para não dar erro)
-                let indexEncontrado = -1;
-                
-                // Tenta achar na bibliaCompleta
-                indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
+            // 1. Achar o Índice do Livro
+            let indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
         
-                // Se falhar, tenta nas listas manuais
-                if (indexEncontrado === -1) {
-                     const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
-                     if (idxAntigo !== -1) indexEncontrado = idxAntigo;
-                     else {
-                         const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
-                         if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
-                     }
+            if (indexEncontrado === -1) {
+                // Tenta achar nas listas manuais (fallback)
+                const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
+                if (idxAntigo !== -1) indexEncontrado = idxAntigo;
+                else {
+                    const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
+                    if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
                 }
+            }
         
-                if (indexEncontrado === -1) {
-                    alert(`Livro não encontrado: ${livroNome}`);
-                    return;
-                }
+            if (indexEncontrado === -1) {
+                alert(`Livro não encontrado: ${livroNome}`);
+                return;
+            }
         
-                // 2. Atualiza as variáveis GLOBAIS (Isto é o que faz funcionar)
-                livroAtualIndex = indexEncontrado;
-                livroAtualNome = livroNome; 
-                capituloAtual = parseInt(cap);
-                
-                // Atualiza max caps
-                if (bibliaCompleta[indexEncontrado]) {
-                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
-                }
+            // 2. Atualiza as Variáveis Globais
+            livroAtualIndex = indexEncontrado;
+            livroAtualNome = livroNome; 
+            capituloAtual = parseInt(cap);
+            
+            // Atualiza o máximo de capítulos para navegação funcionar
+            if (bibliaCompleta[indexEncontrado]) {
+                livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
+            }
         
-                // 3. Salva nos dados do usuário (Correção do erro ReferenceError)
-                // Em vez de 'estadoAtual', usamos 'dadosUsuario' se existir
-                if (typeof dadosUsuario !== 'undefined') {
-                    dadosUsuario.ultimoLivro = indexEncontrado; 
-                    dadosUsuario.ultimoCapitulo = capituloAtual;
-                    salvarDados();
-                }
+            // Salva histórico
+            if (typeof dadosUsuario !== 'undefined') {
+                dadosUsuario.ultimoLivro = indexEncontrado; 
+                dadosUsuario.ultimoCapitulo = capituloAtual;
+                salvarDados();
+            }
         
-                // 4. Muda a aba e carrega
-                mudarAba('leitura');
+            // --- A CORREÇÃO MÁGICA COMEÇA AQUI ---
+        
+            // 3. Garante que o cabeçalho está visível (sai do modo imersivo)
+            document.body.classList.remove('modo-imersivo');
+        
+            // 4. Força a troca de aba PRIMEIRO
+            mudarAba('leitura');
+        
+            // 5. Pequeno atraso para garantir que a tela 'leitura' já existe antes de escrever nela
+            setTimeout(() => {
+                // Agora sim, desenha o texto
                 lerCapitulo(capituloAtual);
         
-                // 5. Rola até o versículo
+                // 6. Rola até o versículo
                 setTimeout(() => {
                     const idVerso = 'verso-' + versiculo;
                     const elemento = document.getElementById(idVerso);
@@ -1835,16 +1848,13 @@
                     if (elemento) {
                         elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
-                        // Efeito visual
+                        // Destaque visual
                         elemento.style.transition = "background-color 0.5s";
                         elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
                         setTimeout(() => { elemento.style.backgroundColor = ""; }, 2000);
                     }
-                }, 800);
-        
-            } catch (e) {
-                console.error("Erro ao ir para versículo:", e);
-            }
+                }, 300); // Espera o texto ser desenhado para rolar
+            }, 100); // Espera a aba abrir para desenhar o texto
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
