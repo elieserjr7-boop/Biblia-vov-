@@ -1623,39 +1623,34 @@
             document.getElementById('menu-perfil-principal').classList.remove('escondido');
         }
 
-        function irParaVersiculo(livroNome, capNum, versoNum = 1) {
-            // 1. Encontra o índice do livro na biblioteca carregada atualmente
-            const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livroNome);
+        /* --- NAVEGAÇÃO ENTRE TELAS --- */
+        function irParaVersiculo(livroNome, capNumero, versoNumero) {
+            // 1. Acha o índice do livro no array da bíblia
+            const index = bibliaCompleta.findIndex(b => b.name === livroNome);
+            if (index === -1) return;
+        
+            // 2. Atualiza as variáveis globais
+            livroAtualIndex = index;
+            livroAtualNome = livroNome;
             
-            if (index >= 0) {
-                // Configura o ambiente
-                livroAtualIndex = index;
-                livroAtualNome = livroNome;
-                livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
-                
-                // Carrega o capítulo
-                lerCapitulo(parseInt(capNum));
-                
-                // 2. O Pulo do Gato: Espera 300ms para a tela desenhar e rola até o ID
-                setTimeout(() => {
-                    const elementoVerso = document.getElementById(`verso-${versoNum}`);
-                    if (elementoVerso) {
-                        // Rola suavemente até o elemento ficar no centro da tela
-                        elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        // Efeito visual de "flash" para destacar
-                        elementoVerso.style.transition = "background 0.5s";
-                        const corOriginal = elementoVerso.style.backgroundColor;
-                        elementoVerso.style.backgroundColor = "rgba(255, 235, 59, 0.5)"; // Amarelo flash
-                        
-                        setTimeout(() => {
-                            elementoVerso.style.backgroundColor = corOriginal; // Volta ao normal
-                        }, 1000);
-                    }
-                }, 300); // Tempo para o DOM renderizar
-            } else {
-                alert("Livro não encontrado nesta versão.");
-            }
+            // 3. Renderiza o capítulo
+            lerCapitulo(parseInt(capNumero)); // Converte para número por garantia
+        
+            // 4. Rola até o versículo (com um pequeno delay para dar tempo de desenhar a tela)
+            setTimeout(() => {
+                const elementoVerso = document.getElementById(`verso-${versoNumero}`);
+                if (elementoVerso) {
+                    elementoVerso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Efeito visual: piscar o versículo para destacar
+                    elementoVerso.style.transition = "background 0.5s";
+                    const corOriginal = elementoVerso.style.backgroundColor;
+                    elementoVerso.style.backgroundColor = "rgba(255, 215, 0, 0.3)"; // Amarelo suave
+                    setTimeout(() => {
+                        elementoVerso.style.backgroundColor = corOriginal;
+                    }, 1500);
+                }
+            }, 300); // 300ms de espera
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -1917,25 +1912,25 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
-                // 1. Gera os versículos
+                // GERAÇÃO DOS VERSÍCULOS
                 capituloTextoArray.forEach((versiculo, idx) => {
                     const numVerso = idx + 1;
                     
-                    // Verifica se tem Grifo (Cor)
+                    // Configurações de Cor e Nota
                     const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
                     const dadosGrifo = dadosUsuario.grifos[chave]; 
                     const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
-                    
-                    // Verifica se tem Nota
                     const temNota = dadosUsuario.notas[chave] ? "📝" : "";
-                    
-                    // Codifica o texto para passar na função onclick
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // --- AQUI ESTÁ A MUDANÇA (Chamamos gerenciarCliqueVerso) ---
+                    // --- AQUI ESTÁ A MUDANÇA DOS CLIQUES ---
+                    // onclick -> Alterna as barras (Modo Imersivo)
+                    // oncontextmenu -> Segurar o clique abre o Menu de Versículo
                     html += `
                         <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
-                             onclick="gerenciarCliqueVerso('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
+                             onclick="alternarModoImersivo()"
+                             oncontextmenu="event.preventDefault(); abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}'); return false;">
+                             
                             <span class="versiculo-num">${numVerso}</span> 
                             ${versiculo} 
                             <span class="icone-nota">${temNota}</span>
@@ -1945,11 +1940,9 @@
                 });
                 
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
-                
-                // 2. Coloca os versículos na tela
                 textoBiblico.innerHTML = html;
         
-                // --- BOTÃO DE LEITURA CONCLUÍDA ---
+                // BOTÃO DE LEITURA CONCLUÍDA
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
                 const btnHTML = `
@@ -1961,12 +1954,14 @@
                 `;
                 textoBiblico.innerHTML += btnHTML;
                 
-                // Troca as telas
+                // Transição de telas
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
                 
-                // Rola para o topo inicialmente
+                // Se NÃO foi chamado pela função irParaVersiculo (que usa scroll), rola pro topo
+                // (Detectamos isso de forma simples: se não tiver hash na URL ou delay)
+                // Mas para simplificar, o irParaVersiculo roda 300ms depois, então ele ganha dessa linha aqui:
                 window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
@@ -2211,20 +2206,25 @@
 
         // Variáveis temporárias para saber qual versículo foi clicado
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
-        
-        // 1. Função chamada ao clicar no texto bíblico
+
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
+            // 1. Força esconder o cabeçalho e rodapé para focar no menu
+            const topo = document.querySelector('.barra-topo');
+            const nav = document.querySelector('.barra-navegacao');
+            topo.classList.add('escondido-topo');
+            nav.classList.add('escondido-nav');
+        
+            // 2. Prepara os dados
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
-            // Título
+            // 3. Preenche e mostra o Modal
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
-            
-            // Texto do preview (NOVO)
-            const preview = document.getElementById('texto-verso-preview');
-            preview.innerText = `"${texto}"`;
-            
+            document.getElementById('texto-verso-preview').innerText = `"${texto}"`;
             document.getElementById('modal-verso').classList.remove('escondido');
+            
+            // Pequena vibração no celular (se suportado) para indicar o clique longo
+            if (navigator.vibrate) navigator.vibrate(50);
         }
 
         function copiarVersoSelecionado() {
