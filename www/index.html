@@ -1071,6 +1071,26 @@
             /* Se mesmo com 140px estiver cortando, aumente margin-top aqui: */
             margin-top: 10px; 
         }
+
+        body.modo-imersivo #tela-leitura {
+            padding-top: 40px !important; /* Sobe quase até o topo (respeita a barra do telemóvel) */
+            padding-bottom: 20px !important; /* Remove espaço do rodapé também */
+        }
+        
+        /* Esconder Cabeçalho e Rodapé suavemente */
+        header, nav {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        body.modo-imersivo header {
+            transform: translateY(-100%); /* Cabeçalho sobe e sai da tela */
+            opacity: 0;
+        }
+        
+        body.modo-imersivo nav {
+            transform: translateY(100%); /* Rodapé desce e sai da tela */
+            opacity: 0;
+        }
         
     </style>
 </head>
@@ -1516,25 +1536,49 @@
             // Executa imediatamente para tirar a listra branca
             forcarAlturaReal();
             
-            // Executa novamente após meio segundo para garantir (caso a barra do navegador se mova)
+            // Executa novamente após meio segundo para garantir
             setTimeout(forcarAlturaReal, 500);
-
+        
             // 2. TEMA: Carrega as cores e o fundo correto
             carregarTemaSalvo(); 
             
-            // 3. INTERFACE: Renderiza os livros
+            // 3. INTERFACE: Renderiza os livros na tela inicial
             renderizarLivros();
             
             // 4. VERSÃO: Recupera qual bíblia o usuário estava lendo
             const versaoSalva = localStorage.getItem('versaoBiblia') || "NVI";
             
-            btnVersao.innerText = versaoSalva;
+            if (typeof btnVersao !== 'undefined') {
+                btnVersao.innerText = versaoSalva;
+            }
             gerarMenuVersoes(versaoSalva);
+        
+            // --- NOVO: 5. MODO IMERSIVO (Clica e Esconde) ---
+            // Adiciona o evento de clique na tela de leitura
+            const areaLeitura = document.getElementById('tela-leitura');
+            if (areaLeitura) {
+                areaLeitura.addEventListener('click', function(e) {
+                    // Verificação de Segurança:
+                    // Se o clique foi num botão ou menu dentro do texto, não esconde o cabeçalho.
+                    // Apenas se foi no texto ou no fundo.
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('.menu-flutuante')) {
+                        return;
+                    }
+        
+                    // Adiciona ou remove a classe que move o CSS
+                    document.body.classList.toggle('modo-imersivo');
+                });
+            }
             
-            // 5. CARREGAMENTO: Busca o texto da Bíblia
+            // 6. CARREGAMENTO: Busca o texto da Bíblia
             carregarVersaoBiblia(versaoSalva).then(() => {
                 // Inicia o download silencioso do resto após 2 segundos
                 setTimeout(preCarregarTudoSilenciosamente, 2000);
+                
+                // Se tiver dados salvos de leitura anterior, carrega eles (Opcional)
+                if (typeof dadosUsuario !== 'undefined' && dadosUsuario.ultimoLivro !== undefined) {
+                     // Lógica para abrir onde parou (se quiser implementar depois)
+                }
             });
         }
         
