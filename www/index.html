@@ -1029,6 +1029,11 @@
             left: 0;
             z-index: 100; /* Fica acima do fundo base */
         }
+
+        body:not(.modo-imersivo) #tela-leitura {
+            padding-top: 150px !important; /* Espaço para o cabeçalho fixo */
+        }
+        
         body.modo-escuro #tela-leitura {
             background-color: #121212;
         }
@@ -1555,26 +1560,31 @@
             // Adiciona o evento de clique na tela de leitura
             const areaLeitura = document.getElementById('tela-leitura');
             
+            // Só adiciona o evento se a tela de leitura existir no HTML
             if (areaLeitura) {
                 areaLeitura.onclick = function(e) {
                     const alvo = e.target;
+                    
+                    // SEGURO: Se o alvo for nulo, para tudo (evita erro)
+                    if (!alvo) return;
         
-                    // 1. LISTA DE PROIBIÇÕES (Onde NÃO deve ativar o modo imersivo)
-                    // Se clicou num botão, no menu de opções, ou num link
+                    // 1. O QUE DEVE SER IGNORADO (Não ativar modo imersivo)
+                    // Botões, menus flutuantes, ou o botão de fechar
                     if (alvo.tagName === 'BUTTON' || alvo.closest('button')) return;
-                    if (alvo.closest('.menu-flutuante')) return; // Menu de cor
-                    if (alvo.closest('.opcoes-versiculo')) return; // Menu de opções
+                    if (alvo.closest('.menu-flutuante')) return;
+                    if (alvo.closest('.opcoes-versiculo')) return;
         
-                    // 2. DETECÇÃO DO NÚMERO DO VERSÍCULO
-                    // Verifica se clicou no numerozinho (geralmente é <sup>, <b> ou tem classe num)
-                    // Ajuste conforme seu HTML gera o número, mas isso cobre a maioria:
-                    if (alvo.tagName === 'SUP' || alvo.classList.contains('numero-verso') || alvo.classList.contains('versiculo-num')) {
-                        console.log("Clicou no número, não alterna modo imersivo.");
+                    // 2. VERSÍCULOS (Números)
+                    // Se clicar no numerozinho, não esconde o cabeçalho (para poder abrir opções)
+                    if (alvo.tagName === 'SUP' || 
+                        alvo.classList.contains('numero-verso') || 
+                        alvo.classList.contains('versiculo-num') ||
+                        (alvo.parentElement && alvo.parentElement.tagName === 'SUP')) {
                         return;
                     }
         
-                    // 3. SE PASSOU POR TUDO ISSO, ALTERNA O MODO
-                    // Isso pega cliques no texto, no fundo branco, nas margens, etc.
+                    // 3. AÇÃO: Alternar modo imersivo no BODY
+                    // O body sempre existe, então isso nunca vai dar erro de 'null'
                     document.body.classList.toggle('modo-imersivo');
                 };
             }
@@ -1783,78 +1793,84 @@
         // --- FUNÇÃO CORRIGIDA PARA IR AOS FAVORITOS ---
 
         /* --- FUNÇÃO CORRIGIDA E ROBUSTA DE NAVEGAÇÃO --- */
+        /* --- FUNÇÃO SEGURA DE NAVEGAÇÃO --- */
         function irParaVersiculo(livroNome, cap, versiculo) {
             console.log(`Navegando para: ${livroNome} ${cap}:${versiculo}`);
         
-            // VERIFICAÇÃO DE SEGURANÇA
+            // VERIFICAÇÃO 1: A Bíblia carregou?
             if (typeof bibliaCompleta === 'undefined' || !bibliaCompleta) {
                 alert("Aguarde o carregamento da Bíblia.");
                 return;
             }
         
-            // 1. Achar o Índice do Livro
-            let indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
-        
-            if (indexEncontrado === -1) {
-                // Tenta achar nas listas manuais (fallback)
-                const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
-                if (idxAntigo !== -1) indexEncontrado = idxAntigo;
-                else {
-                    const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
-                    if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
-                }
-            }
-        
-            if (indexEncontrado === -1) {
-                alert(`Livro não encontrado: ${livroNome}`);
-                return;
-            }
-        
-            // 2. Atualiza as Variáveis Globais
-            livroAtualIndex = indexEncontrado;
-            livroAtualNome = livroNome; 
-            capituloAtual = parseInt(cap);
-            
-            // Atualiza o máximo de capítulos para navegação funcionar
-            if (bibliaCompleta[indexEncontrado]) {
-                livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
-            }
-        
-            // Salva histórico
-            if (typeof dadosUsuario !== 'undefined') {
-                dadosUsuario.ultimoLivro = indexEncontrado; 
-                dadosUsuario.ultimoCapitulo = capituloAtual;
-                salvarDados();
-            }
-        
-            // --- A CORREÇÃO MÁGICA COMEÇA AQUI ---
-        
-            // 3. Garante que o cabeçalho está visível (sai do modo imersivo)
-            document.body.classList.remove('modo-imersivo');
-        
-            // 4. Força a troca de aba PRIMEIRO
-            mudarAba('leitura');
-        
-            // 5. Pequeno atraso para garantir que a tela 'leitura' já existe antes de escrever nela
-            setTimeout(() => {
-                // Agora sim, desenha o texto
-                lerCapitulo(capituloAtual);
-        
-                // 6. Rola até o versículo
-                setTimeout(() => {
-                    const idVerso = 'verso-' + versiculo;
-                    const elemento = document.getElementById(idVerso);
-                    
-                    if (elemento) {
-                        elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        // Destaque visual
-                        elemento.style.transition = "background-color 0.5s";
-                        elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
-                        setTimeout(() => { elemento.style.backgroundColor = ""; }, 2000);
+            try {
+                // 1. Busca Segura do Índice
+                let indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
+                
+                // Fallback (Procura manual se falhar)
+                if (indexEncontrado === -1) {
+                    const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
+                    if (idxAntigo !== -1) indexEncontrado = idxAntigo;
+                    else {
+                        const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
+                        if (idxNovo !== -1) indexEncontrado = idxNovo + 39;
                     }
-                }, 300); // Espera o texto ser desenhado para rolar
-            }, 100); // Espera a aba abrir para desenhar o texto
+                }
+        
+                if (indexEncontrado === -1) {
+                    console.error("Livro não encontrado:", livroNome);
+                    return;
+                }
+        
+                // 2. Atualiza Globais
+                livroAtualIndex = indexEncontrado;
+                livroAtualNome = livroNome;
+                capituloAtual = parseInt(cap);
+                
+                if (bibliaCompleta[indexEncontrado]) {
+                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
+                }
+        
+                // 3. Salva Estado (se existir)
+                if (typeof dadosUsuario !== 'undefined') {
+                    dadosUsuario.ultimoLivro = indexEncontrado;
+                    dadosUsuario.ultimoCapitulo = capituloAtual;
+                    salvarDados();
+                }
+        
+                // --- CORREÇÃO DO ERRO DE TELA BRANCA ---
+                
+                // A. Garante que saímos do modo imersivo (Mostra cabeçalho)
+                // Usamos document.body porque ele SEMPRE existe (evita o erro 'null')
+                document.body.classList.remove('modo-imersivo');
+        
+                // B. Muda a aba para Leitura
+                mudarAba('leitura');
+        
+                // C. Espera 100ms para a aba aparecer visualmente antes de desenhar o texto
+                // Isso impede que o navegador tente desenhar num elemento oculto
+                setTimeout(() => {
+                    lerCapitulo(capituloAtual);
+        
+                    // D. Espera o texto ser desenhado para rolar até ele
+                    setTimeout(() => {
+                        const idVerso = 'verso-' + versiculo;
+                        const elemento = document.getElementById(idVerso);
+                        
+                        if (elemento) {
+                            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            
+                            // Pisca para destacar
+                            elemento.style.transition = "background-color 0.5s";
+                            elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
+                            setTimeout(() => { elemento.style.backgroundColor = ""; }, 2000);
+                        }
+                    }, 300); // Tempo para o texto renderizar
+                }, 100); // Tempo para a aba trocar
+        
+            } catch (erro) {
+                console.error("Erro em irParaVersiculo:", erro);
+            }
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
