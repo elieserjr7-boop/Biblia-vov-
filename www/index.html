@@ -1391,6 +1391,123 @@
             background: rgba(255, 107, 107, 0.15);
             color: #ff6b6b;
         }
+
+        /* --- ESTILO DO MODAL DE LEITURA RÁPIDA --- */
+
+        /* A Janela Flutuante */
+        .janela-leitura-perfil {
+            background: #fff;
+            width: 90%;
+            max-width: 600px;
+            height: 80vh; /* Ocupa 80% da altura da tela */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* Modo Tela Cheia (Aplicado via JS) */
+        .janela-leitura-perfil.tela-cheia {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            border-radius: 0 !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 2005;
+        }
+        
+        /* Cabeçalho */
+        .cabecalho-leitura-modal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .cabecalho-leitura-modal h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        
+        .acoes-leitura-modal button {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #7f8c8d;
+            cursor: pointer;
+            margin-left: 15px;
+            padding: 5px;
+        }
+        .acoes-leitura-modal button:hover { color: #2c3e50; }
+        
+        /* Corpo do Texto (Com Scroll) */
+        #conteudo-leitura-modal {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #333;
+            scroll-behavior: smooth;
+        }
+        
+        /* Versículo dentro do Modal */
+        .verso-modal {
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        
+        /* O Versículo Destacado (Foco) */
+        .verso-destaque-foco {
+            background-color: rgba(255, 235, 59, 0.4); /* Amarelo Marca-texto */
+            border-left: 4px solid #fbc02d;
+            font-weight: bold;
+            animation: piscarFoco 2s infinite;
+        }
+        
+        @keyframes piscarFoco {
+            0% { background-color: rgba(255, 235, 59, 0.4); }
+            50% { background-color: rgba(255, 235, 59, 0.7); }
+            100% { background-color: rgba(255, 235, 59, 0.4); }
+        }
+        
+        /* Número do verso */
+        .num-verso-modal {
+            font-size: 12px;
+            color: #999;
+            vertical-align: super;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        /* --- MODO ESCURO --- */
+        body.modo-escuro .janela-leitura-perfil {
+            background: #1f1f1f;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+        body.modo-escuro .cabecalho-leitura-modal {
+            background: #2c2c2c;
+            border-bottom-color: #444;
+        }
+        body.modo-escuro .cabecalho-leitura-modal h3 { color: #ecf0f1; }
+        body.modo-escuro .acoes-leitura-modal button { color: #bdc3c7; }
+        body.modo-escuro #conteudo-leitura-modal { color: #dcdcdc; }
+        body.modo-escuro .verso-destaque-foco {
+            background-color: rgba(251, 192, 45, 0.2); /* Amarelo mais suave no escuro */
+            border-left-color: #fbc02d;
+            color: #fff;
+        }
         
     </style>
 </head>
@@ -1592,6 +1709,23 @@
                         Confirmar ✓
                     </button>
                 </div>
+            </div>
+        </div>
+        
+        <div id="modal-leitura-perfil" class="modal-overlay escondido">
+            <div class="janela-leitura-perfil zoom-in">
+                
+                <div class="cabecalho-leitura-modal">
+                    <h3 id="titulo-leitura-modal">Salmos 23</h3>
+                    <div class="acoes-leitura-modal">
+                        <button onclick="alternarTelaCheiaModal()" title="Tela Cheia">⤢</button>
+                        <button onclick="fecharModalLeituraPerfil()" title="Fechar">✕</button>
+                    </div>
+                </div>
+        
+                <div id="conteudo-leitura-modal">
+                    </div>
+        
             </div>
         </div>
         
@@ -2608,6 +2742,77 @@
                 loading.style.display = 'none';
             }
         }
+
+        // --- LÓGICA DO MODAL DE LEITURA (PERFIL) ---
+
+        let modalLeituraAberto = false;
+        
+        function abrirModalLeituraPerfil(livroNome, capitulo, versoFoco) {
+            if (!bibliaCompleta) return alert("Aguarde o carregamento da Bíblia.");
+        
+            // 1. Encontrar o índice do livro
+            const indexLivro = bibliaCompleta.findIndex(b => b.name === livroNome || b.nome === livroNome);
+            if (indexLivro === -1) return alert("Livro não encontrado.");
+        
+            // 2. Pegar o texto do capítulo inteiro
+            // (Nota: arrays começam em 0, então capitulo-1)
+            const capituloArray = bibliaCompleta[indexLivro].chapters[capitulo - 1];
+            if (!capituloArray) return alert("Capítulo não encontrado.");
+        
+            // 3. Montar o HTML
+            const containerTexto = document.getElementById('conteudo-leitura-modal');
+            containerTexto.innerHTML = ""; // Limpa anterior
+            
+            let htmlFinal = "";
+        
+            capituloArray.forEach((textoVerso, index) => {
+                const num = index + 1;
+                // Verifica se este é o versículo que clicamos
+                const ehOFoco = (num == versoFoco);
+                
+                // Se for o foco, adiciona ID especial e classe de destaque
+                const idVerso = ehOFoco ? "verso-foco-modal" : `verso-modal-${num}`;
+                const classeExtra = ehOFoco ? "verso-destaque-foco" : "";
+        
+                htmlFinal += `
+                    <div id="${idVerso}" class="verso-modal ${classeExtra}">
+                        <span class="num-verso-modal">${num}</span> ${textoVerso}
+                    </div>
+                `;
+            });
+        
+            containerTexto.innerHTML = htmlFinal;
+        
+            // 4. Atualizar Título e Mostrar Modal
+            document.getElementById('titulo-leitura-modal').innerText = `${livroNome} ${capitulo}`;
+            const modal = document.getElementById('modal-leitura-perfil');
+            
+            // Mover para o body para garantir sobreposição (Z-index correto)
+            document.body.appendChild(modal);
+            modal.classList.remove('escondido');
+            modalLeituraAberto = true;
+        
+            // 5. Rolar até o versículo (Scroll automático)
+            setTimeout(() => {
+                const elementoFoco = document.getElementById('verso-foco-modal');
+                if (elementoFoco) {
+                    elementoFoco.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300); // Pequeno delay para a animação de abrir terminar
+        }
+        
+        function fecharModalLeituraPerfil() {
+            const modal = document.getElementById('modal-leitura-perfil');
+            modal.classList.add('escondido');
+            // Remove a tela cheia ao fechar para resetar
+            document.querySelector('.janela-leitura-perfil').classList.remove('tela-cheia');
+            modalLeituraAberto = false;
+        }
+        
+        function alternarTelaCheiaModal() {
+            const janela = document.querySelector('.janela-leitura-perfil');
+            janela.classList.toggle('tela-cheia');
+        }
         
         function renderizarListaHinos(filtro = "") {
             const container = document.getElementById('lista-hinos-container');
@@ -2853,8 +3058,7 @@
                     <button class="btn-deletar-individual" title="Remover destaque">🗑️</button>
                 `;
                 
-                // Clique na DIV abre o versículo
-                div.onclick = () => irParaVersiculo(livro, cap, num);
+                div.onclick = () => abrirModalLeituraPerfil(livro, parseInt(cap), parseInt(num));
                 
                 // Clique na LIXEIRA apaga o item
                 const btnLixo = div.querySelector('.btn-deletar-individual');
@@ -2867,7 +3071,7 @@
             });
         }
         
-        // 5. Renderizar Tela de Comentários
+        // 5. Renderizar Tela de Comentários (ATUALIZADA)
         function abrirTelaComentarios() {
             document.getElementById('menu-perfil-principal').classList.add('escondido');
             esconderTodasSubTelas();
@@ -2894,7 +3098,7 @@
                     <button class="btn-deletar-individual" title="Apagar anotação">🗑️</button>
                 `;
                 
-                div.onclick = () => irParaVersiculo(livro, cap, num);
+                div.onclick = () => abrirModalLeituraPerfil(livro, parseInt(cap), parseInt(num));
                 
                 const btnLixo = div.querySelector('.btn-deletar-individual');
                 btnLixo.onclick = (e) => {
