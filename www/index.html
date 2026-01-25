@@ -1200,6 +1200,31 @@
             color: #f8f9fa;            /* Texto claro ao digitar */
             border: 1px solid #7f8c8d; /* Borda mais subtil */
         }
+        
+        /* --- 1. Estilo Padrão (Modo Claro) --- */
+        /* Repliquei aqui exatamente o que estava no style inline */
+        #texto-verso-preview {
+            background: #f5f5f5;          /* Fundo cinza claro */
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #444;                  /* Texto cinza escuro */
+            border-left: 3px solid #666;  /* Borda esquerda cinza média */
+        }
+        
+        /* --- 2. Adaptação para Modo Escuro --- */
+        body.dark-mode #texto-verso-preview {
+            /* Cor do texto: Branco Gelo (O que pediste) */
+            color: #f8f9fa;
+        
+            /* Fundo: Precisamos escurecer, senão o branco não aparece.
+               Usei um tom cinza escuro suave */
+            background: #3e4c59; 
+        
+            /* Borda: Clarear um pouco a borda para destacar no fundo escuro */
+            border-left: 3px solid #bdc3c7;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -1345,7 +1370,7 @@
                     <button onclick="fecharModalVerso()" style="border:none; background:none; font-size:20px; padding: 10px;">✕</button>
                 </div>
                 
-                <div id="texto-verso-preview" style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-style: italic; color: #444; border-left: 3px solid #666;">
+                <div id="texto-verso-preview">
                     "No princípio criou Deus os céus e a terra..."
                 </div>
     
