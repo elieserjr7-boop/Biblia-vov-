@@ -1240,7 +1240,7 @@
         }
         
         /* ==========================================================================
-           MODAL DE CONFIRMAÇÃO (VERSÃO BLINDADA)
+           MODAL DE CONFIRMAÇÃO (VERSÃO BLINDADA & CORRIGIDA)
            ========================================================================== */
         
         /* 1. ESTRUTURA E POSICIONAMENTO (Não muda com o tema) */
@@ -1315,36 +1315,35 @@
         }
         
         /* ==========================================================================
-           4. MODO ESCURO (AQUI ESTÁ A CORREÇÃO DE FORÇA)
-           Usamos: body.dark-mode + ID do Modal + Classe da Caixa
+           4. MODO ESCURO (CORRIGIDO PARA .modo-escuro)
            ========================================================================== */
         
         /* Caixa no Modo Escuro */
-        body.dark-mode #modal-confirmacao .caixa-confirmacao {
+        body.modo-escuro #modal-confirmacao .caixa-confirmacao {
             background-color: #34495e !important; /* Azul Profundo */
             border: 1px solid #4a6278 !important; /* Borda Clara */
             box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         
         /* Título no Modo Escuro */
-        body.dark-mode #modal-confirmacao #titulo-confirmacao {
+        body.modo-escuro #modal-confirmacao #titulo-confirmacao {
             color: #f8f9fa !important; /* Branco Gelo */
         }
         
         /* Texto no Modo Escuro */
-        body.dark-mode #modal-confirmacao #texto-confirmacao {
+        body.modo-escuro #modal-confirmacao #texto-confirmacao {
             color: #e0e0e0 !important; /* Branco Suave */
         }
         
         /* Botão Cancelar no Modo Escuro */
-        body.dark-mode #modal-confirmacao .btn-cancelar {
+        body.modo-escuro #modal-confirmacao .btn-cancelar {
             background-color: transparent !important;
             border: 1px solid #bdc3c7 !important;     /* Borda Prata */
             color: #f8f9fa !important;                /* Texto Branco */
         }
         
         /* Botão Confirmar no Modo Escuro (Garante visibilidade) */
-        body.dark-mode #modal-confirmacao .btn-salvar {
+        body.modo-escuro #modal-confirmacao .btn-salvar {
             border: none !important;
             color: #fff !important;
         }
