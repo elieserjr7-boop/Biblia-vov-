@@ -1040,6 +1040,24 @@
             background: #1f1f1f !important;
             border-top: 1px solid #333;
         }
+
+        /* Adicione ou atualize isto no seu CSS */
+        #modal-verso {
+            position: fixed !important; /* Fixa na tela */
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 999999 !important; /* Ganha do cabeçalho (que costuma ser 1000) */
+            background: white; /* Garante que não é transparente */
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            /* Seus outros estilos de borda/padding aqui... */
+        }
+        
+        /* Garante a cor no modo escuro */
+        body.modo-escuro #modal-verso {
+            background: #1f1f1f;
+            color: white;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -2282,26 +2300,40 @@
         let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
 
         function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
-            // 1. Esconde as barras de navegação (Modo Imersivo forçado)
-            const topo = document.querySelector('.barra-topo');
-            const nav = document.querySelector('.barra-navegacao');
+            const modal = document.getElementById('modal-verso');
             
-            // Adiciona a classe que esconde (certifique-se que seu CSS tem essas classes)
-            if (topo) topo.classList.add('escondido-topo');
-            if (nav) nav.classList.add('escondido-nav');
+            // --- CORREÇÃO DE PRIORIDADE ---
+            // Isto move o modal fisicamente para o final do <body>.
+            // Ao fazer isso, ele sai de dentro do 'main' e ganha o poder de ficar
+            // por cima do cabeçalho fixo.
+            if (modal) {
+                document.body.appendChild(modal);
+            }
+            // -----------------------------
         
-            // 2. Prepara e mostra o modal
+            // 2. Prepara os dados
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
-            document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
+            // Atualiza os textos do modal
+            const titulo = document.getElementById('titulo-modal-verso');
+            if (titulo) titulo.innerText = `${livro} ${cap}:${num}`;
             
-            // Limita o tamanho do texto no preview para não ficar gigante
-            const textoPreview = texto.length > 100 ? texto.substring(0, 100) + "..." : texto;
-            document.getElementById('texto-verso-preview').innerText = `"${textoPreview}"`;
+            const preview = document.getElementById('texto-verso-preview');
+            if (preview) {
+                const textoPreview = texto.length > 100 ? texto.substring(0, 100) + "..." : texto;
+                preview.innerText = `"${textoPreview}"`;
+            }
             
-            document.getElementById('modal-verso').classList.remove('escondido');
+            // 3. Mostra o modal
+            if (modal) {
+                modal.classList.remove('escondido');
+            }
+        
+            // OPCIONAL: Adicionar um fundo escuro (overlay) atrás para fechar ao clicar fora
+            // Se você já tiver um overlay no seu HTML, certifique-se de mover ele para o body também.
         }
+        
         function copiarVersoSelecionado() {
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
             
