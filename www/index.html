@@ -1225,6 +1225,20 @@
             /* Borda: Clarear um pouco a borda para destacar no fundo escuro */
             border-left: 3px solid #bdc3c7;
         }
+
+        
+        /* --- 1. Estilo Padrão (Modo Claro) --- */
+        #titulo-modal-verso {
+            font-weight: bold;  /* Estava no inline */
+            font-size: 18px;    /* Estava no inline */
+            color: #555;        /* Cor cinza original */
+        }
+        
+        /* --- 2. Adaptação para Modo Escuro --- */
+        body.dark-mode #titulo-modal-verso {
+            color: #f8f9fa; /* Branco Gelo */
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -1366,7 +1380,7 @@
             <div class="modal-bottom-sheet" onclick="event.stopPropagation()">
                 
                 <div class="modal-header">
-                    <span id="titulo-modal-verso" style="font-weight:bold; color:#555; font-size: 18px;">Gênesis 1:1</span>
+                    <span id="titulo-modal-verso">Gênesis 1:1</span>
                     <button onclick="fecharModalVerso()" style="border:none; background:none; font-size:20px; padding: 10px;">✕</button>
                 </div>
                 
