@@ -171,6 +171,21 @@
             color: #2c3e50; font-weight: bold;
         }
 
+        /* Estilo para capítulo lido na grade */
+        .btn-capitulo.lido {
+            background-color: #dbfce1; /* Fundo verde bem clarinho */
+            border-color: #2ecc71;     /* Borda verde */
+            color: #27ae60;            /* Texto verde escuro */
+            font-weight: bold;
+        }
+        
+        /* O pequeno "check" ao lado do número */
+        .check-lido {
+            font-size: 10px;
+            margin-left: 2px;
+            vertical-align: top;
+        }
+
         .btn-voltar-topo {
             grid-column: 1 / -1; 
             background-color: #e74c3c; color: white; border: none;
@@ -1527,27 +1542,50 @@
         }
         
         function abrirCapitulos(indexGlobal, nome, totalCaps) {
+            // 1. Configura as variáveis globais
             livroAtualIndex = indexGlobal;
             livroAtualNome = nome;
             livroAtualMaxCaps = totalCaps;
             tituloApp.innerText = nome;
+            
+            // 2. Troca as telas
             telaLivros.classList.add('escondido');
             telaCapitulos.classList.remove('escondido');
             telaCapitulos.innerHTML = "";
             
+            // 3. Botão de Voltar
             const btnVoltar = document.createElement('button');
             btnVoltar.className = 'btn-voltar-topo';
             btnVoltar.innerHTML = "&#11013; Escolher outro livro"; 
             btnVoltar.onclick = () => { renderizarLivros(); };
             telaCapitulos.appendChild(btnVoltar);
         
+            // --- AQUI ESTÁ A MUDANÇA (RECUPERA OS DADOS) ---
+            // Pega a lista de capítulos lidos deste livro (ex: [1, 5, 10])
+            // Se não tiver nada, retorna array vazio []
+            const lidos = dadosUsuario.progresso[nome] || [];
+
+            // 4. Cria os botões numéricos
             for (let i = 1; i <= totalCaps; i++) {
                 const btn = document.createElement('button');
-                btn.className = 'btn-capitulo';
-                btn.innerText = i;
+                
+                // Verifica se 'i' (o número do capítulo) está na lista de lidos
+                if (lidos.includes(i)) {
+                    // SE LEU: Classe especial + Check
+                    btn.className = 'btn-capitulo lido';
+                    btn.innerHTML = `${i} <span class="check-lido">✓</span>`;
+                } else {
+                    // SE NÃO LEU: Botão normal
+                    btn.className = 'btn-capitulo';
+                    btn.innerText = i;
+                }
+
                 btn.onclick = () => lerCapitulo(i);
                 telaCapitulos.appendChild(btn);
             }
+            
+            // Rola para o topo para garantir
+            window.scrollTo(0, 0);
         }
         
         function lerCapitulo(numero) {
