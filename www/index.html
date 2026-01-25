@@ -1353,6 +1353,45 @@
             /* Mantém a cor original do botão (provavelmente verde ou azul) */
         }
         
+        /* Estilo para o item que contém a lixeira */
+        .item-ref {
+            position: relative; /* Permite posicionar a lixeira absolutamente dentro dele */
+            padding-right: 45px !important; /* Espaço para a lixeira não ficar em cima do texto */
+            cursor: pointer;
+        }
+        
+        /* Botão da Lixeira Individual */
+        .btn-deletar-individual {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(231, 76, 60, 0.1);
+            border: none;
+            color: #e74c3c;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10; /* Garante que fica acima do clique da div */
+        }
+        
+        .btn-deletar-individual:hover {
+            background: #e74c3c;
+            color: #fff;
+        }
+        
+        /* Ajuste no modo escuro */
+        body.modo-escuro .btn-deletar-individual {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -2791,11 +2830,9 @@
             esconderTodasSubTelas();
             document.getElementById('view-favoritos').classList.remove('escondido');
             
-            // Lógica de renderizar
             const container = document.getElementById('lista-favoritos-container');
             container.innerHTML = "";
             
-            // Pega a lista de grifos
             const lista = Object.entries(dadosUsuario.grifos || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
@@ -2804,17 +2841,27 @@
             }
             
             lista.forEach(([chave, dados]) => {
-                // Separa a chave "Gênesis_1_1" em variáveis
                 const [livro, cap, num] = chave.split("_");
                 
                 const div = document.createElement('div');
                 div.className = `item-ref ${dados.cor}`; 
-                div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="texto-ref-b">"${dados.texto}..."</div>`;
                 
-                // --- AQUI É A MUDANÇA IMPORTANTÍSSIMA: ---
-                // Adicionamos o 'num' (versículo) para a função de navegação saber onde rolar
+                // Adicionamos o botão de lixeira no HTML
+                div.innerHTML = `
+                    <strong>${livro} ${cap}:${num}</strong>
+                    <div class="texto-ref-b">"${dados.texto}..."</div>
+                    <button class="btn-deletar-individual" title="Remover destaque">🗑️</button>
+                `;
+                
+                // Clique na DIV abre o versículo
                 div.onclick = () => irParaVersiculo(livro, cap, num);
-                // ------------------------------------------
+                
+                // Clique na LIXEIRA apaga o item
+                const btnLixo = div.querySelector('.btn-deletar-individual');
+                btnLixo.onclick = (e) => {
+                    e.stopPropagation(); // Impede de abrir o versículo ao deletar
+                    apagarItemIndividual('grifos', chave, livro, cap, num);
+                };
                 
                 container.appendChild(div);
             });
@@ -2826,11 +2873,9 @@
             esconderTodasSubTelas();
             document.getElementById('view-comentarios').classList.remove('escondido');
             
-            // Lógica de renderizar
             const container = document.getElementById('lista-comentarios-container');
             container.innerHTML = "";
             
-            // Pega a lista de notas/comentários
             const lista = Object.entries(dadosUsuario.notas || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
@@ -2839,17 +2884,23 @@
             }
             
             lista.forEach(([chave, dados]) => {
-                // Separa a chave em Livro, Capítulo e Versículo
                 const [livro, cap, num] = chave.split("_");
                 
                 const div = document.createElement('div');
                 div.className = "item-ref";
-                div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="nota-usuario">📝 ${dados.texto}</div>`;
+                div.innerHTML = `
+                    <strong>${livro} ${cap}:${num}</strong>
+                    <div class="nota-usuario">📝 ${dados.texto}</div>
+                    <button class="btn-deletar-individual" title="Apagar anotação">🗑️</button>
+                `;
                 
-                // --- AQUI ESTÁ A CORREÇÃO ---
-                // Adicionamos o 'num' para ele rolar até o comentário
                 div.onclick = () => irParaVersiculo(livro, cap, num);
-                // -----------------------------
+                
+                const btnLixo = div.querySelector('.btn-deletar-individual');
+                btnLixo.onclick = (e) => {
+                    e.stopPropagation();
+                    apagarItemIndividual('notas', chave, livro, cap, num);
+                };
                 
                 container.appendChild(div);
             });
@@ -2864,6 +2915,26 @@
                 dadosUsuario.grifos = {};
                 salvarDados();
                 abrirTelaFavoritos();
+            });
+        }
+
+        function apagarItemIndividual(tipo, chave, livro, cap, num) {
+            const mensagem = tipo === 'grifos' ? "Remover este destaque?" : "Apagar esta anotação?";
+            
+            mostrarConfirmacao(mensagem, function() {
+                // Remove a chave específica do objeto (grifos ou notas)
+                if (dadosUsuario[tipo] && dadosUsuario[tipo][chave]) {
+                    delete dadosUsuario[tipo][chave];
+                    
+                    salvarDados(); // Grava no localStorage
+                    
+                    // Atualiza a tela que estiver aberta
+                    if (tipo === 'grifos') abrirTelaFavoritos();
+                    else abrirTelaComentarios();
+                    
+                    // Opcional: Se quiser que o versículo na Bíblia perca a cor na hora:
+                    if(typeof renderizarVersiculos === 'function') renderizarVersiculos();
+                }
             });
         }
         
