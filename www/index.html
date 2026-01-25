@@ -1334,6 +1334,41 @@
         body.dark-mode .caixa-confirmacao .btn-cancelar:hover {
             background-color: rgba(255,255,255,0.1);
         }
+
+        /* ==========================================================================
+           FORÇAR APARÊNCIA DO MODAL NO MODO ESCURO (CORREÇÃO FINAL)
+           Cole isto no FINAL do seu arquivo CSS
+           ========================================================================== */
+        
+        /* 1. Garante o fundo escuro na caixa (sobrepondo o branco) */
+        body.dark-mode .caixa-confirmacao {
+            background-color: #34495e !important; /* Azul escuro */
+            border: 1px solid #4a6278 !important; /* Borda visível */
+        }
+        
+        /* 2. Força o Título a ficar Branco Gelo */
+        body.dark-mode #titulo-confirmacao {
+            color: #f8f9fa !important;
+        }
+        
+        /* 3. Força o Texto da pergunta a ficar Branco Gelo */
+        body.dark-mode #texto-confirmacao {
+            color: #f8f9fa !important;
+        }
+        
+        /* 4. Força o botão Cancelar a ficar visível (Borda e Texto) */
+        body.dark-mode .btn-cancelar {
+            background-color: transparent !important;
+            border: 1px solid #bdc3c7 !important;     /* Borda clara */
+            color: #f8f9fa !important;                /* Texto branco */
+        }
+        
+        /* 5. Garante que o botão Salvar/Confirmar mantenha o destaque */
+        body.dark-mode .btn-salvar {
+            border: none !important; /* Remove borda se tiver */
+            color: #fff !important;
+            /* Mantém a cor de fundo que já tinhas no botão salvar original */
+        }
         
     </style>
 </head>
