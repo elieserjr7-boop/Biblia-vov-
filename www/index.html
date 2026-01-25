@@ -1166,6 +1166,10 @@
             favoritos: [],
             anotacoes: {} 
         };
+
+        if (!dadosUsuario.grifos) dadosUsuario.grifos = {};
+        if (!dadosUsuario.notas) dadosUsuario.notas = {};
+        if (!dadosUsuario.progresso) dadosUsuario.progresso = {};
         
         // --- VARIÁVEIS DE ESTADO ---
         let modoAtual = 'biblia';
@@ -1503,19 +1507,33 @@
             salvarDados();
         }
         
+        function esconderTodasSubTelas() {
+            document.getElementById('view-progressao').classList.add('escondido');
+            document.getElementById('view-favoritos').classList.add('escondido');
+            document.getElementById('view-comentarios').classList.add('escondido');
+        }
+        
         function abrirTelaProgressao() {
-            // Esconde o menu e mostra a tela de barras
             document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas(); // Garante que não tem sujeira
             document.getElementById('view-progressao').classList.remove('escondido');
-            
-            // Desenha as barras na hora que abre
-            renderizarProgressoCompleto(); 
+            renderizarProgressoCompleto();
         }
         
         function voltarMenuPerfil() {
-            // Esconde as barras e volta pro menu
-            document.getElementById('view-progressao').classList.add('escondido');
+            esconderTodasSubTelas();
             document.getElementById('menu-perfil-principal').classList.remove('escondido');
+        }
+
+        function irParaVersiculo(livro, cap) {
+            mudarAba('biblia');
+            const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
+            if (index >= 0) {
+                livroAtualIndex = index;
+                livroAtualNome = livro;
+                livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
+                lerCapitulo(parseInt(cap));
+            }
         }
         
         // 2. Renderização das Barras (Garante que mostra TODOS os livros)
@@ -2086,40 +2104,25 @@
         // 4. Renderizar Tela de Favoritos
         function abrirTelaFavoritos() {
             document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas();
             document.getElementById('view-favoritos').classList.remove('escondido');
             
+            // Lógica de renderizar (colada aqui para garantir funcionamento)
             const container = document.getElementById('lista-favoritos-container');
             container.innerHTML = "";
-            
-            const lista = Object.entries(dadosUsuario.grifos).sort((a, b) => b[1].timestamp - a[1].timestamp);
+            const lista = Object.entries(dadosUsuario.grifos || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#999'>Nenhum versículo marcado ainda.</p>";
+                container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px'>Nenhum versículo marcado ainda.</p>";
                 return;
             }
             
             lista.forEach(([chave, dados]) => {
                 const [livro, cap, num] = chave.split("_");
-                
                 const div = document.createElement('div');
-                div.className = `item-ref ${dados.cor}`;
-                div.innerHTML = `
-                    <strong>${livro} ${cap}:${num}</strong>
-                    <div class="texto-ref-b">"${dados.texto}..."</div>
-                `;
-                div.onclick = () => {
-                     // Navega para o versículo
-                     mudarAba('biblia');
-                     // Encontra o index do livro
-                     const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
-                     if (index >= 0) {
-                         livroAtualIndex = index;
-                         livroAtualNome = livro;
-                         livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
-                         lerCapitulo(parseInt(cap));
-                         setTimeout(() => { alert(`Versículo: ${dados.texto}`); }, 500);
-                     }
-                };
+                div.className = `item-ref ${dados.cor}`; // Usa a cor salva
+                div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="texto-ref-b">"${dados.texto}..."</div>`;
+                div.onclick = () => irParaVersiculo(livro, cap);
                 container.appendChild(div);
             });
         }
@@ -2127,37 +2130,25 @@
         // 5. Renderizar Tela de Comentários
         function abrirTelaComentarios() {
             document.getElementById('menu-perfil-principal').classList.add('escondido');
+            esconderTodasSubTelas();
             document.getElementById('view-comentarios').classList.remove('escondido');
             
+            // Lógica de renderizar
             const container = document.getElementById('lista-comentarios-container');
             container.innerHTML = "";
-            
-            const lista = Object.entries(dadosUsuario.notas).sort((a, b) => b[1].timestamp - a[1].timestamp);
+            const lista = Object.entries(dadosUsuario.notas || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
             
             if (lista.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#999'>Nenhuma anotação feita.</p>";
+                container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px'>Nenhuma anotação feita.</p>";
                 return;
             }
             
             lista.forEach(([chave, dados]) => {
                 const [livro, cap, num] = chave.split("_");
-                
                 const div = document.createElement('div');
                 div.className = "item-ref";
-                div.innerHTML = `
-                    <strong>${livro} ${cap}:${num}</strong>
-                    <div class="nota-usuario">📝 ${dados.texto}</div>
-                `;
-                div.onclick = () => {
-                     mudarAba('biblia');
-                     const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
-                     if (index >= 0) {
-                         livroAtualIndex = index;
-                         livroAtualNome = livro;
-                         livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
-                         lerCapitulo(parseInt(cap));
-                     }
-                };
+                div.innerHTML = `<strong>${livro} ${cap}:${num}</strong><div class="nota-usuario">📝 ${dados.texto}</div>`;
+                div.onclick = () => irParaVersiculo(livro, cap);
                 container.appendChild(div);
             });
         }
