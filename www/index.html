@@ -1240,33 +1240,29 @@
         }
         
         /* ==========================================================================
-           Modal de Confirmação (Centralizado, Separado e Modo Escuro)
+           MODAL DE CONFIRMAÇÃO - CSS DEFINITIVO
            ========================================================================== */
         
+        /* 1. POSICIONAMENTO E CENTRALIZAÇÃO */
         #modal-confirmacao {
-            /* 1. Centralização (Flexbox) */
-            display: flex;              /* Sem !important aqui para poder fechar */
-            align-items: center;        /* Centraliza Verticalmente (Cima/Baixo) */
-            justify-content: center;    /* Centraliza Horizontalmente (Esquerda/Direita) */
-        
-            /* 2. Posição na Tela */
+            display: flex;             /* Flexbox para centralizar */
+            align-items: center;       /* Centro Vertical */
+            justify-content: center;   /* Centro Horizontal */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 2000;
-            
-            /* 3. Fundo escuro atrás do modal */
-            background-color: rgba(0,0,0,0.5); 
+            background-color: rgba(0,0,0,0.5); /* Fundo escuro transparente */
         }
         
-        /* --- REGRA DE OURO: Para fazer o modal sumir --- */
+        /* Regra para esconder o modal */
         #modal-confirmacao.escondido {
             display: none !important;
         }
         
-        /* --- Estilo da Caixa --- */
+        /* 2. ESTILO DA CAIXA (MODO CLARO) */
         .caixa-confirmacao {
             background: #fff;
             width: 90%;
@@ -1275,65 +1271,70 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             text-align: center;
-            margin: 0; /* Importante: Remove margens para centralização perfeita */
+            margin: 0; /* Garante que fica no centro exato */
         }
         
-        .caixa-confirmacao h3 {
+        /* Estilos de Texto Padrão (Usando os teus IDs) */
+        #titulo-confirmacao {
             margin-top: 0;
-            color: #2c3e50;
+            color: #2c3e50; /* Azul escuro */
         }
         
-        .caixa-confirmacao p {
-            color: #555;
-            margin-bottom: 25px; /* Mais espaço antes dos botões */
+        #texto-confirmacao {
+            color: #555;    /* Cinza */
+            margin-bottom: 25px;
             font-size: 16px;
             line-height: 1.4;
         }
         
-        /* --- NOVO: Botões Separados (Cancelar Esq. / Confirmar Dir.) --- */
+        /* 3. BOTÕES SEPARADOS (Esquerda e Direita) */
         .caixa-confirmacao .botoes-editor {
             display: flex;
-            justify-content: space-between; /* <--- O SEGREDO: Empurra um para cada ponta */
-            gap: 15px; /* Espaço entre eles */
+            justify-content: space-between; /* <--- Isso joga um para cada canto */
+            gap: 15px; /* Espaço no meio */
             width: 100%;
         }
         
         .caixa-confirmacao .btn-cancelar,
         .caixa-confirmacao .btn-salvar {
-            flex: 1; /* Garante que ambos tenham o mesmo tamanho */
+            flex: 1; /* Faz os botões terem o mesmo tamanho */
             padding: 10px 0;
+            border-radius: 6px;
             cursor: pointer;
-            border-radius: 6px; /* Arredondamento suave nos botões */
             font-weight: bold;
         }
         
         /* ==========================================================================
-           MODO ESCURO (Dark Mode) - Branco Gelo & Estilo Completo
+           MODO ESCURO (DARK MODE) - AQUI ESTÁ A CORREÇÃO
            ========================================================================== */
         
-        /* 1. Fundo da caixa escuro */
+        /* 1. Fundo da caixa */
         body.dark-mode .caixa-confirmacao {
-            background-color: #34495e; /* Azul Escuro */
-            border: 1px solid #4a6278; /* Borda sutil para contraste */
+            background-color: #34495e !important; /* Azul Profundo */
+            border: 1px solid #4a6278;
         }
         
-        /* 2. Textos em Branco Gelo */
-        body.dark-mode .caixa-confirmacao h3,
-        body.dark-mode .caixa-confirmacao p {
-            color: #f8f9fa; 
+        /* 2. Texto Branco Gelo (Usando IDs para garantir que funciona) */
+        body.dark-mode #titulo-confirmacao {
+            color: #f8f9fa !important;
         }
         
-        /* 3. Botão Cancelar no Modo Escuro (Borda Branca e Texto Branco) */
+        body.dark-mode #texto-confirmacao {
+            color: #f8f9fa !important;
+        }
+        
+        /* 3. Botão Cancelar no Modo Escuro */
         body.dark-mode .caixa-confirmacao .btn-cancelar {
             background-color: transparent;
-            color: #f8f9fa;             /* Texto Branco Gelo */
-            border: 1px solid #bdc3c7;  /* Borda Clara */
+            border: 1px solid #bdc3c7; /* Borda clara */
+            color: #f8f9fa !important; /* Texto branco */
         }
         
-        /* Efeito ao passar o mouse no cancelar (opcional para PC) */
+        /* Efeito ao passar o mouse (Opcional) */
         body.dark-mode .caixa-confirmacao .btn-cancelar:hover {
             background-color: rgba(255,255,255,0.1);
         }
+        
     </style>
 </head>
 <body id="corpo-app">
