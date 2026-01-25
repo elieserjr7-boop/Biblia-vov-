@@ -1047,52 +1047,51 @@
         .escondido-nav { transform: translateY(100%); }
         /* --- CORREÇÃO DE ESPAÇAMENTO (PADDING) --- */
 
+       /* --- TELA DE LEITURA (ESTADO NORMAL) --- */
         #tela-leitura {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%; /* Ocupa tudo */
             background-color: #fdfbf7;
-            z-index: 100;
+            z-index: 50; /* Abaixo do cabeçalho */
             
-            /* AQUI ESTÁ O SEGREDO: */
-            /* Cria um espaço vazio enorme no topo para o cabeçalho flutuar */
-            padding-top: 140px !important; 
-            
+            /* Estado NORMAL: Espaço grande para o cabeçalho não cobrir o texto */
+            padding-top: 150px !important; 
             padding-bottom: 100px !important;
-            overflow-y: auto; /* Permite rolar */
+            
+            overflow-y: auto;
+            transition: padding-top 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Animação suave */
         }
         
-        /* Modo escuro também precisa respeitar */
+        /* Modo Escuro */
         body.modo-escuro #tela-leitura {
             background-color: #121212;
         }
         
-        /* Ajuste do Título do Capítulo para não ficar colado */
-        #titulo-capitulo-leitura {
-            margin-bottom: 20px;
-            text-align: center;
-            /* Se mesmo com 140px estiver cortando, aumente margin-top aqui: */
-            margin-top: 10px; 
-        }
-
-        /* --- AJUSTES DO MODO IMERSIVO --- */
-
-        /* Quando estiver em modo imersivo, esconde também os botões flutuantes de navegação */
-        body.modo-imersivo .botao-flutuante,
-        body.modo-imersivo #btn-proximo-cap, 
-        body.modo-imersivo #btn-anterior-cap,
-        body.modo-imersivo .seta-navegacao { /* Tenta cobrir vários nomes possíveis */
-            opacity: 0;
-            pointer-events: none; /* Impede clicar no botão invisível */
-            transition: opacity 0.3s ease;
+        /* --- MODO IMERSIVO (ESTADO FOCO TOTAL) --- */
+        
+        /* 1. O Texto sobe quase até o topo */
+        body.modo-imersivo #tela-leitura {
+            padding-top: 45px !important; /* Só um respiro para a barra de status do celular */
+            padding-bottom: 20px !important;
         }
         
-        /* Garante que o texto ocupe a tela toda */
-        #tela-leitura {
-            min-height: 100vh; /* Ocupa pelo menos a altura toda */
-            cursor: pointer; /* Indica que é clicável */
+        /* 2. Esconde Cabeçalho, Rodapé e Botões Flutuantes */
+        body.modo-imersivo header, 
+        body.modo-imersivo nav,
+        body.modo-imersivo .botao-flutuante, /* Botão de + ou opções */
+        body.modo-imersivo #btn-proximo-cap, /* Setas de navegação */
+        body.modo-imersivo #btn-anterior-cap {
+            transform: translateY(-150%); /* Cabeçalho sobe */
+            opacity: 0;
+            pointer-events: none; /* Impede cliques fantasmas */
+        }
+        
+        /* O rodapé deve descer, não subir */
+        body.modo-imersivo nav {
+            transform: translateY(150%);
         }
         
     </style>
@@ -1556,26 +1555,27 @@
             }
             gerarMenuVersoes(versaoSalva);
         
-            // --- NOVO: 5. MODO IMERSIVO (Clica e Esconde) ---
-            // Adiciona o evento de clique na tela de leitura
+            // --- 5. MODO IMERSIVO (CORREÇÃO DE ERRO NULL) ---
             const areaLeitura = document.getElementById('tela-leitura');
             
-            // Só adiciona o evento se a tela de leitura existir no HTML
+            // Remove qualquer onclick antigo para não dar conflito
             if (areaLeitura) {
-                areaLeitura.onclick = function(e) {
-                    const alvo = e.target;
+                areaLeitura.onclick = function(evento) {
+                    // Pega o elemento exato onde clicou
+                    const alvo = evento.target;
                     
-                    // SEGURO: Se o alvo for nulo, para tudo (evita erro)
+                    // VERIFICAÇÕES DE SEGURANÇA (Para não bugar)
                     if (!alvo) return;
         
-                    // 1. O QUE DEVE SER IGNORADO (Não ativar modo imersivo)
-                    // Botões, menus flutuantes, ou o botão de fechar
+                    // 1. Onde NÃO pode ativar o modo imersivo?
+                    // Se clicou num botão, link ou menu
                     if (alvo.tagName === 'BUTTON' || alvo.closest('button')) return;
+                    if (alvo.tagName === 'A' || alvo.closest('a')) return;
                     if (alvo.closest('.menu-flutuante')) return;
                     if (alvo.closest('.opcoes-versiculo')) return;
         
-                    // 2. VERSÍCULOS (Números)
-                    // Se clicar no numerozinho, não esconde o cabeçalho (para poder abrir opções)
+                    // 2. Números dos Versículos (Permite abrir o menu de opções)
+                    // Verifica se é o número, o sup, ou container do número
                     if (alvo.tagName === 'SUP' || 
                         alvo.classList.contains('numero-verso') || 
                         alvo.classList.contains('versiculo-num') ||
@@ -1583,8 +1583,9 @@
                         return;
                     }
         
-                    // 3. AÇÃO: Alternar modo imersivo no BODY
-                    // O body sempre existe, então isso nunca vai dar erro de 'null'
+                    // 3. AÇÃO SEGURA
+                    // Alterna a classe APENAS no body. O CSS cuida do resto.
+                    // Isso evita o erro "classList of null"
                     document.body.classList.toggle('modo-imersivo');
                 };
             }
