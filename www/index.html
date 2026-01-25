@@ -1042,22 +1042,34 @@
         .escondido-nav { transform: translateY(100%); }
         /* --- CORREÇÃO DE ESPAÇAMENTO (PADDING) --- */
 
-        #texto-biblico {
-            /* Empurra o texto para baixo para não ficar atrás do cabeçalho */
-            padding-top: 150px !important; 
-            
-            /* Espaço em baixo para não ficar atrás do rodapé */
-            padding-bottom: 100px !important;
-            
-            /* Garante que o scroll é suave dentro desta área */
-            display: block;
+        #tela-leitura {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100vh;
+            background-color: #fdfbf7;
+            z-index: 100;
+            
+            /* AQUI ESTÁ O SEGREDO: */
+            /* Cria um espaço vazio enorme no topo para o cabeçalho flutuar */
+            padding-top: 140px !important; 
+            
+            padding-bottom: 100px !important;
+            overflow-y: auto; /* Permite rolar */
         }
         
-        /* Ajuste fino para o título do capítulo também não sumir */
+        /* Modo escuro também precisa respeitar */
+        body.modo-escuro #tela-leitura {
+            background-color: #121212;
+        }
+        
+        /* Ajuste do Título do Capítulo para não ficar colado */
         #titulo-capitulo-leitura {
-            margin-top: 20px;
-            padding-top: 60px; /* Reforço extra se necessário */
+            margin-bottom: 20px;
+            text-align: center;
+            /* Se mesmo com 140px estiver cortando, aumente margin-top aqui: */
+            margin-top: 10px; 
         }
         
     </style>
@@ -1717,78 +1729,78 @@
         
         // --- FUNÇÃO CORRIGIDA PARA IR AOS FAVORITOS ---
 
+        /* --- FUNÇÃO CORRIGIDA E ROBUSTA DE NAVEGAÇÃO --- */
         function irParaVersiculo(livroNome, cap, versiculo) {
-            console.log(`Tentando ir para: ${livroNome} ${cap}:${versiculo}`);
+            console.log(`Navegando para: ${livroNome} ${cap}:${versiculo}`);
+        
+            // VERIFICAÇÃO DE SEGURANÇA 1: A Bíblia carregou?
+            if (typeof bibliaCompleta === 'undefined' || !bibliaCompleta) {
+                alert("Aguarde o carregamento da Bíblia para navegar.");
+                return;
+            }
         
             try {
-                // 1. Precisamos descobrir qual é o ID (index) desse livro
-                // Vamos procurar na bibliaCompleta ou nas listas de testamento
+                // 1. Descobrir o índice (ID) do livro procurando nas listas oficiais
+                // Gênesis é 0, Malaquias é 38, Mateus é 39...
                 let indexEncontrado = -1;
+                let totalCaps = 50; // valor padrão de segurança
         
-                // Tenta achar na Bíblia carregada
-                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta.length > 0) {
-                    indexEncontrado = bibliaCompleta.findIndex(b => b.nome === livroNome);
+                // Procura no Antigo Testamento
+                const idxAntigo = antigoTestamento.findIndex(l => l.nome === livroNome);
+                if (idxAntigo !== -1) {
+                    indexEncontrado = idxAntigo;
+                    totalCaps = antigoTestamento[idxAntigo].caps;
+                } else {
+                    // Se não achou, procura no Novo Testamento
+                    const idxNovo = novoTestamento.findIndex(l => l.nome === livroNome);
+                    if (idxNovo !== -1) {
+                        indexEncontrado = idxNovo + 39; // Soma os 39 do antigo
+                        totalCaps = novoTestamento[idxNovo].caps;
+                    }
                 }
         
-                // Se não achou (ou bibliaCompleta ainda não carregou), procura nas listas de nomes
+                // Se ainda for -1, o nome do livro está errado
                 if (indexEncontrado === -1) {
-                    // Cria uma lista temporária com todos os nomes para buscar
-                    const todosLivros = [...antigoTestamento, ...novoTestamento]; 
-                    indexEncontrado = todosLivros.findIndex(l => l.nome === livroNome);
-                }
-        
-                // Se mesmo assim não achou, avisa o usuário e para
-                if (indexEncontrado === -1) {
-                    alert(`Erro: O livro "${livroNome}" não foi encontrado no sistema.`);
+                    console.error("Nome do livro não encontrado na lista:", livroNome);
+                    alert(`Erro: Não foi possível localizar o livro "${livroNome}".`);
                     return;
                 }
         
-                // 2. Atualiza as variáveis globais fundamentais
+                // 2. Atualiza as variáveis GLOBAIS que o 'lerCapitulo' precisa
                 livroAtualIndex = indexEncontrado;
                 livroAtualNome = livroNome;
-                capituloAtual = parseInt(cap); // Garante que é número
-                
-                // Atualiza max caps para evitar erros de navegação futura
-                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta[indexEncontrado]) {
-                    livroAtualMaxCaps = bibliaCompleta[indexEncontrado].chapters.length;
-                }
+                livroAtualMaxCaps = totalCaps;
+                capituloAtual = parseInt(cap);
         
-                // 3. Salva no histórico do usuário
+                // 3. Salva Estado e Muda Aba
                 estadoAtual.livro = livroNome;
                 estadoAtual.capitulo = capituloAtual;
                 salvarDados();
-        
-                // 4. Muda a aba visualmente
                 mudarAba('leitura');
         
-                // 5. Carrega o texto na tela
+                // 4. Carrega o texto
                 lerCapitulo(capituloAtual);
         
-                // 6. Rola até o versículo (com delay para dar tempo de renderizar)
+                // 5. Rola até o versículo (Delay aumentado para garantir)
                 setTimeout(() => {
+                    // Tenta achar pelo ID 'verso-X'
                     const idVerso = 'verso-' + versiculo;
                     const elemento = document.getElementById(idVerso);
-                    
+        
                     if (elemento) {
-                        // Rola para o centro da tela
                         elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
-                        // Pisca o versículo em amarelo/dourado
+                        // Pisca em amarelo
                         elemento.style.transition = "background-color 0.5s";
-                        const corAntiga = elemento.style.backgroundColor;
-                        elemento.style.backgroundColor = "rgba(255, 215, 0, 0.4)";
-                        
-                        setTimeout(() => {
-                            elemento.style.backgroundColor = corAntiga;
-                        }, 1500);
-                    } else {
-                        console.warn("Versículo visual não encontrado:", idVerso);
+                        const corOriginal = elemento.style.backgroundColor;
+                        elemento.style.backgroundColor = "rgba(255, 235, 59, 0.5)";
+                        setTimeout(() => { elemento.style.backgroundColor = corOriginal; }, 1500);
                     }
-                }, 600); // 600ms de espera
+                }, 800); // 800ms de espera
         
-            } catch (erro) {
-                console.error("Erro fatal em irParaVersiculo:", erro);
-                alert("Ocorreu um erro ao abrir o versículo. Verifique o console.");
+            } catch (e) {
+                console.error("Erro fatal na função irParaVersiculo:", e);
+                alert("Erro técnico ao abrir versículo. Detalhes no console.");
             }
         }
         
