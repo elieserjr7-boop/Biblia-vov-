@@ -2907,11 +2907,28 @@
             listaContainer.innerHTML = htmls.join("");
         }
         
-        // Função para fechar a tela cheia e voltar para a Bíblia
+        function fecharModalVersiculo() {
+            // 1. Esconde o fundo escuro (overlay)
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.classList.add('escondido');
+        
+            // 2. Esconde o menu de botões (Copiar, Marcar, Comparar...)
+            const menu = document.getElementById('menu-acoes-versiculo');
+            if (menu) menu.classList.add('escondido');
+        
+            // 3. Remove a marcação visual (cor de fundo) do versículo que estava selecionado
+            document.querySelectorAll('.versiculo.selected').forEach(v => {
+                v.classList.remove('selected');
+            });
+        }
+        
         function voltarParaLeitura() {
+            // 1. Mostra novamente o rodapé e as abas
             document.getElementById('rodape-nav').classList.remove('escondido');
             document.getElementById('abas-principais').classList.remove('escondido');
-            renderizarVersiculos(); // Volta para a visualização do capítulo
+            
+            // 2. Recarrega a leitura do capítulo atual
+            renderizarVersiculos(); 
         }
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
