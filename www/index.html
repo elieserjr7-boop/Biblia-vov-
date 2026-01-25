@@ -1568,6 +1568,15 @@
             }
         }
         
+        #lista-comparacao {
+            /* Adiciona um espaço extra no fim para não bater nas abas */
+            padding-bottom: 100px !important; 
+            
+            /* Garante que o scroll seja suave no celular */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -1797,7 +1806,7 @@
                 <h3 id="titulo-comparacao" style="margin: 0; padding-right: 30px; font-size: 1.2rem;">Versículo</h3>
             </div>
             
-            <div id="lista-comparacao" style="overflow-y: auto; flex-grow: 1; padding: 20px;">
+            <div id="lista-comparacao" style="overflow-y: auto; flex-grow: 1; padding: 20px 20px 80px 20px;">
                 Carregando...
             </div>
         </div>
