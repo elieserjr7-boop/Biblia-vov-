@@ -1639,6 +1639,45 @@
             transform: scale(0.98);
         }
         
+        /* Estilo para garantir que a subtela ocupe o espaço correto */
+        .tela-cheia-container {
+            padding: 15px;
+            padding-bottom: 60px; /* Espaço extra no final para rolar */
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .item-traducao-cheia {
+            background: rgba(255, 255, 255, 0.5); /* Leve fundo branco */
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #2c3e50; /* Destaque lateral */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        body.modo-escuro .item-traducao-cheia {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: #3498db;
+        }
+        
+        .item-traducao-cheia .comp-versao {
+            font-weight: bold;
+            font-size: 0.8em;
+            color: #e67e22;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .item-traducao-cheia .comp-texto {
+            font-size: 1.05em;
+            line-height: 1.5;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -2811,14 +2850,33 @@
         // --- COMPARADOR ---
         // --- COMPARADOR (CORRIGIDO) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
-            const modal = document.getElementById('modal-comparacao');
-            const lista = document.getElementById('lista-comparacao');
-            modal.classList.remove('escondido');
-            document.getElementById('titulo-comparacao').innerText = `${nome} ${cap}:${ver}`;
-            lista.innerHTML = "Carregando...";
+            // 1. Fecha o menu de ações do versículo (se estiver aberto)
+            fecharModalVersiculo(); 
         
+            const main = document.querySelector('main');
+            
+            // 2. Cria a estrutura da tela cheia com cabeçalho (igual ao perfil)
+            let htmlHeader = `
+                <div class="cabecalho-subtela">
+                    <button class="btn-voltar-perfil" onclick="voltarParaLeitura()">← Voltar</button>
+                    <h3>${nome} ${cap}:${ver}</h3>
+                </div>
+                <div id="lista-comparacao-cheia" class="tela-cheia-container">
+                    <div style="padding: 20px;">Carregando traduções...</div>
+                </div>
+            `;
+        
+            // 3. Injeta a estrutura e esconde a navegação inferior
+            main.innerHTML = htmlHeader;
+            document.getElementById('rodape-nav').classList.add('escondido');
+            document.getElementById('abas-principais').classList.add('escondido');
+            main.scrollTop = 0;
+        
+            const listaContainer = document.getElementById('lista-comparacao-cheia');
+        
+            // 4. Busca as traduções (sua lógica original mantida)
             const promises = listaVersoesDisponiveis.map(async item => {
-                const v = item.sigla; // Usamos a sigla do objeto
+                const v = item.sigla;
                 try {
                     let dadosVersao;
                     if (cacheVersoes[v]) {
@@ -2833,17 +2891,28 @@
         
                     if(dadosVersao && dadosVersao[idxLivro] && dadosVersao[idxLivro].chapters && dadosVersao[idxLivro].chapters[cap-1]) {
                         const txt = dadosVersao[idxLivro].chapters[cap-1][ver-1];
-                        return `<div class="item-comparacao"><span class="comp-versao">${v}</span><span class="comp-texto">${txt}</span></div>`;
+                        // Retornamos um HTML formatado para a lista em tela cheia
+                        return `
+                            <div class="item-traducao-cheia">
+                                <span class="comp-versao">${v}</span>
+                                <div class="comp-texto">${txt}</div>
+                            </div>
+                        `;
                     }
-                } catch(e) {}
+                } catch(e) { console.error(e); }
                 return "";
             });
-            
+        
             const htmls = await Promise.all(promises);
-            lista.innerHTML = htmls.join("");
+            listaContainer.innerHTML = htmls.join("");
         }
         
-        function fecharComparacao() { document.getElementById('modal-comparacao').classList.add('escondido'); }
+        // Função para fechar a tela cheia e voltar para a Bíblia
+        function voltarParaLeitura() {
+            document.getElementById('rodape-nav').classList.remove('escondido');
+            document.getElementById('abas-principais').classList.remove('escondido');
+            renderizarVersiculos(); // Volta para a visualização do capítulo
+        }
         
         // --- HINÁRIOS (AGORA ULTRA-RÁPIDOS) ---
         async function abrirHinario(tipo) {
