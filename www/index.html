@@ -1677,6 +1677,17 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* Garante que o fundo use a variável de tema */
+        #overlay-comparacao {
+            background-color: var(--bg-color, #fdfbf7); 
+            /* Se você usa background no body, ele vai herdar ou cobrir. 
+               Se o modo escuro não funcionar, force aqui: */
+        }
+        
+        body.modo-escuro #overlay-comparacao {
+            background-color: #1a1a1a; /* Cor de fundo do modo escuro */
+        }
         
     </style>
 </head>
@@ -2849,32 +2860,61 @@
         
         // --- COMPARADOR ---
         // --- COMPARADOR (CORRIGIDO) ---
+        // --- FUNÇÃO DE COMPARAÇÃO (TIPO OVERLAY/SOBREPOSIÇÃO) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
-            // 1. Fecha o menu de ações do versículo (se estiver aberto)
+            // 1. Fecha o menu de ações do versículo
             fecharModalVersiculo(); 
         
-            const main = document.querySelector('main');
+            // 2. Remove qualquer tela de comparação que já exista (para evitar duplicatas)
+            const telaAntiga = document.getElementById('overlay-comparacao');
+            if (telaAntiga) telaAntiga.remove();
+        
+            // 3. Cria o elemento de sobreposição (Overlay)
+            const overlay = document.createElement('div');
+            overlay.id = 'overlay-comparacao';
+            overlay.className = 'modo-leitura'; // Classe para herdar cores de fundo
             
-            // 2. Cria a estrutura da tela cheia com cabeçalho (igual ao perfil)
-            let htmlHeader = `
-                <div class="cabecalho-subtela">
-                    <button class="btn-voltar-perfil" onclick="voltarParaLeitura()">← Voltar</button>
+            // Define o estilo inline para garantir que fique por cima de tudo
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.zIndex = '9999'; // Bem alto para cobrir tudo
+            overlay.style.backgroundColor = 'var(--cor-fundo, #fdfbf7)'; // Usa a cor do tema
+            overlay.style.overflowY = 'auto'; // Permite rolar
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+        
+            // 4. Conteúdo HTML (Cabeçalho + Lista)
+            overlay.innerHTML = `
+                <div class="cabecalho-subtela" style="flex-shrink: 0;">
+                    <button class="btn-voltar-perfil" id="btn-fechar-comp">← Voltar</button>
                     <h3>${nome} ${cap}:${ver}</h3>
                 </div>
-                <div id="lista-comparacao-cheia" class="tela-cheia-container">
-                    <div style="padding: 20px;">Carregando traduções...</div>
+                <div id="lista-comparacao-cheia" class="tela-cheia-container" style="flex-grow: 1;">
+                    <div style="padding: 20px; text-align:center; opacity: 0.7;">Carregando traduções...</div>
                 </div>
             `;
         
-            // 3. Injeta a estrutura e esconde a navegação inferior
-            main.innerHTML = htmlHeader;
-            document.getElementById('rodape-nav').classList.add('escondido');
-            document.getElementById('abas-principais').classList.add('escondido');
-            main.scrollTop = 0;
+            // 5. Adiciona ao corpo do site (não destrói o main)
+            document.body.appendChild(overlay);
+            
+            // Bloqueia a rolagem da página de trás
+            document.body.style.overflow = 'hidden';
         
+            // 6. Configura o botão de voltar (apenas remove o overlay)
+            document.getElementById('btn-fechar-comp').onclick = function() {
+                overlay.classList.add('saindo'); // Opcional: para animação de saída
+                setTimeout(() => {
+                    overlay.remove();
+                    document.body.style.overflow = ''; // Libera a rolagem da página principal
+                }, 100); // Pequeno delay se tiver animação, senão pode ser 0
+            };
+        
+            // 7. Busca as traduções (Lógica original)
             const listaContainer = document.getElementById('lista-comparacao-cheia');
-        
-            // 4. Busca as traduções (sua lógica original mantida)
+            
             const promises = listaVersoesDisponiveis.map(async item => {
                 const v = item.sigla;
                 try {
@@ -2891,7 +2931,6 @@
         
                     if(dadosVersao && dadosVersao[idxLivro] && dadosVersao[idxLivro].chapters && dadosVersao[idxLivro].chapters[cap-1]) {
                         const txt = dadosVersao[idxLivro].chapters[cap-1][ver-1];
-                        // Retornamos um HTML formatado para a lista em tela cheia
                         return `
                             <div class="item-traducao-cheia">
                                 <span class="comp-versao">${v}</span>
@@ -2908,15 +2947,12 @@
         }
         
         function fecharModalVersiculo() {
-            // 1. Esconde o fundo escuro (overlay)
             const overlay = document.getElementById('modal-overlay');
             if (overlay) overlay.classList.add('escondido');
         
-            // 2. Esconde o menu de botões (Copiar, Marcar, Comparar...)
             const menu = document.getElementById('menu-acoes-versiculo');
             if (menu) menu.classList.add('escondido');
         
-            // 3. Remove a marcação visual (cor de fundo) do versículo que estava selecionado
             document.querySelectorAll('.versiculo.selected').forEach(v => {
                 v.classList.remove('selected');
             });
