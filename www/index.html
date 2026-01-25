@@ -1508,6 +1508,19 @@
             border-left-color: #fbc02d;
             color: #fff;
         }
+
+        /* Ajuste específico para dispositivos móveis */
+        @media (max-width: 768px) {
+            #modal-leitura-perfil {
+                /* Adiciona um recuo no topo. 
+                   O '20px' é o valor fixo e o 'env' é para notch de celulares modernos */
+                top: calc(20px + env(safe-area-inset-top)) !important;
+                
+                /* Opcional: ajustar a altura máxima para não cortar o fundo */
+                max-height: 85vh; 
+                overflow-y: auto;
+            }
+        }
         
     </style>
 </head>
