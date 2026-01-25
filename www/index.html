@@ -1626,6 +1626,19 @@
             background-color: #1a1a1a; /* Escurece levemente ao clicar */
         }
         
+        body.modo-escuro .btn-comparar {
+            background-color: #2c2c2c; /* O mesmo Cinza Fosco dos outros botões */
+            border: 1px solid #444;    /* Borda discreta */
+            color: #ecf0f1;            /* Texto Branco Gelo */
+            transition: background-color 0.3s;
+        }
+        
+        /* Efeito ao clicar (fica um pouco mais escuro) */
+        body.modo-escuro .btn-comparar:active {
+            background-color: #1a1a1a;
+            transform: scale(0.98);
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
