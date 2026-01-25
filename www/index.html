@@ -968,6 +968,25 @@
             color: #ccc !important;
             border-left-color: #27ae60 !important;
         }
+        .verso-clicavel {
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer; /* Mostra a mãozinha no PC */
+            
+            /* --- IMPEDE QUE O TEXTO SEJA SELECIONADO NATIVAMENTE --- */
+            -webkit-user-select: none; /* Safari / Chrome */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* Edge / IE */
+            user-select: none;         /* Padrão moderno */
+            
+            /* Remove aquela cor azul de clique padrão no celular */
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        /* Opcional: Efeito hover para saber onde está o mouse no PC */
+        .verso-clicavel:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -1912,23 +1931,25 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
-                // GERAÇÃO DOS VERSÍCULOS
                 capituloTextoArray.forEach((versiculo, idx) => {
                     const numVerso = idx + 1;
                     
-                    // Configurações de Cor e Nota
+                    // Configurações
                     const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
                     const dadosGrifo = dadosUsuario.grifos[chave]; 
                     const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
                     const temNota = dadosUsuario.notas[chave] ? "📝" : "";
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // --- AQUI ESTÁ A MUDANÇA DOS CLIQUES ---
-                    // onclick -> Alterna as barras (Modo Imersivo)
-                    // oncontextmenu -> Segurar o clique abre o Menu de Versículo
+                    // --- EVENTOS DE INTERAÇÃO ---
+                    // 1. onclick: 1 Clique (Esquerdo/Toque) -> Alterna Barras (Imersão)
+                    // 2. ondblclick: 2 Cliques (Esquerdo/Toque) -> Abre Menu
+                    // 3. oncontextmenu: Botão Direito (PC) ou Segurar (Celular) -> Abre Menu e bloqueia menu do navegador
+                    
                     html += `
                         <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
                              onclick="alternarModoImersivo()"
+                             ondblclick="abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')"
                              oncontextmenu="event.preventDefault(); abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}'); return false;">
                              
                             <span class="versiculo-num">${numVerso}</span> 
@@ -1942,7 +1963,7 @@
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
                 textoBiblico.innerHTML = html;
         
-                // BOTÃO DE LEITURA CONCLUÍDA
+                // BOTÃO FINAL
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
                 const btnHTML = `
@@ -1954,14 +1975,10 @@
                 `;
                 textoBiblico.innerHTML += btnHTML;
                 
-                // Transição de telas
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
                 
-                // Se NÃO foi chamado pela função irParaVersiculo (que usa scroll), rola pro topo
-                // (Detectamos isso de forma simples: se não tiver hash na URL ou delay)
-                // Mas para simplificar, o irParaVersiculo roda 300ms depois, então ele ganha dessa linha aqui:
                 window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
