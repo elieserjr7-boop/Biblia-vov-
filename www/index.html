@@ -796,6 +796,18 @@
         body.modo-escuro .cabecalho-subtela { background: #1f1f1f; border-color: #333; }
         body.modo-escuro .cabecalho-subtela h3 { color: #ecf0f1; }
         body.modo-escuro .btn-voltar-perfil { color: #ecf0f1; border-color: #555; }
+               
+        /* --- AJUSTE DOS CAPÍTULOS LIDOS NO MODO ESCURO --- */
+        body.modo-escuro .btn-capitulo.lido {
+            background-color: #064e3b; /* Fundo Verde Escuro Profundo */
+            border-color: #27ae60;     /* Borda Verde */
+            color: #e8f5e9;            /* Texto quase branco */
+        }
+        
+        /* Opcional: Efeito Hover no escuro */
+        body.modo-escuro .btn-capitulo.lido:hover {
+            background-color: #0a6b4a;
+        }
         
     </style>
 </head>
@@ -1853,8 +1865,8 @@
             
             if (modoAtual === 'biblia') {
                 telaLeitura.classList.add('escondido');
-                telaCapitulos.classList.remove('escondido');
-                tituloApp.innerText = livroAtualNome;
+                abrirCapitulos(livroAtualIndex, livroAtualNome, livroAtualMaxCaps);
+                
             } else {
                 telaLeituraHino.classList.add('escondido');
                 telaListaHinos.classList.remove('escondido');
