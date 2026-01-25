@@ -1639,6 +1639,47 @@
             transform: scale(0.98);
         }
         
+        /* --- ESTILO TELA CHEIA PARA "OUTRAS VERSÕES" --- */
+
+        /* 1. O Fundo (Overlay) agora será Sólido e ocupará tudo */
+        .modal-comparacao-overlay {
+            background-color: #fdfbf7 !important; /* Cor de fundo do teu Modo Claro */
+            backdrop-filter: none;       /* Remove borrão se houver */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding-top: 10px;           /* Um pequeno espaço no topo */
+            z-index: 9999;               /* Garante que fica em cima de tudo */
+            display: flex;
+            flex-direction: column;
+            align-items: center;         /* Centraliza o conteúdo */
+        }
+        
+        /* 2. A Caixa de Conteúdo (onde está o texto) */
+        .modal-comparacao-content {
+            background: transparent;     /* Remove o fundo branco do card, já que o fundo geral é solido */
+            box-shadow: none;            /* Remove a sombra (não precisa mais) */
+            width: 100%;
+            max-width: 800px;            /* Limite para não ficar gigante em PC */
+            height: 100%;                /* Ocupa a altura toda */
+            overflow-y: auto;            /* Permite rolar a lista se for grande */
+            border-radius: 0;            /* Remove bordas arredondadas */
+            padding: 20px;
+        }
+        
+        /* 3. Ajuste para o MODO ESCURO (Fundo Cinza/Preto) */
+        body.modo-escuro .modal-comparacao-overlay {
+            background-color: #121212 !important; /* Cor de fundo Sólida Escura */
+        }
+        
+        /* Ajuste das letras no modo escuro para essa tela específica */
+        body.modo-escuro .modal-comparacao-content h3 {
+            color: #ecf0f1;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
