@@ -2903,85 +2903,75 @@
             }, 100);
         }
         
-        // --- COMPARADOR ---
-        // --- COMPARADOR (CORRIGIDO) ---
-        // --- FUNÇÃO DE COMPARAÇÃO (TIPO OVERLAY/SOBREPOSIÇÃO) ---
+        // --- FUNÇÃO DE COMPARAÇÃO (ATUALIZADA COM BOTÃO DE TEMA) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
-            // 1. Fecha o menu de ações do versículo
+            // 1. Fecha menus que possam estar abertos
             fecharModalVersiculo(); 
-        
-            // 2. Remove qualquer tela de comparação que já exista (para evitar duplicatas)
             const telaAntiga = document.getElementById('overlay-comparacao');
             if (telaAntiga) telaAntiga.remove();
         
-            // 3. Cria o elemento de sobreposição (Overlay)
+            // 2. Cria o Overlay (A tela cheia)
             const overlay = document.createElement('div');
             overlay.id = 'overlay-comparacao';
-            overlay.className = 'modo-leitura'; // Classe para herdar cores de fundo
             
-            // Define o estilo inline para garantir que fique por cima de tudo
+            // Configuração visual para garantir que cobre tudo e permite rolagem
             overlay.style.position = 'fixed';
             overlay.style.top = '0';
             overlay.style.left = '0';
             overlay.style.width = '100%';
             overlay.style.height = '100%';
-            overlay.style.zIndex = '9999'; // Bem alto para cobrir tudo
-            overlay.style.backgroundColor = 'var(--cor-fundo, #fdfbf7)'; // Usa a cor do tema
-            overlay.style.overflowY = 'auto'; // Permite rolar
+            overlay.style.zIndex = '9999'; 
+            overlay.style.backgroundColor = document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7';
             overlay.style.display = 'flex';
             overlay.style.flexDirection = 'column';
         
-            // 4. Conteúdo HTML (Cabeçalho + Lista)
+            // 3. O NOVO CABEÇALHO (Com o botão de tema incluído!)
             overlay.innerHTML = `
-                <div class="cabecalho-subtela" style="flex-shrink: 0;">
+                <div class="cabecalho-subtela" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+                    
                     <button class="btn-voltar-perfil" id="btn-fechar-comp">← Voltar</button>
-                    <h3>${nome} ${cap}:${ver}</h3>
+                    
+                    <h3 style="margin:0; font-size: 1.1rem; text-align:center;">${nome} ${cap}:${ver}</h3>
+                    
+                    <button onclick="alternarTema(); atualizarCorOverlay()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; padding:5px;">
+                        🌗
+                    </button>
                 </div>
-                <div id="lista-comparacao-cheia" class="tela-cheia-container" style="flex-grow: 1;">
+        
+                <div id="lista-comparacao-cheia" class="tela-cheia-container" style="flex-grow: 1; overflow-y: auto;">
                     <div style="padding: 20px; text-align:center; opacity: 0.7;">Carregando traduções...</div>
                 </div>
             `;
         
-            // 5. Adiciona ao corpo do site (não destrói o main)
             document.body.appendChild(overlay);
-            
-            // Bloqueia a rolagem da página de trás
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Trava a rolagem do fundo
         
-            // 6. Configura o botão de voltar (apenas remove o overlay)
+            // 4. Configura o botão de fechar
             document.getElementById('btn-fechar-comp').onclick = function() {
-                overlay.classList.add('saindo'); // Opcional: para animação de saída
-                setTimeout(() => {
-                    overlay.remove();
-                    document.body.style.overflow = ''; // Libera a rolagem da página principal
-                }, 100); // Pequeno delay se tiver animação, senão pode ser 0
+                overlay.remove();
+                document.body.style.overflow = ''; 
             };
         
-            // 7. Busca as traduções (Lógica original)
+            // 5. Carrega os textos (Mesma lógica de antes)
             const listaContainer = document.getElementById('lista-comparacao-cheia');
-            
             const promises = listaVersoesDisponiveis.map(async item => {
                 const v = item.sigla;
                 try {
-                    let dadosVersao;
-                    if (cacheVersoes[v]) {
-                        dadosVersao = cacheVersoes[v];
-                    } else {
+                    let dadosVersao = cacheVersoes[v];
+                    if (!dadosVersao) {
                         const r = await fetch(`./${v}.json`);
                         if(r.ok) {
                             dadosVersao = await r.json();
                             cacheVersoes[v] = dadosVersao;
                         }
                     }
-        
-                    if(dadosVersao && dadosVersao[idxLivro] && dadosVersao[idxLivro].chapters && dadosVersao[idxLivro].chapters[cap-1]) {
+                    if(dadosVersao && dadosVersao[idxLivro]?.chapters?.[cap-1]) {
                         const txt = dadosVersao[idxLivro].chapters[cap-1][ver-1];
                         return `
                             <div class="item-traducao-cheia">
                                 <span class="comp-versao">${v}</span>
                                 <div class="comp-texto">${txt}</div>
-                            </div>
-                        `;
+                            </div>`;
                     }
                 } catch(e) { console.error(e); }
                 return "";
@@ -2989,6 +2979,15 @@
         
             const htmls = await Promise.all(promises);
             listaContainer.innerHTML = htmls.join("");
+        }
+        
+        // Pequena função auxiliar para mudar a cor do fundo do overlay instantaneamente
+        function atualizarCorOverlay() {
+            const overlay = document.getElementById('overlay-comparacao');
+            if(overlay) {
+                const ehEscuro = document.body.classList.contains('modo-escuro');
+                overlay.style.backgroundColor = ehEscuro ? '#121212' : '#fdfbf7';
+            }
         }
         
         function fecharModalVersiculo() {
