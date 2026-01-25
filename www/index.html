@@ -831,6 +831,7 @@
         .verso-clicavel:active { background-color: rgba(0,0,0,0.05); }
         
         /* Modal Bottom Sheet (Sobe de baixo) */
+        /* ATUALIZE ESTA CLASSE NO SEU CSS */
         .modal-bottom-sheet {
             position: absolute;
             bottom: 0; left: 0; right: 0;
@@ -838,6 +839,14 @@
             border-radius: 20px 20px 0 0;
             padding: 20px;
             animation: slideUp 0.3s ease-out;
+            
+            /* --- AJUSTE PARA CABER TUDO SEM SCROLL --- */
+            height: auto;          /* A altura se ajusta ao tamanho do conteúdo */
+            max-height: 100vh;     /* Permite usar até 100% da tela se precisar */
+            overflow: visible;     /* Desativa qualquer barra de rolagem */
+            
+            padding-bottom: 40px;  /* Margem de segurança no fundo */
+            z-index: 10001; 
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
