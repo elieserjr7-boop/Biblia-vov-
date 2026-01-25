@@ -1239,17 +1239,40 @@
             color: #f8f9fa; /* Branco Gelo */
         }
         
-        /* ==========================================================================
-           Modal de Confirmação
-           ========================================================================== */
+        #modal-confirmacao {
+            /* 1. Centralização (Flexbox) */
+            display: flex;              /* Sem !important aqui para poder fechar */
+            align-items: center;        /* Centraliza Verticalmente (Cima/Baixo) */
+            justify-content: center;    /* Centraliza Horizontalmente (Esquerda/Direita) */
+        
+            /* 2. Posição na Tela */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            
+            /* 3. Fundo escuro atrás do modal (Opcional, mas recomendado para foco) */
+            background-color: rgba(0,0,0,0.5); 
+        }
+        
+        /* --- REGRA DE OURO: Para fazer o modal sumir --- */
+        /* Como o ID é forte, precisamos desta regra específica para esconder */
+        #modal-confirmacao.escondido {
+            display: none !important;
+        }
+        
+        /* --- Estilo da Caixa (Mantive o teu, só garanti a margem zero) --- */
         .caixa-confirmacao {
             background: #fff;
             width: 90%;
-            max-width: 350px; /* Mais pequeno que o editor de notas */
+            max-width: 350px;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             text-align: center;
+            margin: 0; /* Importante: Remove margens que empurram a caixa para baixo */
         }
         
         .caixa-confirmacao h3 {
@@ -1263,14 +1286,14 @@
             font-size: 16px;
         }
         
-        /* --- MODO ESCURO (Dark Mode) --- */
+        /* --- MODO ESCURO (Mantido igual) --- */
         body.dark-mode .caixa-confirmacao {
             background-color: #34495e;
         }
         
         body.dark-mode .caixa-confirmacao h3,
         body.dark-mode .caixa-confirmacao p {
-            color: #f8f9fa; /* Branco Gelo */
+            color: #f8f9fa; 
         }
         
     </style>
