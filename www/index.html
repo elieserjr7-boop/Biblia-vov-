@@ -809,6 +809,89 @@
             background-color: #0a6b4a;
         }
         
+        /* --- ESTILO DAS MARCAÇÕES E MODAL --- */
+        
+        /* Classes de Cores (Marca Texto) */
+        .grifo-azul { background-color: rgba(66, 165, 245, 0.4); border-bottom: 2px solid #2196f3; }
+        .grifo-amarelo { background-color: rgba(255, 238, 88, 0.4); border-bottom: 2px solid #fbc02d; }
+        .grifo-rosa { background-color: rgba(239, 83, 80, 0.3); border-bottom: 2px solid #e53935; }
+        .grifo-verde { background-color: rgba(102, 187, 106, 0.4); border-bottom: 2px solid #43a047; }
+        .grifo-vermelho { background-color: rgba(255, 82, 82, 0.3); border-bottom: 2px solid #d32f2f; }
+        
+        /* Ícone de nota no texto */
+        .icone-nota { font-size: 14px; vertical-align: middle; margin-left: 5px; cursor: pointer; }
+        
+        /* O Versículo clicável */
+        .verso-clicavel {
+            padding: 2px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .verso-clicavel:active { background-color: rgba(0,0,0,0.05); }
+        
+        /* Modal Bottom Sheet (Sobe de baixo) */
+        .modal-bottom-sheet {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        
+        /* Botões de Cores */
+        .opcoes-cores { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+        .btn-cor { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #eee; cursor: pointer; }
+        
+        .cor-azul { background-color: #42a5f5; }
+        .cor-amarelo { background-color: #ffee58; }
+        .cor-rosa { background-color: #ef5350; }
+        .cor-verde { background-color: #66bb6a; }
+        .cor-vermelho { background-color: #d32f2f; }
+        .cor-limpar { background-color: white; color: #555; font-weight: bold; font-size: 16px; }
+        
+        .btn-modal-acao {
+            width: 100%;
+            padding: 15px;
+            background: #f1f2f6;
+            border: none;
+            border-radius: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        /* Item da Lista de Favoritos/Comentários */
+        .item-ref {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 5px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .item-ref.azul { border-left-color: #2196f3; }
+        .item-ref.amarelo { border-left-color: #fbc02d; }
+        .item-ref.rosa { border-left-color: #e53935; }
+        .item-ref.verde { border-left-color: #43a047; }
+        .item-ref.vermelho { border-left-color: #d32f2f; }
+        
+        .texto-ref-b { font-size: 14px; color: #555; margin-top: 5px; font-style: italic; }
+        .nota-usuario { background: #fff3cd; padding: 8px; margin-top: 8px; border-radius: 5px; font-size: 14px; color: #555; }
+        
+        /* Ajuste Modo Escuro */
+        body.modo-escuro .modal-bottom-sheet { background: #1f1f1f; }
+        body.modo-escuro #titulo-modal-verso { color: #ccc; }
+        body.modo-escuro .btn-modal-acao { background: #333; color: #fff; }
+        body.modo-escuro .item-ref { background: #2c2c2c; }
+        body.modo-escuro .texto-ref-b { color: #aaa; }
+        body.modo-escuro .nota-usuario { background: #3e3825; color: #ddd; }
     </style>
 </head>
 <body id="corpo-app">
@@ -887,17 +970,27 @@
                         <span class="icone-grande">📊</span>
                         <div class="texto-opcao">
                             <span class="titulo-opcao">Progressão de Leitura</span>
-                            <span class="desc-opcao">Veja suas estatísticas e livros lidos</span>
+                            <span class="desc-opcao">Estatísticas e livros lidos</span>
                         </div>
                         <span class="seta-opcao">➔</span>
                     </button>
     
-                    <button class="btn-opcao-perfil" style="opacity: 0.6; cursor: not-allowed;">
-                        <span class="icone-grande">🖍️</span>
+                    <button class="btn-opcao-perfil" onclick="abrirTelaFavoritos()">
+                        <span class="icone-grande">⭐</span>
                         <div class="texto-opcao">
                             <span class="titulo-opcao">Versículos Favoritos</span>
-                            <span class="desc-opcao">Em breve...</span>
+                            <span class="desc-opcao">Seus textos marcados</span>
                         </div>
+                        <span class="seta-opcao">➔</span>
+                    </button>
+    
+                    <button class="btn-opcao-perfil" onclick="abrirTelaComentarios()">
+                        <span class="icone-grande">📝</span>
+                        <div class="texto-opcao">
+                            <span class="titulo-opcao">Meus Comentários</span>
+                            <span class="desc-opcao">Reflexões e anotações</span>
+                        </div>
+                        <span class="seta-opcao">➔</span>
                     </button>
                 </div>
             </div>
@@ -907,28 +1000,62 @@
                     <button class="btn-voltar-perfil" onclick="voltarMenuPerfil()">⬅ Voltar</button>
                     <h3>Estatísticas</h3>
                 </div>
-    
                 <div class="painel-resumo">
-                    <div class="card-dado">
-                        <span class="dado-valor" id="total-lido-pct">0%</span>
-                        <span class="dado-label">Bíblia Completa</span>
-                    </div>
-                    <div class="card-dado">
-                        <span class="dado-valor" id="total-caps-lidos">0</span>
-                        <span class="dado-label">Capítulos Lidos</span>
-                    </div>
+                    <div class="card-dado"> <span class="dado-valor" id="total-lido-pct">0%</span> <span class="dado-label">Bíblia</span> </div>
+                    <div class="card-dado"> <span class="dado-valor" id="total-caps-lidos">0</span> <span class="dado-label">Capítulos</span> </div>
                 </div>
-    
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-    
                 <div id="lista-progresso-livros"></div>
-    
-                <button onclick="resetarProgresso()" class="btn-resetar">🗑️ Zerar Todo Progresso</button>
+                <button onclick="resetarProgresso()" class="btn-resetar">🗑️ Zerar Leitura</button>
                 <div style="height: 100px;"></div>
             </div>
     
+            <div id="view-favoritos" class="sub-tela escondido">
+                <div class="cabecalho-subtela">
+                    <button class="btn-voltar-perfil" onclick="voltarMenuPerfil()">⬅ Voltar</button>
+                    <h3>Favoritos</h3>
+                </div>
+                <div id="lista-favoritos-container" style="padding: 15px;"></div>
+                <button onclick="resetarFavoritos()" class="btn-resetar">🗑️ Apagar Favoritos</button>
+                <div style="height: 100px;"></div>
+            </div>
+    
+            <div id="view-comentarios" class="sub-tela escondido">
+                <div class="cabecalho-subtela">
+                    <button class="btn-voltar-perfil" onclick="voltarMenuPerfil()">⬅ Voltar</button>
+                    <h3>Anotações</h3>
+                </div>
+                <div id="lista-comentarios-container" style="padding: 15px;"></div>
+                <button onclick="resetarComentarios()" class="btn-resetar">🗑️ Apagar Comentários</button>
+                <div style="height: 100px;"></div>
+            </div>
         </div>
-
+    
+        <div id="modal-verso" class="modal-overlay escondido" onclick="fecharModalVerso(event)">
+            <div class="modal-bottom-sheet" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <span id="titulo-modal-verso" style="font-weight:bold; color:#555;">Gênesis 1:1</span>
+                    <button onclick="fecharModalVerso()" style="border:none; background:none; font-size:20px;">✕</button>
+                </div>
+                
+                <p style="font-size:14px; color:#777; margin: 10px 0;">Escolha uma cor para marcar:</p>
+                
+                <div class="opcoes-cores">
+                    <button class="btn-cor cor-azul" onclick="aplicarCor('azul')"></button>
+                    <button class="btn-cor cor-amarelo" onclick="aplicarCor('amarelo')"></button>
+                    <button class="btn-cor cor-rosa" onclick="aplicarCor('rosa')"></button>
+                    <button class="btn-cor cor-verde" onclick="aplicarCor('verde')"></button>
+                    <button class="btn-cor cor-vermelho" onclick="aplicarCor('vermelho')"></button>
+                    <button class="btn-cor cor-limpar" onclick="aplicarCor('limpar')">✕</button>
+                </div>
+    
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+    
+                <button class="btn-modal-acao" onclick="iniciarComentario()">
+                    📝 Adicionar / Editar Comentário
+                </button>
+            </div>
+        </div>
+        
     </main>
 
     <div id="modal-comparacao" class="modal-overlay escondido">
@@ -1610,9 +1737,31 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
-                // 1. Gera os versículos
+                // 1. Gera os versículos com suporte a clique e cor
                 capituloTextoArray.forEach((versiculo, idx) => {
-                    html += `<span class="versiculo-num">${idx + 1}</span> ${versiculo}<br><br>`;
+                    const numVerso = idx + 1;
+                    
+                    // Verifica se tem Grifo (Cor)
+                    const chave = `${livroAtualNome}_${capituloAtual}_${numVerso}`;
+                    const dadosGrifo = dadosUsuario.grifos[chave]; // Pode ser undefined
+                    const classeCor = dadosGrifo ? `grifo-${dadosGrifo.cor}` : "";
+                    
+                    // Verifica se tem Nota
+                    const temNota = dadosUsuario.notas[chave] ? "📝" : "";
+                    
+                    // Codifica o texto para passar na função onclick sem quebrar as aspas
+                    const textoSafe = encodeURIComponent(versiculo);
+                    
+                    // Monta o HTML do versículo clicável
+                    html += `
+                        <div class="verso-clicavel ${classeCor}" 
+                             onclick="abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
+                            <span class="versiculo-num">${numVerso}</span> 
+                            ${versiculo} 
+                            <span class="icone-nota">${temNota}</span>
+                        </div>
+                        <br>
+                    `;
                 });
                 
                 document.getElementById('titulo-capitulo-leitura').innerText = `${livroAtualNome} ${capituloAtual}`;
@@ -1620,13 +1769,9 @@
                 // 2. Coloca os versículos na tela
                 textoBiblico.innerHTML = html;
         
-                // --- AQUI COMEÇA A PARTE DO BOTÃO ---
-                
-                // Verifica se esse capítulo já está salvo na lista de lidos
+                // --- BOTÃO DE LEITURA CONCLUÍDA (MANTIDO) ---
                 const lidos = dadosUsuario.progresso[livroAtualNome] || [];
                 const jaLeu = lidos.includes(capituloAtual);
-        
-                // Cria o HTML do botão (Se já leu, fica cinza. Se não, fica verde)
                 const btnHTML = `
                     <button id="btn-leitura-final" 
                             class="btn-marcar-lido ${jaLeu ? 'lido' : 'nao-lido'}" 
@@ -1634,17 +1779,16 @@
                         ${jaLeu ? '✅ Leitura Concluída (Desmarcar)' : 'Marcar Leitura como Concluída'}
                     </button>
                 `;
-        
-                // Cola o botão no final do texto que acabou de ser gerado
                 textoBiblico.innerHTML += btnHTML;
-                
-                // --- FIM DA PARTE DO BOTÃO ---
+                // ---------------------------------------------
         
                 telaCapitulos.classList.add('escondido');
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
-                areaPrincipal.scrollTop = 0; 
-                window.scrollTo(0,0);
+                
+                // Só rola para o topo se não for um "reload" de pintar cor
+                // (Isso é um detalhe de UX, mas vamos deixar simples rolando pro topo por enquanto)
+                // window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
         }
@@ -1882,6 +2026,155 @@
                 const novoIndex = hinoAtual + direcao;
                 if (novoIndex < 0 || novoIndex >= dadosHinario.length) return alert("Fim do hinário.");
                 lerHino(novoIndex);
+            }
+        }
+        /* --- SISTEMA DE GRIFOS E COMENTÁRIOS --- */
+
+        // Variáveis temporárias para saber qual versículo foi clicado
+        let versoSelecionado = { livro: "", cap: 0, num: 0, texto: "" };
+        
+        // 1. Função chamada ao clicar no texto bíblico
+        function abrirMenuVersiculo(livro, cap, num, textoCodificado) {
+            const texto = decodeURIComponent(textoCodificado);
+            versoSelecionado = { livro, cap, num, texto };
+            
+            document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
+            document.getElementById('modal-verso').classList.remove('escondido');
+        }
+        
+        function fecharModalVerso(e) {
+            if (e && e.target !== e.currentTarget) return; // Só fecha se clicar no fundo escuro
+            document.getElementById('modal-verso').classList.add('escondido');
+        }
+        
+        // 2. Salvar Cor (Grifo)
+        function aplicarCor(cor) {
+            const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
+            
+            if (cor === 'limpar') {
+                delete dadosUsuario.grifos[chave];
+            } else {
+                dadosUsuario.grifos[chave] = { cor: cor, texto: versoSelecionado.texto, timestamp: Date.now() };
+            }
+            
+            salvarDados();
+            fecharModalVerso();
+            
+            // Atualiza a tela de leitura imediatamente (sem recarregar tudo)
+            lerCapitulo(capituloAtual); 
+        }
+        
+        // 3. Salvar Comentário
+        function iniciarComentario() {
+            const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
+            const notaAtual = dadosUsuario.notas[chave] ? dadosUsuario.notas[chave].texto : "";
+            
+            const novaNota = prompt("Digite sua reflexão sobre este versículo:", notaAtual);
+            
+            if (novaNota !== null) {
+                if (novaNota.trim() === "") {
+                    delete dadosUsuario.notas[chave];
+                } else {
+                    dadosUsuario.notas[chave] = { texto: novaNota, ref: `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`, timestamp: Date.now() };
+                }
+                salvarDados();
+                fecharModalVerso();
+                lerCapitulo(capituloAtual);
+            }
+        }
+        
+        // 4. Renderizar Tela de Favoritos
+        function abrirTelaFavoritos() {
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            document.getElementById('view-favoritos').classList.remove('escondido');
+            
+            const container = document.getElementById('lista-favoritos-container');
+            container.innerHTML = "";
+            
+            const lista = Object.entries(dadosUsuario.grifos).sort((a, b) => b[1].timestamp - a[1].timestamp);
+            
+            if (lista.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#999'>Nenhum versículo marcado ainda.</p>";
+                return;
+            }
+            
+            lista.forEach(([chave, dados]) => {
+                const [livro, cap, num] = chave.split("_");
+                
+                const div = document.createElement('div');
+                div.className = `item-ref ${dados.cor}`;
+                div.innerHTML = `
+                    <strong>${livro} ${cap}:${num}</strong>
+                    <div class="texto-ref-b">"${dados.texto}..."</div>
+                `;
+                div.onclick = () => {
+                     // Navega para o versículo
+                     mudarAba('biblia');
+                     // Encontra o index do livro
+                     const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
+                     if (index >= 0) {
+                         livroAtualIndex = index;
+                         livroAtualNome = livro;
+                         livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
+                         lerCapitulo(parseInt(cap));
+                         setTimeout(() => { alert(`Versículo: ${dados.texto}`); }, 500);
+                     }
+                };
+                container.appendChild(div);
+            });
+        }
+        
+        // 5. Renderizar Tela de Comentários
+        function abrirTelaComentarios() {
+            document.getElementById('menu-perfil-principal').classList.add('escondido');
+            document.getElementById('view-comentarios').classList.remove('escondido');
+            
+            const container = document.getElementById('lista-comentarios-container');
+            container.innerHTML = "";
+            
+            const lista = Object.entries(dadosUsuario.notas).sort((a, b) => b[1].timestamp - a[1].timestamp);
+            
+            if (lista.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#999'>Nenhuma anotação feita.</p>";
+                return;
+            }
+            
+            lista.forEach(([chave, dados]) => {
+                const [livro, cap, num] = chave.split("_");
+                
+                const div = document.createElement('div');
+                div.className = "item-ref";
+                div.innerHTML = `
+                    <strong>${livro} ${cap}:${num}</strong>
+                    <div class="nota-usuario">📝 ${dados.texto}</div>
+                `;
+                div.onclick = () => {
+                     mudarAba('biblia');
+                     const index = [...antigoTestamento, ...novoTestamento].findIndex(l => l.nome === livro);
+                     if (index >= 0) {
+                         livroAtualIndex = index;
+                         livroAtualNome = livro;
+                         livroAtualMaxCaps = [...antigoTestamento, ...novoTestamento][index].caps;
+                         lerCapitulo(parseInt(cap));
+                     }
+                };
+                container.appendChild(div);
+            });
+        }
+        
+        // Funções de Resetar
+        function resetarFavoritos() {
+            if(confirm("Apagar todos os destaques coloridos?")) {
+                dadosUsuario.grifos = {};
+                salvarDados();
+                abrirTelaFavoritos();
+            }
+        }
+        function resetarComentarios() {
+            if(confirm("Apagar todas as suas anotações?")) {
+                dadosUsuario.notas = {};
+                salvarDados();
+                abrirTelaComentarios();
             }
         }
         iniciarApp();
