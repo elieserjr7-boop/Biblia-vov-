@@ -1521,6 +1521,52 @@
                 overflow-y: auto;
             }
         }
+
+        /* --- CSS PARA O MODAL DE COMPARAÇÃO --- */
+
+        /* O Container principal do conteúdo do modal */
+        .modal-flex-container {
+            display: flex;           /* Ativa o modo flexível */
+            flex-direction: column;  /* Organiza um item embaixo do outro */
+            height: 100%;           /* Ocupa toda a altura disponível do modal */
+            max-height: 80vh;       /* Limite de altura (80% da tela) */
+            overflow: hidden;       /* Impede que o container todo role */
+        }
+        
+        /* A parte de cima (Cabeçalho fixo) */
+        .modal-header-fixo {
+            flex-shrink: 0;         /* Não deixa encolher */
+            background-color: var(--cor-fundo, #fdfbf7); /* Mesma cor do fundo */
+            border-bottom: 1px solid #ccc;
+            padding: 15px;
+            z-index: 10;
+            /* Garante que fique acima visualmente */
+            position: relative; 
+        }
+        
+        /* A parte de baixo (Lista que rola) */
+        .modal-corpo-rolavel {
+            flex-grow: 1;           /* Ocupa todo o espaço que sobrar */
+            overflow-y: auto;       /* CRUCIAL: Só essa parte vai ter rolagem */
+            padding: 15px;
+            -webkit-overflow-scrolling: touch; /* Rolagem suave no iPhone */
+        }
+        
+        /* Ajuste para modo noturno (se tiver) */
+        @media (prefers-color-scheme: dark) {
+            .modal-header-fixo {
+                background-color: #1a1a1a; /* Cor de fundo escura */
+                border-bottom: 1px solid #444;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #modal-comparacao .modal-conteudo {
+                width: 95%;
+                max-height: 90vh; /* Aumenta um pouco a altura no celular */
+                margin: 10px auto;
+            }
+        }
         
     </style>
 </head>
@@ -1744,11 +1790,16 @@
         
     </main>
 
-    <div id="modal-comparacao" class="modal-overlay escondido">
-        <div class="modal-conteudo">
-            <button class="btn-fechar-modal" onclick="fecharComparacao()">Fechar</button>
-            <h3 id="titulo-comparacao" style="text-align:center; margin-top:0;">Comparando</h3>
-            <div id="lista-comparacao"></div>
+   <div id="modal-comparacao" class="modal escondido">
+        <div class="modal-conteudo" style="display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid #ddd; position: relative; flex-shrink: 0; background: var(--cor-fundo);">
+                <button class="btn-fechar" onclick="fecharComparacao()" style="position: absolute; top: 12px; right: 15px; margin: 0;">✖</button>
+                <h3 id="titulo-comparacao" style="margin: 0; padding-right: 30px; font-size: 1.2rem;">Versículo</h3>
+            </div>
+            
+            <div id="lista-comparacao" style="overflow-y: auto; flex-grow: 1; padding: 20px;">
+                Carregando...
+            </div>
         </div>
     </div>
 
