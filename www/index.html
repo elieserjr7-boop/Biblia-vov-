@@ -1045,36 +1045,48 @@
         }
         .escondido-topo { transform: translateY(-100%); }
         .escondido-nav { transform: translateY(100%); }
-        /* --- CORREÇÃO DE ESPAÇAMENTO (PADDING) --- */
+       /* --- CSS DE MODO IMERSIVO (FORÇA BRUTA) --- */
 
-        /* 1. Lista de coisas que devem SUMIR quando o modo imersivo está ativo */
-        body.modo-imersivo header,              /* O Topo Vermelho */
-        body.modo-imersivo nav,                 /* O Rodapé */
-        body.modo-imersivo .botao-flutuante,    /* Botões flutuantes gerais */
-        body.modo-imersivo #btn-voltar-leitura, /* Botão de Voltar (se for separado) */
-        body.modo-imersivo .navegacao-capitulo, /* Container das setas */
-        body.modo-imersivo button.seta-nav {    /* As setas em si */
-            opacity: 0 !important;              /* Torna invisível */
-            pointer-events: none !important;    /* Torna intocável (não dá para clicar sem querer) */
-            transition: opacity 0.3s ease;      /* Faz sumir suavemente */
+        /* 1. REGRA: Quando imersivo ativado, ESCONDE TUDO que é interface */
+        body.modo-imersivo header,           /* O Cabeçalho */
+        body.modo-imersivo nav,              /* O Rodapé */
+        body.modo-imersivo button,           /* <<< AQUI: TODOS OS BOTÕES DO SITE SOMEM */
+        body.modo-imersivo .botao-flutuante, /* Qualquer div flutuante */
+        body.modo-imersivo .seta-navegacao,  /* Setas específicas */
+        body.modo-imersivo #btn-voltar,      /* Tenta pegar por ID comum */
+        body.modo-imersivo .container-botoes {
+            opacity: 0 !important;
+            pointer-events: none !important; /* Impede de clicar no invisível */
+            visibility: hidden !important;   /* Garante que o navegador ignora */
+            transition: opacity 0.2s ease !important;
         }
         
-        /* 2. Ajuste do Texto (Sobe para ocupar o espaço livre) */
+        /* 2. TEXTO OCUPA TUDO */
         #tela-leitura {
-            /* Estado Normal */
-            padding-top: 150px !important; 
-            padding-bottom: 100px !important;
-            transition: padding-top 0.3s ease;
-            
-            /* Garante que a área de clique ocupa a tela TODA */
+            /* Garante que a área de clique é a tela toda */
             min-height: 100vh;
             width: 100%;
+            
+            /* Posição normal (com cabeçalho) */
+            padding-top: 150px !important;
+            padding-bottom: 100px !important;
+            
+            transition: padding-top 0.3s ease;
         }
         
-        /* Estado Imersivo (Texto sobe) */
+        /* Quando imersivo, o texto sobe */
         body.modo-imersivo #tela-leitura {
-            padding-top: 40px !important; /* Espaço mínimo para não cortar na câmera */
+            padding-top: 40px !important; 
             padding-bottom: 20px !important;
+        }
+        
+        /* EXCEÇÃO IMPORTANTE: Não esconder os botões DENTRO do menu de opções do versículo */
+        /* Se o menu de cor abrir, os botões DELE têm que aparecer */
+        body.modo-imersivo .opcoes-versiculo button,
+        body.modo-imersivo .menu-flutuante button {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            visibility: visible !important;
         }
         
     </style>
@@ -1539,35 +1551,26 @@
             gerarMenuVersoes(versaoSalva);
         
             // --- 5. MODO IMERSIVO (CLIQUE UNIVERSAL) ---
+            // --- MODO IMERSIVO ---
             const areaLeitura = document.getElementById('tela-leitura');
-        
             if (areaLeitura) {
-                // Remove listeners antigos para evitar duplicação
+                // Remove qualquer lixo anterior
                 areaLeitura.onclick = null; 
         
                 areaLeitura.onclick = function(e) {
                     const alvo = e.target;
                     if (!alvo) return;
         
-                    // --- LISTA DE EXCEÇÕES (Onde NÃO deve ativar) ---
-                    
-                    // 1. Se clicou num botão ou link (ex: links de nota de rodapé)
-                    if (alvo.tagName === 'BUTTON' || alvo.closest('button')) return;
-                    if (alvo.tagName === 'A' || alvo.closest('a')) return;
+                    // 1. O que IGNORAR (para não bugar)
+                    // Se for menu de cor ou opções de versículo, não faz nada
+                    if (alvo.closest('.menu-flutuante') || alvo.closest('.opcoes-versiculo')) return;
         
-                    // 2. Se clicou em menus ou janelas flutuantes
-                    if (alvo.closest('.menu-flutuante') || alvo.closest('.modal')) return;
+                    // Se for o numerozinho do versículo
+                    if (alvo.tagName === 'SUP' || alvo.classList.contains('numero-verso')) return;
         
-                    // 3. Se clicou no número do versículo (para abrir opções)
-                    if (alvo.tagName === 'SUP' || 
-                        alvo.classList.contains('numero-verso') || 
-                        (alvo.parentElement && alvo.parentElement.tagName === 'SUP')) {
-                        return;
-                    }
-        
-                    // --- AÇÃO: ALTERNAR TUDO ---
-                    // Se chegou aqui, clicou no texto ou no vazio.
-                    // O CSS encarrega-se de esconder header, nav e botões.
+                    // 2. AÇÃO
+                    // Clicou no texto, no fundo branco, no topo, na base?
+                    // Alterna o modo no body. O CSS "Matador" acima fará o resto.
                     document.body.classList.toggle('modo-imersivo');
                 };
             }
