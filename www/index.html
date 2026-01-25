@@ -936,6 +936,29 @@
         body.modo-escuro .item-ref { background: #2c2c2c; }
         body.modo-escuro .texto-ref-b { color: #aaa; }
         body.modo-escuro .nota-usuario { background: #3e3825; color: #ddd; }
+
+        /* --- MODO IMERSIVO (EFEITO DE SLIDE) --- */
+        .barra-topo {
+            transition: transform 0.3s ease; /* Animação suave */
+        }
+        .barra-navegacao {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Quando estiver escondido, move para fora da tela */
+        .escondido-topo {
+            transform: translateY(-100%); /* Sobe tudo */
+        }
+        .escondido-nav {
+            transform: translateY(100%); /* Desce tudo */
+        }
+        
+        /* Ajuste para o texto do preview no modo escuro */
+        body.modo-escuro #texto-verso-preview {
+            background: #333 !important;
+            color: #ccc !important;
+            border-left-color: #27ae60 !important;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -1076,12 +1099,21 @@
     
         <div id="modal-verso" class="modal-overlay escondido" onclick="fecharModalVerso(event)">
             <div class="modal-bottom-sheet" onclick="event.stopPropagation()">
+                
                 <div class="modal-header">
-                    <span id="titulo-modal-verso" style="font-weight:bold; color:#555;">Gênesis 1:1</span>
-                    <button onclick="fecharModalVerso()" style="border:none; background:none; font-size:20px;">✕</button>
+                    <span id="titulo-modal-verso" style="font-weight:bold; color:#555; font-size: 18px;">Gênesis 1:1</span>
+                    <button onclick="fecharModalVerso()" style="border:none; background:none; font-size:20px; padding: 10px;">✕</button>
                 </div>
                 
-                <p style="font-size:14px; color:#777; margin: 10px 0;">Escolha uma cor para marcar:</p>
+                <div id="texto-verso-preview" style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-style: italic; color: #444; border-left: 3px solid #666;">
+                    "No princípio criou Deus os céus e a terra..."
+                </div>
+    
+                <button class="btn-modal-acao" onclick="copiarVersoSelecionado()" style="margin-bottom: 10px; background-color: #34495e; color: white;">
+                    📋 Copiar Versículo
+                </button>
+                
+                <p style="font-size:14px; color:#777; margin: 10px 0; text-align: center;">Marcar cor:</p>
                 
                 <div class="opcoes-cores">
                     <button class="btn-cor cor-azul" onclick="aplicarCor('azul')"></button>
@@ -1095,7 +1127,7 @@
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
     
                 <button class="btn-modal-acao" onclick="iniciarComentario()">
-                    📝 Adicionar / Editar Comentário
+                    📝 Adicionar / Editar Nota
                 </button>
             </div>
         </div>
@@ -1666,6 +1698,46 @@
             document.getElementById('total-lido-pct').innerText = pctGeral + "%";
             document.getElementById('total-caps-lidos').innerText = totalLidosGeral;
         }
+
+        let timerClique = null; // Controla o tempo entre cliques
+        
+        // Essa função decide se foi 1 clique ou 2 cliques
+        function gerenciarCliqueVerso(livro, cap, num, textoCodificado) {
+            if (timerClique) {
+                // --- DUPLO CLIQUE DETECTADO ---
+                clearTimeout(timerClique);
+                timerClique = null;
+                
+                // Abre o menu de opções (sua função antiga atualizada)
+                abrirMenuVersiculo(livro, cap, num, textoCodificado);
+                
+            } else {
+                // --- PRIMEIRO CLIQUE (ESPERANDO O SEGUNDO...) ---
+                timerClique = setTimeout(() => {
+                    // Se passar 300ms e ninguém clicar de novo, é clique simples
+                    alternarModoImersivo(); 
+                    timerClique = null;
+                }, 300); // 300 milissegundos de espera
+            }
+        }
+
+        function alternarModoImersivo() {
+            const topo = document.querySelector('.barra-topo');
+            const nav = document.querySelector('.barra-navegacao');
+            
+            // Verifica se já está escondido
+            const estaImersivo = topo.classList.contains('escondido-topo'); // Vamos criar essa classe no CSS
+            
+            if (estaImersivo) {
+                // MOSTRAR TUDO
+                topo.classList.remove('escondido-topo');
+                nav.classList.remove('escondido-nav');
+            } else {
+                // ESCONDER TUDO
+                topo.classList.add('escondido-topo');
+                nav.classList.add('escondido-nav');
+            }
+        }
         
         // 3. Função de Resetar (Atualizada para o novo sistema)
         function resetarProgresso() {
@@ -1836,7 +1908,7 @@
                 const capituloTextoArray = bibliaCompleta[livroAtualIndex].chapters[capituloAtual - 1];
                 let html = "";
                 
-                // 1. Gera os versículos com suporte a clique e cor
+                // 1. Gera os versículos
                 capituloTextoArray.forEach((versiculo, idx) => {
                     const numVerso = idx + 1;
                     
@@ -1851,10 +1923,10 @@
                     // Codifica o texto para passar na função onclick
                     const textoSafe = encodeURIComponent(versiculo);
                     
-                    // --- AQUI ESTÁ A MUDANÇA IMPORTANTE (O ID) ---
+                    // --- AQUI ESTÁ A MUDANÇA (Chamamos gerenciarCliqueVerso) ---
                     html += `
                         <div id="verso-${numVerso}" class="verso-clicavel ${classeCor}" 
-                             onclick="abrirMenuVersiculo('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
+                             onclick="gerenciarCliqueVerso('${livroAtualNome}', ${capituloAtual}, ${numVerso}, '${textoSafe}')">
                             <span class="versiculo-num">${numVerso}</span> 
                             ${versiculo} 
                             <span class="icone-nota">${temNota}</span>
@@ -1885,8 +1957,7 @@
                 telaLeitura.classList.remove('escondido');
                 alternarBarras('leitura');
                 
-                // Rola para o topo (importante para leitura normal)
-                // A função irParaVersiculo vai sobrescrever isso se for chamada
+                // Rola para o topo inicialmente
                 window.scrollTo(0,0);
                 
             } catch (erro) { console.error(erro); }
@@ -2137,8 +2208,26 @@
             const texto = decodeURIComponent(textoCodificado);
             versoSelecionado = { livro, cap, num, texto };
             
+            // Título
             document.getElementById('titulo-modal-verso').innerText = `${livro} ${cap}:${num}`;
+            
+            // Texto do preview (NOVO)
+            const preview = document.getElementById('texto-verso-preview');
+            preview.innerText = `"${texto}"`;
+            
             document.getElementById('modal-verso').classList.remove('escondido');
+        }
+
+        function copiarVersoSelecionado() {
+            const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
+            
+            navigator.clipboard.writeText(textoFinal).then(() => {
+                alert("Versículo copiado!");
+                fecharModalVerso();
+            }).catch(err => {
+                console.error('Erro ao copiar', err);
+                alert("Erro ao copiar. Tente selecionar manualmente.");
+            });
         }
         
         function fecharModalVerso(e) {
