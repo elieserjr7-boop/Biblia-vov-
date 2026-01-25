@@ -1161,6 +1161,45 @@
             opacity: 1 !important;
         }
         
+        /* --- 1. Cores Padrão (Modo Claro) --- */
+        /* Estas são as cores que estavam originalmente no teu HTML inline */
+        
+        #titulo-editor {
+            color: #2c3e50; /* Azul escuro original */
+        }
+        
+        #ref-editor {
+            color: #7f8c8d; /* Cinzento original */
+        }
+        
+        
+        /* --- 2. Cores do Modo Escuro --- */
+        
+        /* Muda o título para Branco Gelo no modo escuro */
+        body.dark-mode #titulo-editor {
+            color: #f8f9fa;
+        }
+        
+        /* Muda a referência para Branco Gelo no modo escuro */
+        body.dark-mode #ref-editor {
+            color: #f8f9fa;
+            /* Opcional: Podes querer a referência ligeiramente mais escura que o título para hierarquia */
+            /* color: #ecf0f1; */
+        }
+        
+        /* --- BÓNUS: Adaptação do fundo do modal --- */
+        /* Se o texto ficar branco, o fundo da caixa precisa de ser escuro para haver contraste */
+        body.dark-mode .caixa-editor {
+            background-color: #34495e; /* Um tom de azul acinzentado escuro */
+            color: #ecf0f1; /* Garante que qualquer outro texto na caixa também fique claro */
+        }
+        
+        /* Adaptação da área de texto (textarea) no modo escuro */
+        body.dark-mode #texto-nota-input {
+            background-color: #2c3e50; /* Fundo mais escuro para a área de texto */
+            color: #f8f9fa;            /* Texto claro ao digitar */
+            border: 1px solid #7f8c8d; /* Borda mais subtil */
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -1335,11 +1374,12 @@
             
         <div id="modal-editor-nota" class="modal-overlay escondido">
             <div class="caixa-editor zoom-in">
-                <h3 id="titulo-editor" style="margin-top:0; color:#2c3e50;">Minha Anotação</h3>
-                <p id="ref-editor" style="color:#7f8c8d; font-size: 14px; margin-bottom: 10px;">Gênesis 1:1</p>
-                
+                <h3 id="titulo-editor" style="margin-top:0;">Minha Anotação</h3>
+        
+                <p id="ref-editor" style="font-size: 14px; margin-bottom: 10px;">Gênesis 1:1</p>
+        
                 <textarea id="texto-nota-input" placeholder="Escreva sua reflexão aqui..."></textarea>
-                
+        
                 <div class="botoes-editor">
                     <button class="btn-cancelar" onclick="fecharEditorNota()">Cancelar</button>
                     <button class="btn-salvar" onclick="salvarNotaPeloModal()">Salvar</button>
