@@ -4095,10 +4095,10 @@
         }
         /* --- SISTEMA DE BACKUP E RESTAURAÇÃO (MENSAGENS PERSONALIZADAS) --- */
 
-        // 1. FAZER BACKUP (Gera o arquivo e baixa)
+        // 1. FAZER BACKUP (Gera o arquivo e baixa) */
         async function fazerBackup() {
             try {
-                // 1. PREPARA OS DADOS
+                // PREPARAR DADOS
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4108,63 +4108,70 @@
                 };
 
                 const jsonString = JSON.stringify(pacoteDados, null, 2);
+                
+                // Define nome do arquivo
                 const dataHoje = new Date().toISOString().split('T')[0];
                 const nomeArquivo = `biblia_backup_${dataHoje}.json`;
 
-                // --- VERIFICA SE ESTÁ NO APK (CAPACITOR) ---
+                // --- MODO ANDROID (CAPACITOR) ---
                 if (window.Capacitor && window.Capacitor.isNative) {
                     
-                    // Carrega os plugins nativos
-                    const { Filesystem, Directory, Encoding } = Capacitor.Plugins;
-                    const { Share } = Capacitor.Plugins;
+                    const { Filesystem, Directory, Encoding, Share } = Capacitor.Plugins;
 
-                    // 2a. CRIA O ARQUIVO NO CELULAR (Pasta Cache)
-                    const arquivo = await Filesystem.writeFile({
-                        path: nomeArquivo,
-                        data: jsonString,
-                        directory: Directory.Cache, // Usamos Cache para não precisar de permissão especial
-                        encoding: Encoding.UTF8
-                    });
+                    try {
+                        // 1. TENTA ESCREVER NA PASTA 'DOCUMENTS' (Visível)
+                        const resultado = await Filesystem.writeFile({
+                            path: nomeArquivo,
+                            data: jsonString,
+                            directory: Directory.Documents,
+                            encoding: Encoding.UTF8
+                        });
 
-                    // 2b. ABRE A JANELA DE COMPARTILHAR/SALVAR
-                    await Share.share({
-                        title: 'Backup da Bíblia',
-                        text: 'Aqui está o arquivo de backup das minhas anotações.',
-                        url: arquivo.uri, // Caminho do arquivo que acabamos de criar
-                        dialogTitle: 'Salvar Backup em...' // Título para Android
-                    });
+                        // O caminho real do arquivo no celular
+                        const caminhoArquivo = resultado.uri;
 
-                    mostrarAlerta(
-                        "Escolha 'Salvar em Arquivos', 'Google Drive' ou envie para seu WhatsApp para guardar.", 
-                        "Pronto para Salvar 📤"
-                    );
+                        // 2. TENTA COMPARTILHAR O ARQUIVO
+                        try {
+                            await Share.share({
+                                title: 'Backup Bíblia',
+                                text: 'Guarde este arquivo em segurança.',
+                                url: caminhoArquivo, 
+                                dialogTitle: 'Salvar Backup'
+                            });
+                        } catch (shareError) {
+                            console.log("Usuário fechou o compartilhamento ou deu erro: " + shareError);
+                            // Não faz mal se der erro aqui, pois o arquivo já foi salvo no passo 1
+                        }
+
+                        // AVISO DE SUCESSO
+                        mostrarAlerta(
+                            `Arquivo salvo com sucesso!\n\nProcure na pasta "Documentos" do seu celular pelo arquivo:\n📂 ${nomeArquivo}`, 
+                            "Backup Realizado ✅"
+                        );
+
+                    } catch (erroGravacao) {
+                        console.error("Erro ao gravar: ", erroGravacao);
+                        mostrarAlerta("Erro ao salvar o arquivo no armazenamento do celular. Verifique as permissões.", "Erro ❌");
+                    }
 
                 } else {
-                    // --- MODO NAVEGADOR (PC/WEB) - Mantém o que já funcionava ---
+                    // --- MODO WEB (COMPUTADOR) ---
                     const blob = new Blob([jsonString], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
-                    
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = nomeArquivo;
-                    
                     document.body.appendChild(a);
                     a.click(); 
                     document.body.removeChild(a); 
                     URL.revokeObjectURL(url); 
 
-                    mostrarAlerta(
-                        "O arquivo foi salvo na pasta Downloads do computador.", 
-                        "Backup Concluído ✅"
-                    );
+                    mostrarAlerta("Arquivo salvo em Downloads.", "Sucesso ✅");
                 }
 
             } catch (e) {
-                console.error("Erro no backup:", e);
-                mostrarAlerta(
-                    "Não foi possível gerar o backup. Tente novamente.", 
-                    "Erro ❌"
-                );
+                console.error("Erro geral:", e);
+                mostrarAlerta("Ocorreu um erro inesperado.", "Erro ❌");
             }
         }
         // 2. ACIONAR RESTAURAÇÃO
