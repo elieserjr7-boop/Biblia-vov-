@@ -1735,122 +1735,87 @@
         }
 
         /* ==========================================================================
-           CORREÇÃO VISUAL FINA (LAYOUT, TAMANHOS E SAFE-AREA)
+           CORREÇÃO FINAL (CAPACITOR / NOTCH) - COLE NO FIM DO SEU CSS
            ========================================================================== */
         
-        /* 1. CABEÇALHO (HEADER) - Ajustes de Posição e Tamanho */
-        header, #cabecalho-principal {
-            /* Altura fixa da barra visível (reduzi levemente para 55px para ficar mais elegante) */
-            /* A altura total soma o notch */
-            height: calc(55px + env(safe-area-inset-top)) !important;
-            
-            /* Padding apenas no topo para empurrar conteúdo para fora do notch */
-            padding-top: env(safe-area-inset-top) !important;
-            padding-bottom: 0 !important;
-            
-            /* Layout Flex para alinhar tudo */
-            display: flex !important;
-            align-items: center !important; /* ISSO corrige o botão fora de margem */
-            justify-content: space-between !important;
-            
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 9999;
-            
-            /* Espaçamento lateral geral */
-            padding-left: 10px !important;
-            padding-right: 10px !important;
+        /* 1. VARIÁVEIS DE SEGURANÇA (Não mexem no layout do PC) */
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
         
-        /* TÍTULO - Mais à direita */
-        #cabecalho-principal h1, 
-        #titulo-livro {
-            /* Empurra o título para a direita */
+        /* 2. CABEÇALHO - Apenas empurra o conteúdo, não muda o display */
+        #cabecalho-principal {
+            /* Soma o padding original (se houver) com a área do notch */
+            padding-top: var(--safe-top) !important;
+            
+            /* Permite que a altura cresça apenas o necessário */
+            height: auto !important;
+            min-height: 60px !important; /* Mantém a tua altura original como mínima */
+            
+            /* Garante alinhamento sem quebrar o flexbox original */
+            align-items: center !important; 
+        }
+        
+        /* AJUSTES VISUAIS ESPECÍFICOS QUE PEDISTE */
+        /* Título mais à direita */
+        #titulo-livro, #cabecalho-principal h1 {
             margin-left: 15px !important; 
-            
-            /* Garante que não empurre os outros itens para fora */
-            flex-grow: 1; 
-            font-size: 1.1rem !important; /* Ajuste se achar muito grande */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         
-        /* SELETOR DE VERSÃO - Menor e mais discreto */
-        .seletor-versao-container select,
-        #seletor-versao {
-            height: 30px !important; /* Altura fixa menor */
-            font-size: 0.8rem !important; /* Letra menor */
+        /* Botão de Tema (Sol/Lua) centralizado verticalmente */
+        #btn-tema {
+            margin-top: 0 !important;
+            align-self: center !important;
+        }
+        
+        /* Seletor de versão menor e mais discreto */
+        .seletor-versao-container select, #seletor-versao {
+            height: 30px !important;
+            font-size: 14px !important;
             padding: 0 5px !important;
-            width: auto !important;
-            max-width: 80px; /* Limita a largura */
-            margin-right: 5px !important;
+            margin-top: 0 !important; /* Remove margem que empurrava para baixo */
         }
         
-        /* BOTÃO DE TEMA (LUA/SOL) - Centralizado */
-        #btn-tema, .botao-icone {
-            margin: 0 !important; /* Remove margens estranhas */
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 35px !important;
-            height: 35px !important;
-        }
-        
-        /* 2. RODAPÉ / ABAS - Subir um pouco mais */
+        /* 3. RODAPÉ / ABAS - Proteção contra barra de gestos */
         #rodape-nav, #menu-inferior {
-            /* Padding bottom da Safe Area */
-            padding-bottom: env(safe-area-inset-bottom) !important;
+            /* Adiciona espaço extra em baixo apenas se for telemóvel */
+            padding-bottom: var(--safe-bottom) !important;
             
-            /* Altura total = Altura da barra + Safe Area */
-            height: calc(55px + env(safe-area-inset-bottom)) !important;
+            /* A altura adapta-se: altura base + área segura */
+            height: calc(70px + var(--safe-bottom)) !important;
             
+            /* Garante que o padding não "coma" o tamanho dos ícones */
             box-sizing: content-box !important;
-            display: flex !important;
-            align-items: flex-start !important; /* Alinha os ícones mais para o topo da barra */
         }
         
-        /* Ajuste dos ícones dentro da aba */
+        /* Sobe os ícones das abas para não ficarem colados em baixo */
         .aba, .btn-nav {
-            height: 55px !important; /* Mesma altura da barra útil */
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            padding-bottom: 5px !important; /* Um leve empurrãozinho para cima visualmente */
+            height: 70px !important; 
+            justify-content: flex-start !important; /* Alinha mais ao topo */
+            padding-top: 10px !important; /* Dá um respiro superior */
         }
         
-        /* 3. CONTEÚDO PRINCIPAL */
+        /* 4. MODAIS E CONTEÚDO (Evitar sobreposição) */
+        
+        /* Modal de Versões / Comentários - Impede que fique atrás da câmera */
+        .modal-overlay, .modal-bottom-sheet, #overlay-comparacao {
+            padding-top: calc(40px + var(--safe-top)) !important; 
+            padding-bottom: var(--safe-bottom) !important;
+        }
+        
+        /* Corpo do texto - Empurra para baixo para compensar o cabeçalho maior */
         main, #container-leitura {
-            /* Ajuste para o novo cabeçalho de 55px */
-            padding-top: calc(65px + env(safe-area-inset-top)) !important;
-            padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+            /* 80px base + espaço do notch */
+            padding-top: calc(80px + var(--safe-top)) !important; 
+            padding-bottom: calc(90px + var(--safe-bottom)) !important;
         }
         
-        /* 4. MODAL DE VERSÕES / COMPARAÇÃO (O que estava subindo demais) */
-        /* Aplica-se a qualquer modal de tela cheia ou overlay */
-        .modal-overlay, 
-        #overlay-comparacao, 
-        .janela-leitura-perfil {
-            /* Define um padding gigante no topo SE for fixed top:0 */
-            padding-top: calc(40px + env(safe-area-inset-top)) !important;
-            
-            /* Garante que o conteúdo role mas o padding fique */
-            box-sizing: border-box !important;
-        }
-        
-        /* Se o modal tiver um cabeçalho próprio (botão fechar, título) */
-        .modal-header, .cabecalho-modal {
-            margin-top: env(safe-area-inset-top) !important;
-        }
-        
-        /* 5. PC (Reset) */
-        @media screen and (min-width: 768px) {
-            header { height: 70px !important; padding-top: 0 !important; }
-            #rodape-nav { height: 70px !important; padding-bottom: 0 !important; box-sizing: border-box !important; }
+        /* 5. PROTEÇÃO PARA PC (Ignora tudo isso se for ecrã grande) */
+        @media screen and (min-width: 1024px) {
+            #cabecalho-principal { padding-top: 0 !important; height: 60px !important; }
+            #rodape-nav { padding-bottom: 0 !important; height: 70px !important; box-sizing: border-box !important; }
             main { padding-top: 80px !important; }
-            .modal-overlay { padding-top: 20px !important; }
         }
         
     </style>
