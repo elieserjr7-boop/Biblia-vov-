@@ -1733,6 +1733,53 @@
             border-color: #666 !important;
             color: #fff !important;
         }
+
+        /* --- TURBINAR O MENU INFERIOR (MÓVEL) --- */
+        @media (max-width: 768px) {
+            
+            /* 1. A BARRA EM SI */
+            .menu-inferior {
+                /* Aumenta a altura para ficar mais "parrudo" */
+                height: auto !important; 
+                min-height: 75px !important; 
+                
+                /* Proteção vital para iPhone e Androids novos (Barra de gestos) */
+                padding-bottom: calc(env(safe-area-inset-bottom) + 10px) !important;
+                padding-top: 10px !important;
+                
+                /* Garante alinhamento */
+                display: flex !important;
+                justify-content: space-around !important;
+                align-items: center !important;
+                
+                /* Sombra para destacar do conteúdo */
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
+            }
+        
+            /* 2. OS BOTÕES DENTRO DA BARRA */
+            .menu-inferior button, 
+            .menu-inferior .item-menu {
+                /* Aumenta o tamanho geral (Ícone + Texto) */
+                font-size: 1.1rem !important; 
+                
+                /* Dá mais espaço para o toque */
+                padding: 5px !important;
+                
+                /* Se tiver ícones e texto, empilha eles bonitinho */
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex: 1 !important; /* Faz todos terem a mesma largura */
+            }
+        
+            /* Opcional: Se usares ícones separados do texto */
+            .menu-inferior svg, 
+            .menu-inferior i {
+                font-size: 1.5rem !important; /* Ícone grande */
+                margin-bottom: 4px !important;
+            }
+        }
         
     </style>
 </head>
