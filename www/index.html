@@ -1780,6 +1780,39 @@
                 margin-bottom: 4px !important;
             }
         }
+       
+        /* Limita o texto na lista para não estourar a caixa */
+        .preview-comentario {
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Mostra no máximo 3 linhas */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 5px;
+        }
+        
+        /* Ajuste para modo escuro */
+        body.modo-escuro .preview-comentario {
+            color: #bbb;
+        }
+        
+        /* Estilo da caixa de visualização do comentário (Novo Modal) */
+        .box-leitura-comentario {
+            background-color: #fff9c4; /* Amarelo clarinho tipo post-it */
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #fbc02d;
+            margin-top: 15px;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto; /* Se for texto gigante, cria barra de rolagem */
+            font-family: inherit;
+            white-space: pre-wrap; /* Mantém os parágrafos que escreveste */
+            text-align: left;
+        }
         
     </style>
 </head>
@@ -3455,41 +3488,164 @@
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
         function abrirTelaComentarios() {
-            document.getElementById('menu-perfil-principal').classList.add('escondido');
-            esconderTodasSubTelas();
-            document.getElementById('view-comentarios').classList.remove('escondido');
+            fecharMenuHamburguer();
+            const area = document.getElementById('conteudo-leitura');
             
-            const container = document.getElementById('lista-comentarios-container');
-            container.innerHTML = "";
+            // Verifica se existem notas
+            const chaves = Object.keys(dadosUsuario.notas || {});
             
-            const lista = Object.entries(dadosUsuario.notas || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
-            
-            if (lista.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px'>Nenhuma anotação feita.</p>";
+            if (chaves.length === 0) {
+                area.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3>Meus Comentários</h3>
+                        <p>Você ainda não criou nenhuma anotação.</p>
+                        <button onclick="voltarParaLeitura()" style="margin-top:20px; padding:10px 20px;">Voltar para Bíblia</button>
+                    </div>`;
                 return;
             }
-            
-            lista.forEach(([chave, dados]) => {
-                const [livro, cap, num] = chave.split("_");
+        
+            let html = `
+                <div style="padding: 20px; padding-bottom: 80px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="margin:0;">Meus Comentários</h2>
+                        <button onclick="voltarParaLeitura()" class="btn-voltar-perfil">Voltar</button>
+                    </div>`;
+        
+            // Percorre todas as notas salvas
+            chaves.forEach(chave => {
+                // A chave é tipo "0_1_1" (Gênesis 1:1)
+                const partes = chave.split('_');
+                const lIdx = parseInt(partes[0]);
+                const c = parseInt(partes[1]);
+                const v = parseInt(partes[2]);
                 
-                const div = document.createElement('div');
-                div.className = "item-ref";
-                div.innerHTML = `
-                    <strong>${livro} ${cap}:${num}</strong>
-                    <div class="nota-usuario">📝 ${dados.texto}</div>
-                    <button class="btn-deletar-individual" title="Apagar anotação">🗑️</button>
+                const nomeLivro = listaLivros[lIdx];
+                const textoNota = dadosUsuario.notas[chave];
+        
+                // Cria o cartão do comentário
+                html += `
+                    <div class="item-historico" onclick="verDetalheComentario(${lIdx}, ${c}, ${v}, '${chave}')">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${nomeLivro} ${c}:${v}</strong>
+                            <span style="font-size:0.8rem; color:#888;">Ver</span>
+                        </div>
+                        <div class="preview-comentario">
+                            "${textoNota}"
+                        </div>
+                    </div>
                 `;
-                
-                div.onclick = () => abrirModalLeituraPerfil(livro, parseInt(cap), parseInt(num));
-                
-                const btnLixo = div.querySelector('.btn-deletar-individual');
-                btnLixo.onclick = (e) => {
-                    e.stopPropagation();
-                    apagarItemIndividual('notas', chave, livro, cap, num);
-                };
-                
-                container.appendChild(div);
             });
+        
+            html += `
+                    <div style="margin-top: 30px; text-align: center;">
+                        <button onclick="resetarComentarios()" style="background-color: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 5px;">Apagar Tudo</button>
+                    </div>
+                </div>`;
+        
+            area.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+        
+        function verDetalheComentario(lIdx, cap, ver, chave) {
+            // 1. Pega o Texto do Versículo na Bíblia
+            let textoVersiculo = "Carregando texto...";
+            if (biblia[lIdx] && biblia[lIdx].chapters[cap-1]) {
+                textoVersiculo = biblia[lIdx].chapters[cap-1][ver-1];
+            }
+            
+            // 2. Pega a Nota do Usuário
+            const notaUsuario = dadosUsuario.notas[chave] || "";
+        
+            // 3. Cria o Modal (Fundo Escuro)
+            const overlay = document.createElement('div');
+            overlay.id = 'modal-detalhe-nota';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
+            overlay.style.zIndex = '10000'; // Bem alto pra ficar por cima de tudo
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';     // Centraliza Verticalmente
+            overlay.style.justifyContent = 'center'; // Centraliza Horizontalmente
+            overlay.style.padding = '20px';
+        
+            // 4. Cria a Caixa Branca (Conteúdo)
+            const corFundo = document.body.classList.contains('modo-escuro') ? '#1e1e1e' : '#ffffff';
+            const corTexto = document.body.classList.contains('modo-escuro') ? '#ffffff' : '#000000';
+        
+            overlay.innerHTML = `
+                <div style="
+                    background-color: ${corFundo}; 
+                    color: ${corTexto};
+                    width: 100%; 
+                    max-width: 500px; 
+                    border-radius: 12px; 
+                    padding: 20px; 
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    display: flex;
+                    flex-direction: column;
+                    max-height: 80vh; /* Não deixa passar de 80% da altura da tela */
+                ">
+                    <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0; font-size:1.2rem;">${listaLivros[lIdx]} ${cap}:${ver}</h3>
+                        <button id="btn-fechar-detalhe" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:${corTexto}">×</button>
+                    </div>
+        
+                    <div style="overflow-y: auto; flex-grow: 1;">
+                        
+                        <p style="font-style: italic; margin-bottom: 15px; opacity: 0.9; line-height: 1.5;">
+                            "${textoVersiculo}"
+                        </p>
+        
+                        <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+        
+                        <strong style="display:block; margin-bottom:5px; font-size:0.9rem;">Seu Comentário:</strong>
+                        
+                        <div class="box-leitura-comentario">
+                            ${notaUsuario}
+                        </div>
+        
+                    </div>
+        
+                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="btn-apagar-nota" style="background-color: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 5px;">Apagar</button>
+                        <button id="btn-editar-nota" style="background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px;">Editar</button>
+                    </div>
+                </div>
+            `;
+        
+            document.body.appendChild(overlay);
+        
+            // --- EVENTOS DOS BOTÕES ---
+        
+            // 1. Fechar
+            document.getElementById('btn-fechar-detalhe').onclick = () => overlay.remove();
+            
+            // Fecha se clicar fora da caixinha
+            overlay.onclick = (e) => {
+                if (e.target === overlay) overlay.remove();
+            };
+        
+            // 2. Apagar
+            document.getElementById('btn-apagar-nota').onclick = () => {
+                apagarItemIndividual('notas', chave, lIdx, cap, ver);
+                overlay.remove(); // Fecha o modal após apagar
+            };
+        
+            // 3. Editar (Reaproveita tua função de abrir modal de edição se existir, ou cria lógica simples)
+            document.getElementById('btn-editar-nota').onclick = () => {
+                overlay.remove(); // Fecha este visualizador
+                
+                // Chama a função existente de abrir nota (modo edição)
+                // Se a tua função for 'abrirModalNota(lIdx, cap, ver)', chamamos ela:
+                if (typeof abrirModalNota === 'function') {
+                    abrirModalNota(lIdx, cap, ver); 
+                } else {
+                    alert("Função de edição não encontrada.");
+                }
+            };
         }
         
         // Funções de Resetar
