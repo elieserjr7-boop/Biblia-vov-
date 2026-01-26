@@ -1869,7 +1869,35 @@
         body.modo-escuro .modal-leitura-ref { color: #ecf0f1; border-color: #444; }
         body.modo-escuro .modal-leitura-texto-biblico { background-color: #333; color: #ddd; border-left-color: #2980b9; }
         body.modo-escuro .modal-leitura-comentario { background-color: #443e2a; color: #f1c40f; border-color: #555; }
+
+        /* --- CORREÇÃO FINAL DO MODAL DE NOTAS --- */
+        #leitura-nota-usuario {
+            /* Define altura máxima e barra de rolagem */
+            max-height: 40vh;          /* Máximo de 40% da altura da tela */
+            overflow-y: auto;          /* Cria scroll se passar disso */
+            
+            /* Obriga o texto a quebrar linha e não vazar */
+            word-wrap: break-word;     
+            white-space: pre-wrap;     
+            
+            /* Estilo da caixinha */
+            background-color: #fff3cd; 
+            color: #856404;            
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ffeeba;
+            font-size: 16px;
+            margin-top: 10px;
+        }
         
+        /* Ajuste para o texto do versículo também ter scroll se for gigante */
+        #leitura-texto-biblico {
+            max-height: 30vh;
+            overflow-y: auto;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -2506,14 +2534,47 @@
         
         // --- CARREGAMENTO DE BÍBLIA ---
         async function carregarVersaoBiblia(versao) {
+            // Verifica se já está em cache
             if (cacheVersoes[versao]) {
                 bibliaCompleta = cacheVersoes[versao];
+                window.biblia = bibliaCompleta; // <--- O PULO DO GATO: Cria o atalho para o modal funcionar
                 versaoCarregadaNome = versao;
+                
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
                 return;
             }
+        
+            // Verifica se já é a versão atual carregada
+            if (versaoCarregadaNome === versao && bibliaCompleta) {
+                window.biblia = bibliaCompleta; // Garante o atalho mesmo assim
+                return;
+            }
+        
+            loading.style.display = 'block';
+            try {
+                const resp = await fetch(`./${versao}.json`);
+                if(!resp.ok) throw new Error("Erro");
+                
+                const dados = await resp.json();
+                
+                cacheVersoes[versao] = dados;
+                bibliaCompleta = dados;
+                window.biblia = dados; // <--- O PULO DO GATO 2: Salva na variavel global 'biblia'
+                
+                versaoCarregadaNome = versao;
+                
+                if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
+                    lerCapitulo(capituloAtual);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao carregar versão.");
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
         
             if (versaoCarregadaNome === versao && bibliaCompleta) return;
         
