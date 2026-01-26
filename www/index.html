@@ -4096,9 +4096,9 @@
         /* --- SISTEMA DE BACKUP E RESTAURAÇÃO (MENSAGENS PERSONALIZADAS) --- */
 
         // 1. FAZER BACKUP (Gera o arquivo e baixa) */
+        /* --- FAZER BACKUP (Versão Final: Cache + Compartilhar) --- */
         async function fazerBackup() {
             try {
-                // PREPARAR DADOS
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4106,72 +4106,52 @@
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
                 };
-
-                const jsonString = JSON.stringify(pacoteDados, null, 2);
                 
-                // Define nome do arquivo
+                const jsonString = JSON.stringify(pacoteDados, null, 2);
                 const dataHoje = new Date().toISOString().split('T')[0];
                 const nomeArquivo = `biblia_backup_${dataHoje}.json`;
 
-                // --- MODO ANDROID (CAPACITOR) ---
                 if (window.Capacitor && window.Capacitor.isNative) {
-                    
                     const { Filesystem, Directory, Encoding, Share } = Capacitor.Plugins;
 
                     try {
-                        // 1. TENTA ESCREVER NA PASTA 'DOCUMENTS' (Visível)
+                        // 1. Grava na pasta CACHE (Não precisa de permissão do usuário)
                         const resultado = await Filesystem.writeFile({
                             path: nomeArquivo,
                             data: jsonString,
-                            directory: Directory.Documents,
+                            directory: Directory.Cache, // <--- Importante: Directory.Cache
                             encoding: Encoding.UTF8
                         });
 
-                        // O caminho real do arquivo no celular
-                        const caminhoArquivo = resultado.uri;
+                        // 2. Abre a janelinha para enviar para Drive/WhatsApp
+                        await Share.share({
+                            title: 'Backup da Bíblia',
+                            text: 'Aqui está seu arquivo de backup.',
+                            url: resultado.uri, 
+                            dialogTitle: 'Salvar Backup'
+                        });
 
-                        // 2. TENTA COMPARTILHAR O ARQUIVO
-                        try {
-                            await Share.share({
-                                title: 'Backup Bíblia',
-                                text: 'Guarde este arquivo em segurança.',
-                                url: caminhoArquivo, 
-                                dialogTitle: 'Salvar Backup'
-                            });
-                        } catch (shareError) {
-                            console.log("Usuário fechou o compartilhamento ou deu erro: " + shareError);
-                            // Não faz mal se der erro aqui, pois o arquivo já foi salvo no passo 1
-                        }
-
-                        // AVISO DE SUCESSO
-                        mostrarAlerta(
-                            `Arquivo salvo com sucesso!\n\nProcure na pasta "Documentos" do seu celular pelo arquivo:\n📂 ${nomeArquivo}`, 
-                            "Backup Realizado ✅"
-                        );
-
-                    } catch (erroGravacao) {
-                        console.error("Erro ao gravar: ", erroGravacao);
-                        mostrarAlerta("Erro ao salvar o arquivo no armazenamento do celular. Verifique as permissões.", "Erro ❌");
+                    } catch (erro) {
+                        console.error("Erro ao compartilhar:", erro);
+                        // O usuário pode ter cancelado a janela, não é necessariamente um erro crítico
                     }
 
                 } else {
-                    // --- MODO WEB (COMPUTADOR) ---
+                    // Versão PC/Navegador
                     const blob = new Blob([jsonString], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = nomeArquivo;
                     document.body.appendChild(a);
-                    a.click(); 
-                    document.body.removeChild(a); 
-                    URL.revokeObjectURL(url); 
-
-                    mostrarAlerta("Arquivo salvo em Downloads.", "Sucesso ✅");
+                    a.click();
+                    document.body.removeChild(a);
+                    mostrarAlerta("Download iniciado.", "Sucesso ✅");
                 }
 
             } catch (e) {
-                console.error("Erro geral:", e);
-                mostrarAlerta("Ocorreu um erro inesperado.", "Erro ❌");
+                console.error(e);
+                mostrarAlerta("Erro ao gerar backup.", "Erro ❌");
             }
         }
         // 2. ACIONAR RESTAURAÇÃO
