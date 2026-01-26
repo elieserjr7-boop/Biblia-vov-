@@ -2906,24 +2906,32 @@
         // --- FUNÇÃO DE COMPARAÇÃO (ATUALIZADA COM BOTÃO DE TEMA) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
             // 1. Fecha menus que possam estar abertos
-            fecharModalVersiculo(); 
+            if (typeof fecharModalVersiculo === 'function') fecharModalVersiculo();
+            
             const telaAntiga = document.getElementById('overlay-comparacao');
             if (telaAntiga) telaAntiga.remove();
         
             // 2. Cria o Overlay (A tela cheia)
             const overlay = document.createElement('div');
             overlay.id = 'overlay-comparacao';
-            
-            // Configuração visual para garantir que cobre tudo e permite rolagem
+        
+            // --- CONFIGURAÇÃO VISUAL ---
             overlay.style.position = 'fixed';
             overlay.style.top = '0';
             overlay.style.left = '0';
             overlay.style.width = '100%';
             overlay.style.height = '100%';
-            overlay.style.zIndex = '9999'; 
+            overlay.style.zIndex = '9999';
             overlay.style.backgroundColor = document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7';
             overlay.style.display = 'flex';
             overlay.style.flexDirection = 'column';
+        
+            // --- CORREÇÃO PARA O CAPACITOR / CELULAR ---
+            // Verifica se a largura é de telemóvel (ex: menor que 768px)
+            if (window.innerWidth <= 768) {
+                // 'env' pega o tamanho do notch. 'max' garante no mínimo 35px se o env for 0.
+                overlay.style.paddingTop = 'max(env(safe-area-inset-top), 35px)'; 
+            }
         
             // 3. O NOVO CABEÇALHO (Com o botão de tema incluído!)
             overlay.innerHTML = `
@@ -2952,17 +2960,30 @@
                 document.body.style.overflow = ''; 
             };
         
+            // Função auxiliar para atualizar a cor do fundo do overlay se trocar o tema lá dentro
+            window.atualizarCorOverlay = function() {
+                const overlayAtivo = document.getElementById('overlay-comparacao');
+                if(overlayAtivo) {
+                    overlayAtivo.style.backgroundColor = document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7';
+                }
+            };
+        
             // 5. Carrega os textos (Mesma lógica de antes)
             const listaContainer = document.getElementById('lista-comparacao-cheia');
-            const promises = listaVersoesDisponiveis.map(async item => {
+            
+            // Verifica se listaVersoesDisponiveis existe, senão usa array vazio para não dar erro
+            const versoesParaCarregar = (typeof listaVersoesDisponiveis !== 'undefined') ? listaVersoesDisponiveis : [];
+        
+            const promises = versoesParaCarregar.map(async item => {
                 const v = item.sigla;
                 try {
-                    let dadosVersao = cacheVersoes[v];
+                    let dadosVersao = (typeof cacheVersoes !== 'undefined') ? cacheVersoes[v] : null;
+                    
                     if (!dadosVersao) {
                         const r = await fetch(`./${v}.json`);
                         if(r.ok) {
                             dadosVersao = await r.json();
-                            cacheVersoes[v] = dadosVersao;
+                            if (typeof cacheVersoes !== 'undefined') cacheVersoes[v] = dadosVersao;
                         }
                     }
                     if(dadosVersao && dadosVersao[idxLivro]?.chapters?.[cap-1]) {
