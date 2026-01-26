@@ -1898,6 +1898,27 @@
             line-height: 1.6;
             margin-bottom: 15px;
         }
+        
+        /* Garante que o modal mude de cor no modo escuro */
+        body.dark-mode .modal-content {
+            background-color: #2c3e50; /* Fundo escuro */
+            color: #ecf0f1;           /* Texto claro */
+            border: 1px solid #444;
+        }
+        
+        body:not(.dark-mode) .modal-content {
+            background-color: #fff;   /* Fundo claro */
+            color: #333;              /* Texto escuro */
+        }
+        
+        /* Centralização padrão (caso não tenha) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -2157,6 +2178,27 @@
                 Editar Comentário
             </button>
     
+        </div>
+    </div>
+
+    <div id="modal-alerta" class="modal-overlay escondido" onclick="fecharAlerta()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="modal-alerta-msg" style="margin-top: 0; margin-bottom: 20px; text-align: center;">Aviso</h3>
+            
+            <div style="display: flex; justify-content: center;">
+                <button onclick="fecharAlerta()" style="
+                    background-color: #2ecc71; 
+                    color: white; 
+                    border: none; 
+                    padding: 10px 30px; 
+                    border-radius: 8px; 
+                    font-size: 16px; 
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    OK
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2530,6 +2572,29 @@
                 document.body.classList.add('modo-escuro');
             }
             atualizarMetaColor(escuroSalvo);
+        }
+
+        /* --- FUNÇÃO AUXILIAR PARA MOSTRAR ALERTA BONITO --- */
+        function mostrarAlerta(mensagem) {
+            const modal = document.getElementById('modal-alerta');
+            const msgEl = document.getElementById('modal-alerta-msg');
+            
+            if (modal && msgEl) {
+                msgEl.innerText = mensagem;
+                modal.classList.remove('escondido');
+                modal.style.display = 'flex'; // Garante que apareça
+            } else {
+                // Fallback caso esqueça de colocar o HTML
+                alert(mensagem);
+            }
+        }
+        
+        function fecharAlerta() {
+            const modal = document.getElementById('modal-alerta');
+            if (modal) {
+                modal.classList.add('escondido');
+                modal.style.display = 'none';
+            }
         }
         
         // --- CARREGAMENTO DE BÍBLIA ---
@@ -3075,7 +3140,10 @@
         
         function realizarBusca() {
             const termo = document.getElementById('input-busca').value.trim();
-            if (termo.length < 3) return alert("Digite pelo menos 3 letras.");
+            if (termo.length < 3) {
+                mostrarAlerta("Digite pelo menos 3 letras.");
+                return;
+            }
             if (!bibliaCompleta) return alert("Aguarde o carregamento.");
         
             document.getElementById('input-busca').blur();
@@ -3497,14 +3565,21 @@
         }
         
         function copiarVersoSelecionado() {
+            // Monta o texto
             const textoFinal = `${versoSelecionado.texto} \n(${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num})`;
             
+            // Copia para a área de transferência
             navigator.clipboard.writeText(textoFinal).then(() => {
-                alert("Versículo copiado!");
+                // Fecha o modal de opções do versículo primeiro
                 fecharModalVerso();
+                
+                // MOSTRA O ALERTA BONITO
+                mostrarAlerta("Versículo copiado!");
+                
             }).catch(err => {
                 console.error('Erro ao copiar', err);
-                alert("Erro ao copiar. Tente selecionar manualmente.");
+                fecharModalVerso();
+                mostrarAlerta("Erro ao copiar. Tente selecionar manualmente.");
             });
         }
         
