@@ -3671,12 +3671,33 @@
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
         /* --- VARIÁVEL GLOBAL PARA SABER QUAL NOTA ESTAMOS LENDO --- */
         let notaSendoLida = null; 
+
+        /* --- HELPER: Converte sigla (ex: "gn") para índice numérico (ex: 0) --- */
+        function obterIndicePorSigla(sigla) {
+            const mapa = {
+                "gn": 0, "ex": 1, "lv": 2, "nm": 3, "dt": 4, "js": 5, "jz": 6, "rt": 7,
+                "1sm": 8, "2sm": 9, "1rs": 10, "2rs": 11, "1cr": 12, "2cr": 13, "ed": 14,
+                "ne": 15, "et": 16, "job": 17, "sl": 18, "pv": 19, "ec": 20, "ct": 21,
+                "is": 22, "jr": 23, "lm": 24, "ez": 25, "dn": 26, "os": 27, "jl": 28,
+                "am": 29, "ob": 30, "jn": 31, "mq": 32, "na": 33, "hc": 34, "sf": 35,
+                "ag": 36, "zc": 37, "ml": 38, "mt": 39, "mc": 40, "lc": 41, "jo": 42,
+                "at": 43, "rm": 44, "1co": 45, "2co": 46, "gl": 47, "ef": 48, "fp": 49,
+                "cl": 50, "1ts": 51, "2ts": 52, "1tm": 53, "2tm": 54, "tt": 55, "fl": 56,
+                "hb": 57, "tg": 58, "1pe": 59, "2pe": 60, "1jo": 61, "2jo": 62, "3jo": 63,
+                "jd": 64, "ap": 65
+            };
+            // Retorna o índice ou -1 se não achar
+            return (mapa[sigla] !== undefined) ? mapa[sigla] : -1;
+        }
         
         /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
         function abrirTelaComentarios() {
+            // Esconde as outras telas
             document.getElementById('menu-perfil-principal').style.display = 'none';
-            const subTelas = ['view-favoritos', 'view-progressao'];
-            subTelas.forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+            ['view-favoritos', 'view-progressao'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) el.style.display='none'; 
+            });
         
             const telaView = document.getElementById('view-comentarios');
             if(telaView) {
@@ -3688,6 +3709,8 @@
             if(!container) return;
             
             container.innerHTML = '';
+            
+            // Verifica se existem notas
             if (!dadosUsuario.notas) dadosUsuario.notas = {};
             const chaves = Object.keys(dadosUsuario.notas);
         
@@ -3696,45 +3719,41 @@
                 return;
             }
         
+            // Inverte para mostrar as mais recentes primeiro
             chaves.reverse();
-            
-            // --- LISTA DE SIGLAS ---
-            const siglasBiblicas = [
-                "gn", "ex", "lv", "nm", "dt", "js", "jz", "rt", "1sm", "2sm", "1rs", "2rs", "1cr", "2cr", "ed", "ne", "et", "job", "sl", "pv", "ec", "ct", "is", "jr", "lm", "ez", "dn", "os", "jl", "am", "ob", "jn", "mq", "na", "hc", "sf", "ag", "zc", "ml",
-                "mt", "mc", "lc", "jo", "at", "rm", "1co", "2co", "gl", "ef", "fp", "cl", "1ts", "2ts", "1tm", "2tm", "tt", "fl", "hb", "tg", "1pe", "2pe", "1jo", "2jo", "3jo", "jd", "ap"
-            ];
         
             chaves.forEach(chave => {
                 const partes = chave.split('_');
-                const livSigla = partes[0].toLowerCase();
+                const livSigla = partes[0];
                 const cap = parseInt(partes[1]);
                 const ver = parseInt(partes[2]);
         
-                // Busca Texto da Nota
+                // 1. Busca Texto da Nota
                 let conteudoNota = dadosUsuario.notas[chave];
                 let textoReal = (typeof conteudoNota === 'object' && conteudoNota !== null) ? (conteudoNota.texto || "") : conteudoNota;
         
-                // Busca Índice do Livro
-                let indiceLivro = siglasBiblicas.indexOf(livSigla);
-                if (indiceLivro === -1 && livSigla === 'jo') indiceLivro = 42; 
+                // 2. Converte Sigla para Índice (CORREÇÃO)
+                const indiceLivro = obterIndicePorSigla(livSigla);
         
-                // Busca Nome do Livro
+                // 3. Pega Nome do Livro
                 let nomeLivro = livSigla.toUpperCase();
-                if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+                if (indiceLivro !== -1 && typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
                     nomeLivro = listaLivros[indiceLivro];
                 }
                 
-                // Busca Texto Versículo
+                // 4. Pega Texto do Versículo
                 let textoVersiculo = "Carregando texto...";
-                try {
-                    const bibliaAlvo = window.bibliaCompleta || window.biblia || (typeof bibliaCompleta !== 'undefined' ? bibliaCompleta : null);
-                    if(bibliaAlvo && indiceLivro !== -1 && bibliaAlvo[indiceLivro]) {
-                         if (bibliaAlvo[indiceLivro].chapters && bibliaAlvo[indiceLivro].chapters[cap-1]) {
-                             textoVersiculo = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
-                         }
+                if (bibliaCompleta && indiceLivro !== -1 && bibliaCompleta[indiceLivro]) {
+                    try {
+                        textoVersiculo = bibliaCompleta[indiceLivro].chapters[cap-1][ver-1];
+                    } catch(e) {
+                        textoVersiculo = "Texto indisponível";
                     }
-                } catch(e) {}
+                } else if (!bibliaCompleta) {
+                    textoVersiculo = "Aguardando Bíblia..."; // Caso a bíblia ainda não tenha carregado
+                }
         
+                // 5. Cria o elemento HTML
                 const div = document.createElement('div');
                 div.className = 'item-ref'; 
                 div.onclick = function() { verNotaCompleta(chave); };
@@ -3743,12 +3762,15 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <span class="res-ref">${nomeLivro} ${cap}:${ver}</span>
-                            <div style="font-size:14px; color:#555; margin-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">"${textoVersiculo}"</div>
+                            <div style="font-size:14px; color:#555; margin-bottom:8px; 
+                                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style:italic;">
+                                "${textoVersiculo}"
+                            </div>
                         </div>
                         <button onclick="event.stopPropagation(); apagarItemIndividual('notas', '${chave}', '${livSigla}', ${cap}, ${ver})" 
-                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 10px;">✖</button>
+                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 0 0 15px;">✖</button>
                     </div>
-                    <div class="nota-preview">${textoReal}</div>
+                    <div class="nota-preview" style="border-left: 3px solid #f39c12; padding-left: 8px;">${textoReal}</div>
                 `;
                 container.appendChild(div);
             });
@@ -3756,69 +3778,45 @@
         
         /* --- 2. FUNÇÃO PARA VOLTAR AO MENU DE PERFIL (Necessária no seu HTML) --- */
         function verNotaCompleta(chave) {
-            notaSendoLida = chave;
+            notaSendoLida = chave; // Guarda a chave globalmente
             
             const partes = chave.split('_');
-            const livSigla = partes[0].toLowerCase(); // Garante minúsculo
+            const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
         
-            // --- 1. LISTA DE SIGLAS (Para achar o índice do livro) ---
-            // A ordem TEM que ser a mesma da const listaLivros = ["Gênesis", "Êxodo"...]
-            const siglasBiblicas = [
-                "gn", "ex", "lv", "nm", "dt", "js", "jz", "rt", "1sm", "2sm", "1rs", "2rs", "1cr", "2cr", "ed", "ne", "et", "job", "sl", "pv", "ec", "ct", "is", "jr", "lm", "ez", "dn", "os", "jl", "am", "ob", "jn", "mq", "na", "hc", "sf", "ag", "zc", "ml",
-                "mt", "mc", "lc", "jo", "at", "rm", "1co", "2co", "gl", "ef", "fp", "cl", "1ts", "2ts", "1tm", "2tm", "tt", "fl", "hb", "tg", "1pe", "2pe", "1jo", "2jo", "3jo", "jd", "ap"
-            ];
-            
-            // Tratamento especial para Jó/João se necessário (alguns sistemas usam 'jo' para João e 'job' para Jó)
-            // Se sua chave usa 'jo' para João, ok. Se usa 'jo' para Jó, ajuste a lista acima.
+            // 1. Descobre o índice correto usando a lógica dos Favoritos
+            const indiceLivro = obterIndicePorSigla(livSigla);
         
-            // Descobre o índice (Ex: 'gn' -> 0)
-            let indiceLivro = siglasBiblicas.indexOf(livSigla);
-            
-            // Se não achou (ex: 'job' vs 'jo'), tenta fallback
-            if (indiceLivro === -1 && livSigla === 'jo') indiceLivro = 42; // Tenta João (43º livro, index 42)
-            
-            // Tenta pegar o nome bonito
+            // 2. Define Título (Nome do Livro)
             let nomeLivro = livSigla.toUpperCase();
-            if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+            if (indiceLivro !== -1 && typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
                 nomeLivro = listaLivros[indiceLivro];
             }
-        
-            // 2. Título
+            
             const tituloEl = document.getElementById('leitura-titulo');
             if(tituloEl) tituloEl.innerText = `${nomeLivro} ${cap}:${ver}`;
         
-            // 3. BUSCA O TEXTO BÍBLICO (Agora usando o índice correto)
+            // 3. Busca o Texto Bíblico (BLINDADO)
             let textoBiblico = "Texto indisponível.";
             
-            try {
-                // Tenta pegar a bíblia global
-                const bibliaAlvo = window.bibliaCompleta || window.biblia || (typeof bibliaCompleta !== 'undefined' ? bibliaCompleta : null);
-        
-                if (bibliaAlvo && indiceLivro !== -1 && bibliaAlvo[indiceLivro]) {
-                    const livroObj = bibliaAlvo[indiceLivro];
-                    
-                    // Verifica se a estrutura é .chapters ou direta
-                    // Estrutura comum: livroObj.chapters[cap-1][ver-1]
-                    if (livroObj.chapters && livroObj.chapters[cap-1]) {
-                        textoBiblico = livroObj.chapters[cap-1][ver-1];
-                    } 
-                    // Estrutura alternativa: livroObj[cap-1][ver-1] (array direto)
-                    else if (Array.isArray(livroObj) && livroObj[cap-1]) {
-                        textoBiblico = livroObj[cap-1][ver-1];
-                    }
+            // Tenta carregar da variável carregada
+            if (bibliaCompleta && indiceLivro !== -1 && bibliaCompleta[indiceLivro]) {
+                try {
+                    // A estrutura no JSON é .chapters[cap-1][ver-1]
+                    textoBiblico = bibliaCompleta[indiceLivro].chapters[cap-1][ver-1];
+                } catch (e) {
+                    console.error("Erro ao acessar versículo:", e);
                 }
-            } catch (erro) {
-                console.log("Erro ao ler bíblia:", erro);
             }
-            
+        
             const textoBiblicoEl = document.getElementById('leitura-texto-biblico');
             if(textoBiblicoEl) textoBiblicoEl.innerText = `"${textoBiblico}"`;
         
-            // 4. Nota do Usuário
+            // 4. Mostra o texto da nota do usuário
             let conteudoNota = dadosUsuario.notas[chave];
             let textoReal = "";
+            
             if (typeof conteudoNota === 'object' && conteudoNota !== null) {
                 textoReal = conteudoNota.texto || conteudoNota.conteudo || "";
             } else {
@@ -3828,7 +3826,7 @@
             const notaEl = document.getElementById('leitura-nota-usuario');
             if(notaEl) notaEl.innerText = textoReal;
         
-            // 5. Abre Modal
+            // 5. Abre o Modal
             const modal = document.getElementById('modal-leitura-nota');
             if(modal) {
                 modal.style.display = 'flex';
