@@ -1734,50 +1734,23 @@
             color: #fff !important;
         }
 
-        /* ==========================================================================
-           CORREÇÃO CIRÚRGICA (CAPACITOR/APK)
-           ========================================================================== */
-        
-        /* 1. RESOLVER O "VER EM OUTRAS VERSÕES" ATRÁS DO RELÓGIO */
-        /* Identifiquei que é um modal de overlay. Vamos dar um empurrãozinho interno no topo. */
-        .modal-overlay, #overlay-comparacao {
-            /* Adiciona margem interna no topo igual ao tamanho do entalhe da câmera */
+        /* Correção Específica para o Modal "Ver em Outras Versões" */
+        #overlay-comparacao {
+            /* O padding-top empurra o conteúdo (botão voltar/título) para baixo */
+            /* env(safe-area-inset-top) pega o tamanho exato do relógio/câmera */
             padding-top: env(safe-area-inset-top, 20px) !important;
             
-            /* Garante que o conteúdo comece do topo ajustado e não "flutue" para o meio */
+            /* Garante que o conteúdo começa do topo (após o padding) e não no meio */
             justify-content: flex-start !important; 
+            
+            /* Garante que a cor de fundo vá até lá em cima (atrás do relógio) */
+            background-color: var(--cor-fundo-principal) !important;
         }
         
-        /* Garante que o cabeçalho DENTRO desse modal tenha espaço se necessário */
-        .cabecalho-modal, .modal-header {
-            /* Um pequeno respiro extra para o botão de fechar não colar na borda */
-            margin-top: 10px !important; 
-        }
-        
-        
-        /* 2. RESOLVER O MODAL DE LEITURA (COBRIR AS ABAS) */
-        /* O problema é que o z-index das abas deve ser alto, ou a altura não está 100% */
-        
-        #modal-leitura-perfil {
-            /* Z-INDEX SUPREMO: Garante que fica na frente de TUDO (abas, rodapé, tudo) */
-            z-index: 99999 !important; 
-        }
-        
-        /* Quando estiver em tela cheia (ou por padrão se ele for full-screen) */
-        #modal-leitura-perfil .janela-leitura-perfil,
-        .janela-leitura-perfil {
-            /* Força altura total da tela */
-            height: 100vh !important;
-            height: 100% !important;
-            
-            /* Garante que cola no fundo para tapar as abas */
-            bottom: 0 !important;
-            
-            /* Garante fundo sólido (para não ver as abas através dele) */
-            background-color: var(--cor-fundo-principal, #fff) !important; 
-            
-            /* Proteção extra para o conteúdo não colar no notch neste modal também */
-            padding-top: env(safe-area-inset-top, 0px) !important;
+        /* Ajuste fino para o cabeçalho interno desse modal não ficar colado */
+        #overlay-comparacao .cabecalho-modal {
+            margin-top: 10px !important; /* Um respiro extra */
+            padding-bottom: 10px !important;
         }
         
     </style>
