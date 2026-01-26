@@ -2601,8 +2601,23 @@
         }
         
         function voltarMenuPerfil() {
-            esconderTodasSubTelas();
-            document.getElementById('menu-perfil-principal').classList.remove('escondido');
+            // 1. Esconde TODAS as sub-telas manualmente para não ter erro
+            const subTelas = ['view-comentarios', 'view-favoritos', 'view-progressao'];
+            
+            subTelas.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.style.display = 'none';
+                    el.classList.add('escondido'); // Garante via classe também
+                }
+            });
+        
+            // 2. Mostra o Menu Principal
+            const menu = document.getElementById('menu-perfil-principal');
+            if(menu) {
+                menu.style.display = 'block';
+                menu.classList.remove('escondido');
+            }
         }
 
         /* --- NAVEGAÇÃO ENTRE TELAS --- */
@@ -3683,62 +3698,55 @@
             const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
-            const nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
         
-            // 1. Título
-            document.getElementById('leitura-titulo').innerText = `${nomeLivro} ${cap}:${ver}`;
+            // Tenta pegar o nome do livro com segurança
+            let nomeLivro = livSigla.toUpperCase();
+            if (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) {
+                nomeLivro = nomesLivros[livSigla];
+            }
         
-            // 2. Versículo (CORREÇÃO DE SEGURANÇA AQUI)
-            let textoBiblico = "Texto indisponível no momento.";
+            // 1. Preenche o Título
+            const tituloEl = document.getElementById('leitura-titulo');
+            if(tituloEl) tituloEl.innerText = `${nomeLivro} ${cap}:${ver}`;
+        
+            // 2. BLINDAGEM DO TEXTO BÍBLICO (Aqui estava o erro)
+            let textoBiblico = "Aguardando carregamento da Bíblia...";
             
-            // Verifica se a variavel 'biblia' existe ANTES de tentar ler
-            if (typeof biblia !== 'undefined' && biblia[livSigla] && biblia[livSigla][cap-1]) {
-                textoBiblico = biblia[livSigla][cap-1][ver-1];
+            // Verifica se 'biblia' existe no escopo global (window) ou local
+            // Se der erro, ele cai no 'catch' e não trava o app
+            try {
+                if (typeof window.biblia !== 'undefined' && window.biblia[livSigla]) {
+                    textoBiblico = window.biblia[livSigla][cap-1][ver-1];
+                } else if (typeof biblia !== 'undefined' && biblia[livSigla]) {
+                    textoBiblico = biblia[livSigla][cap-1][ver-1];
+                }
+            } catch (erro) {
+                console.log("Bíblia ainda não carregou totalmente:", erro);
             }
             
-            document.getElementById('leitura-texto-biblico').innerText = `"${textoBiblico}"`;
+            const textoBiblicoEl = document.getElementById('leitura-texto-biblico');
+            if(textoBiblicoEl) textoBiblicoEl.innerText = `"${textoBiblico}"`;
         
-            // 3. Nota (CORREÇÃO DO OBJECT OBJECT TAMBÉM AQUI)
+            // 3. Preenche a Nota do Usuário
             let conteudoNota = dadosUsuario.notas[chave];
             let textoReal = "";
+            
+            // Tratamento para [object Object]
             if (typeof conteudoNota === 'object' && conteudoNota !== null) {
                 textoReal = conteudoNota.texto || conteudoNota.conteudo || "";
             } else {
                 textoReal = conteudoNota || "";
             }
             
-            document.getElementById('leitura-nota-usuario').innerText = textoReal;
+            const notaEl = document.getElementById('leitura-nota-usuario');
+            if(notaEl) notaEl.innerText = textoReal;
         
-            // 4. Abrir Modal
-            document.getElementById('modal-leitura-nota').style.display = 'flex';
-        }
-        
-        /* --- 3. FUNÇÃO DO MODAL DE LEITURA (Mantida a mesma) --- */
-        function verNotaCompleta(chave) {
-            notaSendoLida = chave;
-            
-            const partes = chave.split('_');
-            const livSigla = partes[0];
-            const cap = parseInt(partes[1]);
-            const ver = parseInt(partes[2]);
-            const nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
-        
-            // 1. Título
-            document.getElementById('leitura-titulo').innerText = `${nomeLivro} ${cap}:${ver}`;
-        
-            // 2. Versículo
-            let textoBiblico = "Texto indisponível.";
-            if (biblia && biblia[livSigla] && biblia[livSigla][cap-1]) {
-                textoBiblico = biblia[livSigla][cap-1][ver-1];
+            // 4. Abre o Modal Manualmente
+            const modal = document.getElementById('modal-leitura-nota');
+            if(modal) {
+                modal.style.display = 'flex';
+                modal.classList.remove('escondido');
             }
-            document.getElementById('leitura-texto-biblico').innerText = `"${textoBiblico}"`;
-        
-            // 3. Nota
-            const textoNota = dadosUsuario.notas[chave] || "";
-            document.getElementById('leitura-nota-usuario').innerText = textoNota;
-        
-            // 4. Abrir Modal (ID verificado no seu HTML: modal-leitura-nota)
-            document.getElementById('modal-leitura-nota').style.display = 'flex';
         }
         
         function fecharModalLeitura(event) {
