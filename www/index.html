@@ -3692,9 +3692,12 @@
         
         /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
         function abrirTelaComentarios() {
+            // Gestão das telas
             document.getElementById('menu-perfil-principal').style.display = 'none';
-            const subTelas = ['view-favoritos', 'view-progressao'];
-            subTelas.forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+            ['view-favoritos', 'view-progressao'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) el.style.display='none'; 
+            });
         
             const telaView = document.getElementById('view-comentarios');
             if(telaView) {
@@ -3706,6 +3709,7 @@
             if(!container) return;
             
             container.innerHTML = '';
+            
             if (!dadosUsuario.notas) dadosUsuario.notas = {};
             const chaves = Object.keys(dadosUsuario.notas);
         
@@ -3716,38 +3720,64 @@
         
             chaves.reverse();
             
-            // Tenta pegar a bíblia de qualquer jeito
-            const bibliaAlvo = window.bibliaCompleta || window.biblia || bibliaCompleta;
+            // FORÇA O USO DA BÍBLIA GLOBAL
+            // Se window.bibliaCompleta estiver vazio, tenta window.biblia
+            const bibliaAlvo = window.bibliaCompleta || window.biblia;
+        
+            if (!bibliaAlvo) {
+                console.warn("⚠️ AVISO: Bíblia ainda não carregou na variável global.");
+            }
         
             chaves.forEach(chave => {
+                // Ex: chave = "gn_1_1"
                 const partes = chave.split('_');
-                const livSigla = partes[0];
+                
+                // --- CORREÇÃO DE SEGURANÇA ---
+                // Garante que pegamos a sigla em minúsculo independente de como salvou
+                const livSigla = partes[0].toLowerCase(); 
                 const cap = parseInt(partes[1]);
                 const ver = parseInt(partes[2]);
         
-                // Texto da Nota
+                // 1. Texto da Nota
                 let conteudoNota = dadosUsuario.notas[chave];
                 let textoReal = (typeof conteudoNota === 'object' && conteudoNota !== null) ? (conteudoNota.texto || "") : conteudoNota;
         
-                // --- BUSCA O TEXTO BÍBLICO ---
-                let textoVersiculo = "Carregando texto...";
-                let nomeLivro = livSigla.toUpperCase();
-        
+                // 2. Busca Nome e Índice
                 const indiceLivro = obterIndicePorSigla(livSigla);
-        
-                if (bibliaAlvo && indiceLivro !== -1) {
-                    // Pega o nome bonito
-                    if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
-                        nomeLivro = listaLivros[indiceLivro];
-                    }
-                    // Pega o versículo
-                    try {
-                        if (bibliaAlvo[indiceLivro] && bibliaAlvo[indiceLivro].chapters) {
-                            textoVersiculo = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
-                        }
-                    } catch(e) { console.log(e); }
+                
+                let nomeLivro = livSigla.toUpperCase();
+                // Tenta pegar nome bonito da lista de nomes, se existir
+                if (indiceLivro !== -1 && typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+                    nomeLivro = listaLivros[indiceLivro];
                 }
         
+                // 3. BUSCA O VERSÍCULO (Com logs para debug)
+                let textoVersiculo = "Carregando texto...";
+                
+                if (bibliaAlvo && indiceLivro !== -1) {
+                    try {
+                        // Tenta acessar o caminho que vimos funcionar no console:
+                        // bibliaAlvo[0].chapters[0][0]
+                        if (bibliaAlvo[indiceLivro] && bibliaAlvo[indiceLivro].chapters) {
+                            const textoEncontrado = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
+                            if (textoEncontrado) {
+                                textoVersiculo = textoEncontrado;
+                            } else {
+                                textoVersiculo = "Versículo não encontrado no índice.";
+                            }
+                        } else {
+                            textoVersiculo = "Erro na estrutura do livro.";
+                        }
+                    } catch(e) {
+                        console.error("Erro ao ler nota:", chave, e);
+                        textoVersiculo = "Erro ao ler.";
+                    }
+                } else {
+                    if(!bibliaAlvo) textoVersiculo = "Aguardando carregamento da Bíblia...";
+                    if(indiceLivro === -1) textoVersiculo = `Livro não reconhecido (${livSigla})`;
+                }
+        
+                // 4. Renderiza
                 const div = document.createElement('div');
                 div.className = 'item-ref'; 
                 div.onclick = function() { verNotaCompleta(chave); };
@@ -3756,12 +3786,14 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <span class="res-ref">${nomeLivro} ${cap}:${ver}</span>
-                            <div style="font-size:14px; color:#555; margin-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">"${textoVersiculo}"</div>
+                            <div style="font-size:14px; color:#555; margin-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style:italic;">
+                                "${textoVersiculo}"
+                            </div>
                         </div>
                         <button onclick="event.stopPropagation(); apagarItemIndividual('notas', '${chave}', '${livSigla}', ${cap}, ${ver})" 
-                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 10px;">✖</button>
+                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 0 0 15px;">✖</button>
                     </div>
-                    <div class="nota-preview">${textoReal}</div>
+                    <div class="nota-preview" style="border-left: 3px solid #f39c12; padding-left: 8px;">${textoReal}</div>
                 `;
                 container.appendChild(div);
             });
