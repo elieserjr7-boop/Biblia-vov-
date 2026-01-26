@@ -1735,87 +1735,92 @@
         }
 
         /* ==========================================================================
-           CORREÇÃO FINAL (CAPACITOR / NOTCH) - COLE NO FIM DO SEU CSS
+           AJUSTES FINAIS DE LAYOUT E SAFE-AREA (CAPACITOR & MOBILE)
            ========================================================================== */
         
-        /* 1. VARIÁVEIS DE SEGURANÇA (Não mexem no layout do PC) */
-        :root {
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        
-        /* 2. CABEÇALHO - Apenas empurra o conteúdo, não muda o display */
+        /* 1. CABEÇALHO: CENTRALIZAÇÃO E SAFE-AREA */
         #cabecalho-principal {
-            /* Soma o padding original (se houver) com a área do notch */
-            padding-top: var(--safe-top) !important;
+            /* Adiciona padding no topo baseado no entalhe do celular (0px no PC) */
+            padding-top: env(safe-area-inset-top, 0px) !important;
             
-            /* Permite que a altura cresça apenas o necessário */
+            /* Mantém altura automática mas define um mínimo para garantir toque */
             height: auto !important;
-            min-height: 60px !important; /* Mantém a tua altura original como mínima */
+            min-height: 60px !important;
             
-            /* Garante alinhamento sem quebrar o flexbox original */
-            align-items: center !important; 
+            /* Garante que os itens fiquem alinhados no meio verticalmente */
+            align-items: center !important;
         }
         
-        /* AJUSTES VISUAIS ESPECÍFICOS QUE PEDISTE */
-        /* Título mais à direita */
-        #titulo-livro, #cabecalho-principal h1 {
-            margin-left: 15px !important; 
+        /* 2. TÍTULO: MAIS À DIREITA */
+        /* Afasta o título do ícone de menu/hambúrguer */
+        #titulo-livro, 
+        #cabecalho-principal h1 {
+            margin-left: 20px !important; 
         }
         
-        /* Botão de Tema (Sol/Lua) centralizado verticalmente */
+        /* 3. BOTÃO DE TEMA (SOL/LUA): CENTRALIZADO */
+        /* Corrige o botão que estava "fora de margem" */
         #btn-tema {
             margin-top: 0 !important;
-            align-self: center !important;
+            align-self: center !important; /* Força o centro vertical */
+            display: flex !important;
+            align-items: center !important;
         }
         
-        /* Seletor de versão menor e mais discreto */
-        .seletor-versao-container select, #seletor-versao {
-            height: 30px !important;
-            font-size: 14px !important;
+        /* 4. SELETOR DE VERSÃO: MENOR */
+        /* Deixa o botão de escolher a bíblia mais delicado */
+        .seletor-versao-container select, 
+        #seletor-versao {
+            height: 28px !important;
+            font-size: 13px !important;
             padding: 0 5px !important;
-            margin-top: 0 !important; /* Remove margem que empurrava para baixo */
+            margin-right: 8px !important;
         }
         
-        /* 3. RODAPÉ / ABAS - Proteção contra barra de gestos */
+        /* 5. MENU INFERIOR (ABAS): SUBIR UM POUCO */
         #rodape-nav, #menu-inferior {
-            /* Adiciona espaço extra em baixo apenas se for telemóvel */
-            padding-bottom: var(--safe-bottom) !important;
+            /* Adiciona a área de segurança em baixo */
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
             
-            /* A altura adapta-se: altura base + área segura */
-            height: calc(70px + var(--safe-bottom)) !important;
+            /* A altura cresce junto com a área segura */
+            height: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
             
-            /* Garante que o padding não "coma" o tamanho dos ícones */
+            /* Garante que o padding some e não esmague o conteúdo */
             box-sizing: content-box !important;
         }
-        
-        /* Sobe os ícones das abas para não ficarem colados em baixo */
+        /* Alinha os ícones mais para cima na barra */
         .aba, .btn-nav {
-            height: 70px !important; 
-            justify-content: flex-start !important; /* Alinha mais ao topo */
-            padding-top: 10px !important; /* Dá um respiro superior */
+            justify-content: flex-start !important;
+            padding-top: 12px !important; /* Ajuste fino para subir os ícones */
+            height: 100% !important;
         }
         
-        /* 4. MODAIS E CONTEÚDO (Evitar sobreposição) */
-        
-        /* Modal de Versões / Comentários - Impede que fique atrás da câmera */
-        .modal-overlay, .modal-bottom-sheet, #overlay-comparacao {
-            padding-top: calc(40px + var(--safe-top)) !important; 
-            padding-bottom: var(--safe-bottom) !important;
+        /* 6. MODAIS (O PROBLEMA DO "SOBE DEMAIS") */
+        /* Isso impede que o modal de versões/comparação fique debaixo da câmera */
+        .modal-overlay, 
+        #overlay-comparacao, 
+        .janela-leitura-perfil {
+            /* Se o modal for fixo no topo, adicionamos uma margem de segurança GRANDE */
+            padding-top: calc(45px + env(safe-area-inset-top, 0px)) !important;
+            
+            /* Proteção também no fundo */
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
         }
         
-        /* Corpo do texto - Empurra para baixo para compensar o cabeçalho maior */
+        /* 7. TEXTO DA BÍBLIA */
+        /* Compensa o cabeçalho no topo e o menu embaixo */
         main, #container-leitura {
-            /* 80px base + espaço do notch */
-            padding-top: calc(80px + var(--safe-top)) !important; 
-            padding-bottom: calc(90px + var(--safe-bottom)) !important;
+            padding-top: calc(75px + env(safe-area-inset-top, 0px)) !important;
+            padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important;
         }
         
-        /* 5. PROTEÇÃO PARA PC (Ignora tudo isso se for ecrã grande) */
+        /* 8. SEGURANÇA PARA PC (OVERRIDE FINAL) */
+        /* Garante que em telas grandes (sem touch/notch) tudo volte ao normal */
         @media screen and (min-width: 1024px) {
             #cabecalho-principal { padding-top: 0 !important; height: 60px !important; }
-            #rodape-nav { padding-bottom: 0 !important; height: 70px !important; box-sizing: border-box !important; }
-            main { padding-top: 80px !important; }
+            #rodape-nav { padding-bottom: 0 !important; height: 60px !important; box-sizing: border-box !important; }
+            .modal-overlay { padding-top: 0 !important; align-items: center !important; justify-content: center !important; }
+            .aba, .btn-nav { justify-content: center !important; padding-top: 0 !important; }
         }
         
     </style>
