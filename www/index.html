@@ -4096,9 +4096,9 @@
         /* --- SISTEMA DE BACKUP E RESTAURAÇÃO (MENSAGENS PERSONALIZADAS) --- */
 
         // 1. FAZER BACKUP (Gera o arquivo e baixa)
-        function fazerBackup() {
+        async function fazerBackup() {
             try {
-                // Pega todos os dados importantes
+                // 1. PREPARA OS DADOS
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4106,40 +4106,67 @@
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
                 };
-        
+
                 const jsonString = JSON.stringify(pacoteDados, null, 2);
-                
-                const blob = new Blob([jsonString], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                
-                // Nome do arquivo com data
                 const dataHoje = new Date().toISOString().split('T')[0];
-                a.download = `biblia_backup_${dataHoje}.json`;
-                
-                document.body.appendChild(a);
-                a.click(); 
-                document.body.removeChild(a); 
-                URL.revokeObjectURL(url); 
-        
-                // --- MENSAGEM PERSONALIZADA DE SUCESSO ---
-                mostrarAlerta(
-                    "O arquivo foi salvo na sua pasta de Downloads.\n\nGuarde este arquivo em local seguro (Google Drive, E-mail ou WhatsApp) para não perder seus dados.", 
-                    "Backup Concluído ✅"
-                );
-        
+                const nomeArquivo = `biblia_backup_${dataHoje}.json`;
+
+                // --- VERIFICA SE ESTÁ NO APK (CAPACITOR) ---
+                if (window.Capacitor && window.Capacitor.isNative) {
+                    
+                    // Carrega os plugins nativos
+                    const { Filesystem, Directory, Encoding } = Capacitor.Plugins;
+                    const { Share } = Capacitor.Plugins;
+
+                    // 2a. CRIA O ARQUIVO NO CELULAR (Pasta Cache)
+                    const arquivo = await Filesystem.writeFile({
+                        path: nomeArquivo,
+                        data: jsonString,
+                        directory: Directory.Cache, // Usamos Cache para não precisar de permissão especial
+                        encoding: Encoding.UTF8
+                    });
+
+                    // 2b. ABRE A JANELA DE COMPARTILHAR/SALVAR
+                    await Share.share({
+                        title: 'Backup da Bíblia',
+                        text: 'Aqui está o arquivo de backup das minhas anotações.',
+                        url: arquivo.uri, // Caminho do arquivo que acabamos de criar
+                        dialogTitle: 'Salvar Backup em...' // Título para Android
+                    });
+
+                    mostrarAlerta(
+                        "Escolha 'Salvar em Arquivos', 'Google Drive' ou envie para seu WhatsApp para guardar.", 
+                        "Pronto para Salvar 📤"
+                    );
+
+                } else {
+                    // --- MODO NAVEGADOR (PC/WEB) - Mantém o que já funcionava ---
+                    const blob = new Blob([jsonString], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = nomeArquivo;
+                    
+                    document.body.appendChild(a);
+                    a.click(); 
+                    document.body.removeChild(a); 
+                    URL.revokeObjectURL(url); 
+
+                    mostrarAlerta(
+                        "O arquivo foi salvo na pasta Downloads do computador.", 
+                        "Backup Concluído ✅"
+                    );
+                }
+
             } catch (e) {
-                console.error(e);
-                // --- MENSAGEM DE ERRO ---
+                console.error("Erro no backup:", e);
                 mostrarAlerta(
-                    "Ocorreu um erro ao tentar gerar o arquivo. Tente novamente.", 
-                    "Erro no Backup ❌"
+                    "Não foi possível gerar o backup. Tente novamente.", 
+                    "Erro ❌"
                 );
             }
         }
-        
         // 2. ACIONAR RESTAURAÇÃO
         function acionarRestauracao() {
             const input = document.getElementById('input-restore-hidden');
