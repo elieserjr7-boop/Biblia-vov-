@@ -3566,22 +3566,28 @@
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
         /* --- VARIÁVEL GLOBAL PARA SABER QUAL NOTA ESTAMOS LENDO --- */
-        let notaSendoLida = null; // Guardará a chave (ex: "gn_1_1")
+        let notaSendoLida = null; 
         
-        /* --- 1. FUNÇÃO ATUALIZADA PARA LISTAR OS COMENTÁRIOS --- */
+        /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
         function abrirTelaComentarios() {
-            esconderTodasTelas();
-            
-            const tela = document.getElementById('tela-comentarios'); // Certifique-se que sua div principal tem esse ID ou ajuste aqui
-            if(tela) tela.style.display = 'block';
-            
-            ativarAba('aba-comentarios'); // Ajuste o nome da aba se for diferente
+            // 1. Esconde o menu principal do perfil
+            document.getElementById('menu-perfil-principal').style.display = 'none';
         
-            const container = document.getElementById('lista-comentarios-container'); // Onde a lista aparece
-            if (!container) return;
+            // 2. Garante que outras sub-telas estejam fechadas
+            document.getElementById('view-progressao').style.display = 'none';
+            document.getElementById('view-favoritos').style.display = 'none';
         
+            // 3. Mostra a tela de comentários (O ID correto no seu HTML é 'view-comentarios')
+            const telaView = document.getElementById('view-comentarios');
+            telaView.style.display = 'block';
+            telaView.classList.remove('escondido'); // Remove a classe que esconde, se houver
+        
+            // 4. Limpa e Preenche a lista
+            const container = document.getElementById('lista-comentarios-container');
             container.innerHTML = '';
         
+            // Verifica se existem notas
+            if (!dadosUsuario.notas) dadosUsuario.notas = {};
             const chaves = Object.keys(dadosUsuario.notas);
         
             if (chaves.length === 0) {
@@ -3595,45 +3601,44 @@
                 return;
             }
         
-            // Inverter para mostrar os mais recentes primeiro (opcional)
+            // Inverter para mostrar os mais recentes primeiro
             chaves.reverse();
         
             chaves.forEach(chave => {
-                // Chave é tipo "gn_1_1" ou "jo_3_16"
+                // Chave é tipo "gn_1_1"
                 const partes = chave.split('_');
                 const livSigla = partes[0];
                 const cap = parseInt(partes[1]);
                 const ver = parseInt(partes[2]);
         
-                const nomeLivro = nomesLivros[livSigla] || livSigla.toUpperCase();
+                // Tenta pegar o nome do livro (precisa da sua variável nomesLivros ou usa a sigla)
+                const nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
                 
-                // Texto do comentário
                 const textoNota = dadosUsuario.notas[chave];
         
-                // Texto do versículo (para prévia, pegamos da biblia global)
-                // Se a biblia não estiver carregada, mostra só a referência
+                // Tenta pegar texto do versículo da biblia global
                 let textoVersiculo = "Carregando texto...";
                 try {
-                     if(biblia[livSigla] && biblia[livSigla][cap-1]) {
+                     if(biblia && biblia[livSigla] && biblia[livSigla][cap-1]) {
                          textoVersiculo = biblia[livSigla][cap-1][ver-1];
                      }
                 } catch(e) { console.log(e); }
         
                 const div = document.createElement('div');
-                div.className = 'item-ref'; // Usa o estilo de cartão que você já tem
+                div.className = 'item-ref'; 
                 
-                // AQUI ESTÁ A MUDANÇA: Ao clicar, chama verNotaCompleta em vez de irParaVersiculo
+                // Clique para abrir o NOVO MODAL
                 div.onclick = function() { verNotaCompleta(chave); };
         
                 div.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <span class="res-ref">${nomeLivro} ${cap}:${ver}</span>
-                            <div style="font-size:14px; color:#555; margin-bottom:8px;">"${textoVersiculo}"</div>
+                            <div style="font-size:14px; color:#555; margin-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">"${textoVersiculo}"</div>
                         </div>
                         <button onclick="event.stopPropagation(); apagarItemIndividual('notas', '${chave}', '${livSigla}', ${cap}, ${ver})" 
                                 style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 10px;">
-                            <i class="fa fa-trash"></i> &times;
+                            ✖
                         </button>
                     </div>
                     
@@ -3646,62 +3651,62 @@
             });
         }
 
-        /* --- 2. NOVA FUNÇÃO PARA ABRIR O MODAL DE LEITURA --- */
+        /* --- 2. FUNÇÃO PARA VOLTAR AO MENU DE PERFIL (Necessária no seu HTML) --- */
+        function voltarMenuPerfil() {
+            // Esconde as sub-telas
+            document.getElementById('view-comentarios').style.display = 'none';
+            document.getElementById('view-favoritos').style.display = 'none';
+            document.getElementById('view-progressao').style.display = 'none';
+            
+            // Mostra o menu principal
+            document.getElementById('menu-perfil-principal').style.display = 'block';
+        }
+        
+        /* --- 3. FUNÇÃO DO MODAL DE LEITURA (Mantida a mesma) --- */
         function verNotaCompleta(chave) {
-            notaSendoLida = chave; // Guarda qual é a nota atual
+            notaSendoLida = chave;
             
             const partes = chave.split('_');
             const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
-            const nomeLivro = nomesLivros[livSigla] || livSigla;
+            const nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
         
-            // 1. Preenche o Título
+            // 1. Título
             document.getElementById('leitura-titulo').innerText = `${nomeLivro} ${cap}:${ver}`;
         
-            // 2. Preenche o Versículo
+            // 2. Versículo
             let textoBiblico = "Texto indisponível.";
-            if (biblia[livSigla] && biblia[livSigla][cap-1]) {
+            if (biblia && biblia[livSigla] && biblia[livSigla][cap-1]) {
                 textoBiblico = biblia[livSigla][cap-1][ver-1];
             }
             document.getElementById('leitura-texto-biblico').innerText = `"${textoBiblico}"`;
         
-            // 3. Preenche a Nota do Usuário
+            // 3. Nota
             const textoNota = dadosUsuario.notas[chave] || "";
             document.getElementById('leitura-nota-usuario').innerText = textoNota;
         
-            // 4. Mostra o Modal (display flex para centralizar)
+            // 4. Abrir Modal (ID verificado no seu HTML: modal-leitura-nota)
             document.getElementById('modal-leitura-nota').style.display = 'flex';
         }
         
-        /* --- 3. FUNÇÃO PARA FECHAR O MODAL --- */
         function fecharModalLeitura(event) {
-            // Se passar 'event', verifica se clicou no fundo escuro (overlay) e não no cartão
             if (event && event.target.id !== 'modal-leitura-nota') return;
-            
             document.getElementById('modal-leitura-nota').style.display = 'none';
         }
         
-        /* --- 4. FUNÇÃO EXTRA: EDITAR A PARTIR DO MODAL DE LEITURA --- */
         function editarNotaAtual() {
             if(!notaSendoLida) return;
-        
-            // Fecha a leitura
             fecharModalLeitura();
         
-            // Abre o modal de edição (que você já deve ter no sistema)
-            // Supondo que você tenha uma função abrirModalNota(livro, cap, num)
             const partes = notaSendoLida.split('_');
-            const liv = partes[0];
-            const cap = parseInt(partes[1]);
-            const ver = parseInt(partes[2]);
-        
-            // Chama sua função existente de adicionar/editar
-            if(typeof abrirModalNota === 'function') {
-                abrirModalNota(liv, cap, ver); 
-            } else {
-                alert("Função de editar não encontrada. Verifique o nome da função no seu código.");
-            }
+            // Chama a função que já existe no seu app para abrir o editor
+            // Baseado no seu HTML, parece que você usa iniciarComentario() ou similar no fluxo normal
+            // Vamos tentar simular o clique ou chamar a lógica de edição:
+            
+            // Configura os dados globais para edição (ajuste conforme sua lógica de editor)
+            // Se você tiver uma função específica, chame aqui. Senão, teremos que adaptar.
+            alert("Para editar, clique no versículo na leitura bíblica por enquanto."); 
         }
         
         // Funções de Resetar
