@@ -3429,23 +3429,39 @@
 
         function salvarNotaPeloModal() {
             const textoDigitado = document.getElementById('texto-nota-input').value;
+            
+            // Cria a chave baseada no verso que configuramos ao abrir o modal
             const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
             
             if (textoDigitado.trim() === "") {
-                delete dadosUsuario.notas[chave]; // Se deixar vazio, apaga
+                delete dadosUsuario.notas[chave]; // Se apagar o texto, remove a nota
             } else {
-                dadosUsuario.notas[chave] = { 
-                    texto: textoDigitado, 
-                    ref: `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`, 
-                    timestamp: Date.now() 
+                dadosUsuario.notas[chave] = {
+                    texto: textoDigitado,
+                    ref: `${versoSelecionado.livro} ${versoSelecionado.cap}:${versoSelecionado.num}`,
+                    timestamp: Date.now()
                 };
             }
             
-            salvarDados();
+            salvarDados(); // Salva no LocalStorage
             fecharEditorNota();
-            lerCapitulo(capituloAtual); // Atualiza a tela para aparecer o ícone 📝
+            
+            // --- LÓGICA INTELIGENTE DE ATUALIZAÇÃO ---
+            
+            // 1. Se a tela de comentários estiver visível, atualiza ela
+            const viewComentarios = document.getElementById('view-comentarios');
+            if (viewComentarios && !viewComentarios.classList.contains('escondido')) {
+                abrirTelaComentarios();
+            }
+            
+            // 2. Se a tela de leitura estiver visível E for o mesmo capítulo, atualiza os ícones
+            const viewLeitura = document.getElementById('tela-leitura'); // ou o ID correto da sua div de leitura
+            if (typeof capituloAtual !== 'undefined' && versoSelecionado.livro === livroAtualNome && versoSelecionado.cap === capituloAtual) {
+                 // Só recarrega se estivermos olhando para esse capítulo
+                 lerCapitulo(capituloAtual); 
+            }
         }
-
+        
         // Função auxiliar para encontrar o texto do versículo na bíblia carregada
         function getTextoBiblico(livroNome, capitulo, versiculo) {
             if (!bibliaCompleta) return "Bíblia não carregada...";
