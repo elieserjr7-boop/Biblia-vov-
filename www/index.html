@@ -1733,6 +1733,98 @@
             border-color: #666 !important;
             color: #fff !important;
         }
+
+        /* ==========================================================================
+           CORREÇÃO FINAL "BLINDADA" PARA CAPACITOR / APK / IOS (SAFE AREA)
+           ========================================================================== */
+        
+        /* 1. CABEÇALHO (HEADER) - Protege contra o Notch/Câmera */
+        header {
+            /* Garante que o padding some os 15px originais + o tamanho do notch */
+            padding-top: calc(15px + env(safe-area-inset-top)) !important;
+            
+            /* A altura deixa de ser fixa e passa a ser automática para acomodar o notch */
+            height: auto !important;
+            min-height: 60px; /* Garante tamanho mínimo */
+            
+            /* Garante alinhamento central vertical */
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Ajuste fino para os botões do cabeçalho não ficarem colados demais no topo */
+        #btn-tema, .seletor-versao-container {
+            /* Empurra os botões para baixo considerando o notch */
+            margin-top: env(safe-area-inset-top) !important;
+        }
+        
+        /* 2. RODAPÉ / MENU DE ABAS (Footer) - Protege contra a barra de gestos */
+        #rodape-nav, #abas-principais {
+            /* Adiciona o espaço da barra de arrastar do iPhone/Android novos */
+            padding-bottom: env(safe-area-inset-bottom) !important;
+            
+            /* Recalcula a altura: Altura original (70px) + Área segura */
+            height: calc(70px + env(safe-area-inset-bottom)) !important;
+            
+            /* Garante que os itens fiquem centralizados na área útil, não colados na borda */
+            box-sizing: content-box; /* Truque para o padding somar à altura */
+        }
+        
+        /* Corrige o alinhamento dos ícones dentro da aba para não descerem demais */
+        .aba, .btn-nav {
+            padding-bottom: 0 !important;
+            height: 70px !important; /* Altura da área clicável */
+        }
+        
+        /* 3. MODAL DE VERSÍCULOS (Aquele menu branco que sobe) */
+        #modal-verso, .modal-bottom-sheet {
+            /* Adiciona acolchoamento no fundo para os botões não ficarem atrás da barra */
+            padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* 4. MODAIS DE TELA CHEIA (Comparação, Editor, Leitura) */
+        /* Estes precisam de proteção no Topo (Notch) e no Fundo (Gestos) */
+        #overlay-comparacao, 
+        #modal-editor-nota, 
+        .janela-leitura-perfil.tela-cheia,
+        .modal-overlay {
+            padding-top: env(safe-area-inset-top) !important;
+            padding-bottom: env(safe-area-inset-bottom) !important;
+        }
+        
+        /* Correção específica para o cabeçalho dentro dos modais de tela cheia */
+        .cabecalho-subtela, .cabecalho-leitura-modal {
+            /* Garante que o título e botão de voltar não entrem no notch */
+            padding-top: calc(15px + env(safe-area-inset-top)) !important;
+            height: auto !important;
+        }
+        
+        /* 5. CORPO PRINCIPAL (MAIN) */
+        /* Empurra o texto bíblico para baixo para não ficar escondido atrás do cabeçalho maior */
+        main, #corpo-app {
+            padding-top: calc(80px + env(safe-area-inset-top)) !important;
+            padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+        }
+        
+        /* 6. CORREÇÃO ESPECÍFICA PARA PC (Ignora as regras acima) */
+        @media screen and (min-width: 768px) {
+            header {
+                padding-top: 0 !important;
+                height: 80px !important;
+            }
+            #rodape-nav, #abas-principais {
+                padding-bottom: 0 !important;
+                height: 70px !important;
+                box-sizing: border-box;
+            }
+            main {
+                padding-top: 80px !important; /* Volta ao normal no PC */
+            }
+            /* Reseta margens dos botões de topo no PC */
+            #btn-tema, .seletor-versao-container {
+                margin-top: 0 !important;
+            }
+        }
         
     </style>
 </head>
