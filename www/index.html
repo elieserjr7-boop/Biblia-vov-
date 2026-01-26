@@ -3674,8 +3674,15 @@
 
         /* --- HELPER: Converte sigla (ex: "gn") para índice numérico (ex: 0) --- */
         /* Helper: Converte 'gn' em 0, 'ex' em 1... */
-        function obterIndicePorSigla(sigla) {
-            const mapa = {
+        /* --- HELPER TURBINADO: Acha o índice por Sigla OU Nome --- */
+        function obterIndicePorSigla(texto) {
+            if (!texto) return -1;
+            
+            // 1. Limpeza básica (tudo minúsculo, sem espaços extras)
+            let chave = texto.toLowerCase().trim();
+        
+            // 2. Mapa de Siglas (O método rápido)
+            const mapaSiglas = {
                 "gn": 0, "ex": 1, "lv": 2, "nm": 3, "dt": 4, "js": 5, "jz": 6, "rt": 7,
                 "1sm": 8, "2sm": 9, "1rs": 10, "2rs": 11, "1cr": 12, "2cr": 13, "ed": 14,
                 "ne": 15, "et": 16, "job": 17, "sl": 18, "pv": 19, "ec": 20, "ct": 21,
@@ -3687,7 +3694,31 @@
                 "hb": 57, "tg": 58, "1pe": 59, "2pe": 60, "1jo": 61, "2jo": 62, "3jo": 63,
                 "jd": 64, "ap": 65
             };
-            return (mapa[sigla] !== undefined) ? mapa[sigla] : -1;
+        
+            // Se achou no mapa de siglas, retorna logo
+            if (mapaSiglas[chave] !== undefined) {
+                return mapaSiglas[chave];
+            }
+        
+            // 3. Procura pelo Nome Completo (ex: "gênesis")
+            // Varre a lista de livros oficial do sistema
+            if (typeof listaLivros !== 'undefined' && Array.isArray(listaLivros)) {
+                for (let i = 0; i < listaLivros.length; i++) {
+                    let nomeLivro = listaLivros[i].toLowerCase(); // ex: "gênesis"
+                    
+                    // Compara direto
+                    if (nomeLivro === chave) return i;
+        
+                    // Compara removendo acentos (para garantir que "genesis" ache "gênesis")
+                    // (Normaliza NFD separa os acentos e o replace remove eles)
+                    let nomeSemAcento = nomeLivro.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    let chaveSemAcento = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    
+                    if (nomeSemAcento === chaveSemAcento) return i;
+                }
+            }
+        
+            return -1; // Desistiu
         }
         
         /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
@@ -3801,17 +3832,16 @@
         
         /* --- 2. FUNÇÃO PARA VOLTAR AO MENU DE PERFIL (Necessária no seu HTML) --- */
         function verNotaCompleta(chave) {
-            notaSendoLida = chave; // Guarda a chave globalmente
+            notaSendoLida = chave;
             
             const partes = chave.split('_');
             const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
         
-            // 1. Descobre o índice correto usando a lógica dos Favoritos
+            // Usa a função inteligente
             const indiceLivro = obterIndicePorSigla(livSigla);
         
-            // 2. Define Título (Nome do Livro)
             let nomeLivro = livSigla.toUpperCase();
             if (indiceLivro !== -1 && typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
                 nomeLivro = listaLivros[indiceLivro];
@@ -3820,23 +3850,22 @@
             const tituloEl = document.getElementById('leitura-titulo');
             if(tituloEl) tituloEl.innerText = `${nomeLivro} ${cap}:${ver}`;
         
-            // 3. Busca o Texto Bíblico (BLINDADO)
+            // --- AJUSTE DE SEGURANÇA AQUI ---
+            // Garante que pega a bíblia mesmo que a variável local falhe
+            const bibliaAlvo = window.bibliaCompleta || window.biblia || bibliaCompleta;
             let textoBiblico = "Texto indisponível.";
             
-            // Tenta carregar da variável carregada
-            if (bibliaCompleta && indiceLivro !== -1 && bibliaCompleta[indiceLivro]) {
+            if (bibliaAlvo && indiceLivro !== -1 && bibliaAlvo[indiceLivro]) {
                 try {
-                    // A estrutura no JSON é .chapters[cap-1][ver-1]
-                    textoBiblico = bibliaCompleta[indiceLivro].chapters[cap-1][ver-1];
+                    textoBiblico = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
                 } catch (e) {
-                    console.error("Erro ao acessar versículo:", e);
+                    console.error("Erro modal:", e);
                 }
             }
         
             const textoBiblicoEl = document.getElementById('leitura-texto-biblico');
             if(textoBiblicoEl) textoBiblicoEl.innerText = `"${textoBiblico}"`;
         
-            // 4. Mostra o texto da nota do usuário
             let conteudoNota = dadosUsuario.notas[chave];
             let textoReal = "";
             
@@ -3849,7 +3878,6 @@
             const notaEl = document.getElementById('leitura-nota-usuario');
             if(notaEl) notaEl.innerText = textoReal;
         
-            // 5. Abre o Modal
             const modal = document.getElementById('modal-leitura-nota');
             if(modal) {
                 modal.style.display = 'flex';
