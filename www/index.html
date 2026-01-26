@@ -2905,9 +2905,8 @@
         
         // --- FUNÇÃO DE COMPARAÇÃO (ATUALIZADA COM BOTÃO DE TEMA) ---
         async function compararVersoes(idxLivro, cap, ver, nome) {
-            // 1. Fecha menus que possam estar abertos
+            // 1. Fecha menus e remove telas antigas
             if (typeof fecharModalVersiculo === 'function') fecharModalVersiculo();
-            
             const telaAntiga = document.getElementById('overlay-comparacao');
             if (telaAntiga) telaAntiga.remove();
         
@@ -2915,7 +2914,7 @@
             const overlay = document.createElement('div');
             overlay.id = 'overlay-comparacao';
         
-            // --- CONFIGURAÇÃO VISUAL ---
+            // Configuração visual base
             overlay.style.position = 'fixed';
             overlay.style.top = '0';
             overlay.style.left = '0';
@@ -2926,16 +2925,28 @@
             overlay.style.display = 'flex';
             overlay.style.flexDirection = 'column';
         
-            // --- CORREÇÃO PARA O CAPACITOR / CELULAR ---
-            // Verifica se a largura é de telemóvel (ex: menor que 768px)
+            // 3. DEFINE A ALTURA DA BARRA DE SEGURANÇA (SPACER)
+            // Se for telemóvel (<= 768px), cria um espaço. Se for PC, é 0.
+            let alturaSpacer = '0px';
             if (window.innerWidth <= 768) {
-                // 'env' pega o tamanho do notch. 'max' garante no mínimo 35px se o env for 0.
-                overlay.style.paddingTop = 'max(env(safe-area-inset-top), 35px)'; 
+                // Usa a variável de ambiente segura (notch) ou 35px fixos como garantia
+                alturaSpacer = 'max(env(safe-area-inset-top), 35px)';
             }
         
-            // 3. O NOVO CABEÇALHO (Com o botão de tema incluído!)
+            // 4. MONTA O CONTEÚDO
+            // Inserimos a div 'spacer-topo' antes do cabeçalho.
             overlay.innerHTML = `
-                <div class="cabecalho-subtela" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+                <div id="spacer-topo" style="width: 100%; height: ${alturaSpacer}; flex-shrink: 0; background: inherit;"></div>
+        
+                <div class="cabecalho-subtela" style="
+                    flex-shrink: 0; 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center; 
+                    padding: 10px 20px; 
+                    border-bottom: 1px solid #3333;
+                    height: 60px; /* Altura fixa para garantir alinhamento */
+                ">
                     
                     <button class="btn-voltar-perfil" id="btn-fechar-comp">← Voltar</button>
                     
@@ -2952,15 +2963,15 @@
             `;
         
             document.body.appendChild(overlay);
-            document.body.style.overflow = 'hidden'; // Trava a rolagem do fundo
+            document.body.style.overflow = 'hidden';
         
-            // 4. Configura o botão de fechar
+            // 5. Configura botão fechar
             document.getElementById('btn-fechar-comp').onclick = function() {
                 overlay.remove();
                 document.body.style.overflow = ''; 
             };
         
-            // Função auxiliar para atualizar a cor do fundo do overlay se trocar o tema lá dentro
+            // Função auxiliar de tema
             window.atualizarCorOverlay = function() {
                 const overlayAtivo = document.getElementById('overlay-comparacao');
                 if(overlayAtivo) {
@@ -2968,17 +2979,14 @@
                 }
             };
         
-            // 5. Carrega os textos (Mesma lógica de antes)
+            // 6. Carrega os textos (Mesma lógica)
             const listaContainer = document.getElementById('lista-comparacao-cheia');
-            
-            // Verifica se listaVersoesDisponiveis existe, senão usa array vazio para não dar erro
             const versoesParaCarregar = (typeof listaVersoesDisponiveis !== 'undefined') ? listaVersoesDisponiveis : [];
         
             const promises = versoesParaCarregar.map(async item => {
                 const v = item.sigla;
                 try {
                     let dadosVersao = (typeof cacheVersoes !== 'undefined') ? cacheVersoes[v] : null;
-                    
                     if (!dadosVersao) {
                         const r = await fetch(`./${v}.json`);
                         if(r.ok) {
