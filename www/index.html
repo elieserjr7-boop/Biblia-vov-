@@ -1784,7 +1784,7 @@
         /* Limita o texto na lista para não estourar a caixa */
         .preview-comentario {
             display: -webkit-box;
-            -webkit-line-clamp: 3; /* Mostra no máximo 3 linhas */
+            -webkit-line-clamp: 3; /* Corta em 3 linhas */
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1793,24 +1793,21 @@
             margin-top: 5px;
         }
         
-        /* Ajuste para modo escuro */
         body.modo-escuro .preview-comentario {
             color: #bbb;
         }
         
-        /* Estilo da caixa de visualização do comentário (Novo Modal) */
         .box-leitura-comentario {
-            background-color: #fff9c4; /* Amarelo clarinho tipo post-it */
+            background-color: #fff9c4;
             color: #333;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #fbc02d;
             margin-top: 15px;
             width: 100%;
-            max-height: 200px;
-            overflow-y: auto; /* Se for texto gigante, cria barra de rolagem */
-            font-family: inherit;
-            white-space: pre-wrap; /* Mantém os parágrafos que escreveste */
+            max-height: 200px; /* Barra de rolagem se for muito grande */
+            overflow-y: auto;
+            white-space: pre-wrap;
             text-align: left;
         }
         
@@ -3487,23 +3484,44 @@
         }
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
+        /* --- FUNÇÃO PRINCIPAL: LISTA DE COMENTÁRIOS --- */
         function abrirTelaComentarios() {
-            fecharMenuHamburguer();
+            // 1. Proteção: Fecha menu se estiver aberto
+            if (typeof fecharMenuHamburguer === 'function') fecharMenuHamburguer();
+        
+            // 2. Proteção: Verifica se o container principal existe
             const area = document.getElementById('conteudo-leitura');
-            
-            // Verifica se existem notas
-            const chaves = Object.keys(dadosUsuario.notas || {});
-            
-            if (chaves.length === 0) {
-                area.innerHTML = `
-                    <div style="padding: 20px; text-align: center;">
-                        <h3>Meus Comentários</h3>
-                        <p>Você ainda não criou nenhuma anotação.</p>
-                        <button onclick="voltarParaLeitura()" style="margin-top:20px; padding:10px 20px;">Voltar para Bíblia</button>
-                    </div>`;
+            if (!area) {
+                alert("Erro: Container 'conteudo-leitura' não encontrado.");
                 return;
             }
         
+            // 3. Garante que dadosUsuario existe
+            if (typeof dadosUsuario === 'undefined' || !dadosUsuario) {
+                console.log("Dados do usuário ainda não carregados.");
+                return;
+            }
+        
+            // Garante que o objeto notas existe
+            if (!dadosUsuario.notas) {
+                dadosUsuario.notas = {};
+            }
+        
+            const chaves = Object.keys(dadosUsuario.notas);
+        
+            // CASO 1: Não tem comentários
+            if (chaves.length === 0) {
+                area.innerHTML = `
+                    <div style="padding: 20px; text-align: center; margin-top: 50px;">
+                        <h3 style="opacity: 0.6;">Meus Comentários</h3>
+                        <p>Você ainda não criou nenhuma anotação.</p>
+                        <button onclick="voltarParaLeitura()" class="btn-voltar-perfil" style="margin-top:20px;">Voltar para Bíblia</button>
+                    </div>`;
+                window.scrollTo(0,0);
+                return;
+            }
+        
+            // CASO 2: Tem comentários -> Monta a lista
             let html = `
                 <div style="padding: 20px; padding-bottom: 80px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -3511,29 +3529,36 @@
                         <button onclick="voltarParaLeitura()" class="btn-voltar-perfil">Voltar</button>
                     </div>`;
         
-            // Percorre todas as notas salvas
             chaves.forEach(chave => {
-                // A chave é tipo "0_1_1" (Gênesis 1:1)
-                const partes = chave.split('_');
-                const lIdx = parseInt(partes[0]);
-                const c = parseInt(partes[1]);
-                const v = parseInt(partes[2]);
-                
-                const nomeLivro = listaLivros[lIdx];
-                const textoNota = dadosUsuario.notas[chave];
+                try {
+                    const partes = chave.split('_'); // Ex: "0_1_1"
+                    const lIdx = parseInt(partes[0]);
+                    const c = parseInt(partes[1]);
+                    const v = parseInt(partes[2]);
+                    
+                    // Proteção para o nome do livro
+                    let nomeLivro = "Livro";
+                    if (typeof listaLivros !== 'undefined' && listaLivros[lIdx]) {
+                        nomeLivro = listaLivros[lIdx];
+                    }
         
-                // Cria o cartão do comentário
-                html += `
-                    <div class="item-historico" onclick="verDetalheComentario(${lIdx}, ${c}, ${v}, '${chave}')">
-                        <div style="display:flex; justify-content:space-between;">
-                            <strong>${nomeLivro} ${c}:${v}</strong>
-                            <span style="font-size:0.8rem; color:#888;">Ver</span>
+                    const textoNota = dadosUsuario.notas[chave] || "";
+        
+                    // Cria o item da lista
+                    html += `
+                        <div class="item-historico" onclick="verDetalheComentario(${lIdx}, ${c}, ${v}, '${chave}')" style="cursor:pointer; padding:15px; border-bottom:1px solid #ddd; margin-bottom:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong style="font-size:1rem;">${nomeLivro} ${c}:${v}</strong>
+                                <span style="font-size:0.8rem; color:#888; background:#eee; padding:2px 6px; border-radius:4px;">Ver</span>
+                            </div>
+                            <div class="preview-comentario">
+                                "${textoNota}"
+                            </div>
                         </div>
-                        <div class="preview-comentario">
-                            "${textoNota}"
-                        </div>
-                    </div>
-                `;
+                    `;
+                } catch (erro) {
+                    console.error("Erro ao renderizar item:", erro);
+                }
             });
         
             html += `
@@ -3545,101 +3570,71 @@
             area.innerHTML = html;
             window.scrollTo(0,0);
         }
-        
+
+        /* --- FUNÇÃO AUXILIAR: O MODAL (POPUP) --- */
         function verDetalheComentario(lIdx, cap, ver, chave) {
-            // 1. Pega o Texto do Versículo na Bíblia
+            // Fecha modal anterior se houver
+            const antigo = document.getElementById('modal-detalhe-nota');
+            if (antigo) antigo.remove();
+        
+            // 1. Tenta pegar o texto bíblico
             let textoVersiculo = "Carregando texto...";
-            if (biblia[lIdx] && biblia[lIdx].chapters[cap-1]) {
+            // Verifica se a variável biblia existe e tem o livro/capítulo
+            if (typeof biblia !== 'undefined' && biblia[lIdx] && biblia[lIdx].chapters && biblia[lIdx].chapters[cap-1]) {
                 textoVersiculo = biblia[lIdx].chapters[cap-1][ver-1];
             }
-            
-            // 2. Pega a Nota do Usuário
-            const notaUsuario = dadosUsuario.notas[chave] || "";
         
-            // 3. Cria o Modal (Fundo Escuro)
+            // 2. Pega a nota
+            const notaUsuario = (dadosUsuario.notas && dadosUsuario.notas[chave]) ? dadosUsuario.notas[chave] : "";
+        
+            // 3. Cria o Overlay
             const overlay = document.createElement('div');
             overlay.id = 'modal-detalhe-nota';
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
-            overlay.style.zIndex = '10000'; // Bem alto pra ficar por cima de tudo
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';     // Centraliza Verticalmente
-            overlay.style.justifyContent = 'center'; // Centraliza Horizontalmente
-            overlay.style.padding = '20px';
+            
+            // Estilo fixo para garantir que aparece
+            overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;";
         
-            // 4. Cria a Caixa Branca (Conteúdo)
             const corFundo = document.body.classList.contains('modo-escuro') ? '#1e1e1e' : '#ffffff';
             const corTexto = document.body.classList.contains('modo-escuro') ? '#ffffff' : '#000000';
+            let nomeLivro = (typeof listaLivros !== 'undefined') ? listaLivros[lIdx] : "Bíblia";
         
             overlay.innerHTML = `
-                <div style="
-                    background-color: ${corFundo}; 
-                    color: ${corTexto};
-                    width: 100%; 
-                    max-width: 500px; 
-                    border-radius: 12px; 
-                    padding: 20px; 
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                    display: flex;
-                    flex-direction: column;
-                    max-height: 80vh; /* Não deixa passar de 80% da altura da tela */
-                ">
-                    <div style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0; font-size:1.2rem;">${listaLivros[lIdx]} ${cap}:${ver}</h3>
-                        <button id="btn-fechar-detalhe" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:${corTexto}">×</button>
+                <div style="background-color: ${corFundo}; color: ${corTexto}; width: 100%; max-width: 500px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 85vh;">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4444; padding-bottom:10px; margin-bottom:10px;">
+                        <h3 style="margin:0; font-size:1.1rem;">${nomeLivro} ${cap}:${ver}</h3>
+                        <button id="btn-fechar-popup" style="background:none; border:none; font-size:1.8rem; line-height:1; cursor:pointer; color:${corTexto}">×</button>
                     </div>
         
                     <div style="overflow-y: auto; flex-grow: 1;">
-                        
-                        <p style="font-style: italic; margin-bottom: 15px; opacity: 0.9; line-height: 1.5;">
-                            "${textoVersiculo}"
-                        </p>
-        
-                        <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
-        
-                        <strong style="display:block; margin-bottom:5px; font-size:0.9rem;">Seu Comentário:</strong>
-                        
-                        <div class="box-leitura-comentario">
-                            ${notaUsuario}
-                        </div>
-        
+                        <p style="font-style: italic; margin-bottom: 15px; opacity: 0.8; line-height: 1.4;">"${textoVersiculo}"</p>
+                        <hr style="border: 0; border-top: 1px solid #4444; margin: 15px 0;">
+                        <strong style="display:block; margin-bottom:8px;">Sua Anotação:</strong>
+                        <div class="box-leitura-comentario">${notaUsuario}</div>
                     </div>
         
                     <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                        <button id="btn-apagar-nota" style="background-color: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 5px;">Apagar</button>
-                        <button id="btn-editar-nota" style="background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px;">Editar</button>
+                        <button id="btn-apagar-popup" style="background-color: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight:bold;">Apagar</button>
+                        <button id="btn-editar-popup" style="background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight:bold;">Editar</button>
                     </div>
                 </div>
             `;
         
             document.body.appendChild(overlay);
         
-            // --- EVENTOS DOS BOTÕES ---
+            // Eventos
+            document.getElementById('btn-fechar-popup').onclick = () => overlay.remove();
+            overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
         
-            // 1. Fechar
-            document.getElementById('btn-fechar-detalhe').onclick = () => overlay.remove();
-            
-            // Fecha se clicar fora da caixinha
-            overlay.onclick = (e) => {
-                if (e.target === overlay) overlay.remove();
+            document.getElementById('btn-apagar-popup').onclick = () => {
+                if(typeof apagarItemIndividual === 'function') {
+                    apagarItemIndividual('notas', chave, lIdx, cap, ver);
+                    overlay.remove();
+                } else { alert("Erro: função apagar não encontrada."); }
             };
         
-            // 2. Apagar
-            document.getElementById('btn-apagar-nota').onclick = () => {
-                apagarItemIndividual('notas', chave, lIdx, cap, ver);
-                overlay.remove(); // Fecha o modal após apagar
-            };
-        
-            // 3. Editar (Reaproveita tua função de abrir modal de edição se existir, ou cria lógica simples)
-            document.getElementById('btn-editar-nota').onclick = () => {
-                overlay.remove(); // Fecha este visualizador
-                
-                // Chama a função existente de abrir nota (modo edição)
-                // Se a tua função for 'abrirModalNota(lIdx, cap, ver)', chamamos ela:
+            document.getElementById('btn-editar-popup').onclick = () => {
+                overlay.remove();
                 if (typeof abrirModalNota === 'function') {
                     abrirModalNota(lIdx, cap, ver); 
                 } else {
