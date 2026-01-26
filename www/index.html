@@ -4204,6 +4204,7 @@
         /* 1. FAZER BACKUP - Abre modal com Código + Opções */
         async function fazerBackup() {
             try {
+                // 1. Gera o pacote de dados
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4211,15 +4212,19 @@
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
                 };
+                
+                // Converte para texto
                 const jsonString = JSON.stringify(pacoteDados);
 
-                // Cria o Modal
+                // 2. Cria o Modal Visualmente
                 const div = document.createElement('div');
                 div.className = 'modal-overlay';
+                
+                // Note que removemos o botão de compartilhar que dava erro
                 div.innerHTML = `
                     <div class="caixa-confirmacao zoom-in">
                         <h3>Seu Código de Backup</h3>
-                        <p>Copie o código abaixo, envie para seu celular ou baixe o arquivo.</p>
+                        <p>Copie o código abaixo e guarde em local seguro (WhatsApp, E-mail, Notas) ou baixe o arquivo.</p>
                         
                         <textarea id="txt-backup-copy" readonly>${jsonString}</textarea>
                         
@@ -4229,10 +4234,6 @@
 
                         <button onclick="baixarBackupPeloModal()" class="btn-modal" style="background:#27ae60; color:white;">
                             💾 Baixar Arquivo .JSON
-                        </button>
-
-                        <button onclick="compartilharNativo('${jsonString.replace(/'/g, "\\'")}')" class="btn-modal" style="background:#f39c12; color:white;">
-                            📤 Compartilhar (App)
                         </button>
                         
                         <button onclick="fecharModalTemp(this)" class="btn-modal" style="background:#e74c3c; color:white; margin-top:15px;">
@@ -4248,7 +4249,41 @@
             }
         }
 
-        /* NOVA FUNÇÃO: Baixa o arquivo direto do modal (Útil no PC) */
+        /* Função: Copiar texto da caixa (Universal) */
+        function copiarCodigoBackup() {
+            const textarea = document.getElementById('txt-backup-copy');
+            
+            // Seleciona o texto visualmente
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // Essencial para mobile
+            
+            try {
+                // Tenta usar a API nativa do Capacitor se existir, senão usa a do navegador
+                if(window.Capacitor && window.Capacitor.isNative) {
+                    const { Clipboard } = Capacitor.Plugins;
+                    // Se não tiver o plugin Clipboard, ele cai no catch e usa o execCommand
+                    if (Clipboard) {
+                        Clipboard.write({ string: textarea.value });
+                    } else {
+                        document.execCommand('copy');
+                    }
+                } else {
+                    // Método padrão PC/Web
+                    document.execCommand('copy');
+                    
+                    // Tenta também a API mais moderna de clipboard (se disponível)
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(textarea.value);
+                    }
+                }
+                mostrarAlerta("Código copiado! Cole no WhatsApp ou Bloco de Notas.", "Sucesso ✅");
+            } catch (err) {
+                // Fallback: Se tudo falhar, o usuário já viu o texto selecionado
+                mostrarAlerta("O texto foi selecionado. Toque e segure para copiar.", "Aviso");
+            }
+        }
+
+        /* Função: Baixar arquivo (Web/PC) */
         function baixarBackupPeloModal() {
             try {
                 const texto = document.getElementById('txt-backup-copy').value;
@@ -4265,64 +4300,12 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                mostrarAlerta("Arquivo baixado com sucesso!", "Download Iniciado ⬇️");
+                mostrarAlerta("Download iniciado!", "Sucesso ⬇️");
             } catch(e) {
-                mostrarAlerta("Erro ao baixar. Tente copiar o código.", "Erro");
+                mostrarAlerta("Erro ao baixar. Tente a opção Copiar.", "Erro");
             }
         }
 
-        /* Copiar texto */
-        function copiarCodigoBackup() {
-            const textarea = document.getElementById('txt-backup-copy');
-            textarea.select();
-            textarea.setSelectionRange(0, 99999);
-            
-            try {
-                if(window.Capacitor && window.Capacitor.isNative) {
-                    const { Clipboard } = Capacitor.Plugins;
-                    Clipboard.write({ string: textarea.value });
-                } else {
-                    document.execCommand('copy');
-                }
-                mostrarAlerta("Código copiado! Cole no WhatsApp ou Bloco de Notas.", "Sucesso ✅");
-            } catch (err) {
-                mostrarAlerta("Selecione e copie manualmente.", "Ops");
-            }
-        }
-
-        /* Compartilhar Nativo */
-        /* Função de Compartilhar (Versão Robusta com Debug) */
-        async function compartilharNativo(texto) {
-            try {
-                // 1. Verifica se está rodando no ambiente Capacitor
-                if (!window.Capacitor) {
-                    mostrarAlerta("Esta função só funciona no App instalado.", "Aviso");
-                    return;
-                }
-
-                // 2. Tenta acessar o Plugin
-                const sharePlugin = window.Capacitor.Plugins.Share;
-
-                if (!sharePlugin) {
-                    // Se cair aqui, é porque você esqueceu o Passo 1 (npm install)
-                    alert("ERRO: O plugin '@capacitor/share' não foi detectado. Rode 'npx cap sync' no terminal.");
-                    return;
-                }
-
-                // 3. Executa o compartilhamento
-                await sharePlugin.share({
-                    title: 'Backup Bíblia',
-                    text: texto,
-                    dialogTitle: 'Salvar Backup em...',
-                });
-
-            } catch (erro) {
-                // Mostra o erro exato na tela se falhar
-                console.error(erro);
-                alert("Erro ao abrir compartilhamento: " + JSON.stringify(erro));
-            }
-        }
-        
         /* 2. RESTAURAR BACKUP - Menu de Escolha */
         function acionarRestauracao() {
             const div = document.createElement('div');
@@ -4348,7 +4331,7 @@
             document.body.appendChild(div);
         }
 
-        /* Abre tela de colar texto */
+        /* Abre tela para colar o código manualmente */
         function abrirTelaColar(btnAnterior) {
             fecharModalTemp(btnAnterior);
             
@@ -4357,8 +4340,8 @@
             div.innerHTML = `
                 <div class="caixa-confirmacao zoom-in">
                     <h3>Colar Código</h3>
-                    <p>Cole o código que você copiou anteriormente.</p>
-                    <textarea id="txt-paste-backup" placeholder="Cole aqui o código..."></textarea>
+                    <p>Cole aqui o código que você salvou anteriormente.</p>
+                    <textarea id="txt-paste-backup" placeholder="Cole aqui..." style="margin-bottom:10px;"></textarea>
                     
                     <button onclick="processarTextoRestauracao()" class="btn-modal" style="background:#27ae60; color:white;">
                         Restaurar Agora
@@ -4371,7 +4354,7 @@
             document.body.appendChild(div);
         }
 
-        /* Processa o texto colado */
+        /* Processa o texto colado na restauração */
         function processarTextoRestauracao() {
             const texto = document.getElementById('txt-paste-backup').value;
             if(!texto) return mostrarAlerta("Cole o código primeiro!", "Atenção");
@@ -4380,30 +4363,34 @@
             confirmarRestauracaoTexto(texto);
         }
 
-        /* Lógica final de restaurar */
+        /* Valida e salva os dados (serve para arquivo ou texto colado) */
         function confirmarRestauracaoTexto(jsonString) {
             try {
                 const dados = JSON.parse(jsonString);
                 
+                // Verificação simples se é o nosso backup
                 if (!dados.notas && !dados.favoritos && !dados.grifos) {
                     throw new Error("Formato inválido");
                 }
 
+                // Atualiza os dados globais
                 if(dados.notas) dadosUsuario.notas = dados.notas;
                 if(dados.grifos) dadosUsuario.grifos = dados.grifos;
                 if(dados.favoritos) dadosUsuario.favoritos = dados.favoritos;
                 
-                salvarDados();
+                salvarDados(); // Salva no LocalStorage
                 
                 mostrarAlerta("Seus dados foram recuperados com sucesso!", "Parabéns 🎉");
+                
+                // Recarrega a página para atualizar tudo
                 setTimeout(() => window.location.reload(), 2000);
 
             } catch (e) {
-                mostrarAlerta("O texto colado não é um backup válido.", "Erro ❌");
+                mostrarAlerta("O código colado não é válido.", "Erro ❌");
             }
         }
 
-        /* Fecha Modais */
+        /* Utilitário para fechar modais */
         function fecharModalTemp(elemento) {
             const modal = elemento.closest('.modal-overlay');
             if(modal) modal.remove();
