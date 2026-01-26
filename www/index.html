@@ -1735,94 +1735,122 @@
         }
 
         /* ==========================================================================
-           CORREÇÃO FINAL "BLINDADA" V2 - SEM MARGENS DUPLICADAS NO TOPO
+           CORREÇÃO VISUAL FINA (LAYOUT, TAMANHOS E SAFE-AREA)
            ========================================================================== */
         
-        /* 1. CABEÇALHO (HEADER) */
+        /* 1. CABEÇALHO (HEADER) - Ajustes de Posição e Tamanho */
         header, #cabecalho-principal {
-            /* Define a altura exata: 60px de barra + o tamanho do notch */
-            height: calc(60px + env(safe-area-inset-top)) !important;
+            /* Altura fixa da barra visível (reduzi levemente para 55px para ficar mais elegante) */
+            /* A altura total soma o notch */
+            height: calc(55px + env(safe-area-inset-top)) !important;
             
-            /* O padding empurra o conteúdo para não ficar debaixo da câmera */
+            /* Padding apenas no topo para empurrar conteúdo para fora do notch */
             padding-top: env(safe-area-inset-top) !important;
-            padding-bottom: 0 !important; /* Removemos espaços extras em baixo */
+            padding-bottom: 0 !important;
             
-            /* Centralização perfeita na área útil (os 60px que sobram) */
+            /* Layout Flex para alinhar tudo */
             display: flex !important;
-            align-items: center !important; 
+            align-items: center !important; /* ISSO corrige o botão fora de margem */
+            justify-content: space-between !important;
             
-            /* Garante que fica fixo no topo */
             position: fixed !important;
             top: 0;
             left: 0;
             width: 100%;
             z-index: 9999;
+            
+            /* Espaçamento lateral geral */
+            padding-left: 10px !important;
+            padding-right: 10px !important;
         }
         
-        /* --- A CORREÇÃO CRÍTICA ESTÁ AQUI EMBAIXO --- */
-        /* Removemos o margin-top que empurrava os botões para baixo demais */
-        #btn-tema, .seletor-versao-container, .botao-icone {
-            margin-top: 0 !important; 
+        /* TÍTULO - Mais à direita */
+        #cabecalho-principal h1, 
+        #titulo-livro {
+            /* Empurra o título para a direita */
+            margin-left: 15px !important; 
+            
+            /* Garante que não empurre os outros itens para fora */
+            flex-grow: 1; 
+            font-size: 1.1rem !important; /* Ajuste se achar muito grande */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        /* 2. RODAPÉ / MENU DE ABAS (Footer) - (Mantido pois estava perfeito) */
-        #rodape-nav, #menu-inferior, #abas-principais {
-            /* Espaço para a barra de gestos em baixo */
+        /* SELETOR DE VERSÃO - Menor e mais discreto */
+        .seletor-versao-container select,
+        #seletor-versao {
+            height: 30px !important; /* Altura fixa menor */
+            font-size: 0.8rem !important; /* Letra menor */
+            padding: 0 5px !important;
+            width: auto !important;
+            max-width: 80px; /* Limita a largura */
+            margin-right: 5px !important;
+        }
+        
+        /* BOTÃO DE TEMA (LUA/SOL) - Centralizado */
+        #btn-tema, .botao-icone {
+            margin: 0 !important; /* Remove margens estranhas */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 35px !important;
+            height: 35px !important;
+        }
+        
+        /* 2. RODAPÉ / ABAS - Subir um pouco mais */
+        #rodape-nav, #menu-inferior {
+            /* Padding bottom da Safe Area */
             padding-bottom: env(safe-area-inset-bottom) !important;
             
-            /* Altura: 60px original + espaço seguro */
-            height: calc(60px + env(safe-area-inset-bottom)) !important;
+            /* Altura total = Altura da barra + Safe Area */
+            height: calc(55px + env(safe-area-inset-bottom)) !important;
             
-            /* Box-sizing content-box para somar o padding à altura visualmente */
-            box-sizing: content-box !important; 
-            
-            position: fixed !important;
-            bottom: 0;
-            width: 100%;
+            box-sizing: content-box !important;
+            display: flex !important;
+            align-items: flex-start !important; /* Alinha os ícones mais para o topo da barra */
         }
         
-        /* Ícones das abas */
+        /* Ajuste dos ícones dentro da aba */
         .aba, .btn-nav {
-            padding-bottom: 0 !important;
-            height: 60px !important; /* Altura da área clicável dentro do footer */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 55px !important; /* Mesma altura da barra útil */
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding-bottom: 5px !important; /* Um leve empurrãozinho para cima visualmente */
         }
         
-        /* 3. CONTEÚDO PRINCIPAL (Para não ficar escondido atrás do cabeçalho) */
-        main, #corpo-app, #container-leitura {
-            /* O topo precisa compensar: 60px do header + Notch + 10px de respiro */
-            padding-top: calc(70px + env(safe-area-inset-top)) !important;
-            
-            /* O fundo precisa compensar: 60px do footer + Barra de Gestos + 20px respiro */
+        /* 3. CONTEÚDO PRINCIPAL */
+        main, #container-leitura {
+            /* Ajuste para o novo cabeçalho de 55px */
+            padding-top: calc(65px + env(safe-area-inset-top)) !important;
             padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
         }
         
-        /* 4. MODAIS E TELAS CHEIAS (Popups) */
-        .tela-cheia, #modal-verso, .modal-bottom-sheet {
-            /* Proteção para não colar no topo nem no fundo */
-            padding-top: env(safe-area-inset-top) !important;
-            padding-bottom: env(safe-area-inset-bottom) !important;
+        /* 4. MODAL DE VERSÕES / COMPARAÇÃO (O que estava subindo demais) */
+        /* Aplica-se a qualquer modal de tela cheia ou overlay */
+        .modal-overlay, 
+        #overlay-comparacao, 
+        .janela-leitura-perfil {
+            /* Define um padding gigante no topo SE for fixed top:0 */
+            padding-top: calc(40px + env(safe-area-inset-top)) !important;
+            
+            /* Garante que o conteúdo role mas o padding fique */
+            box-sizing: border-box !important;
         }
         
-        /* 5. CORREÇÃO ESPECÍFICA PARA PC (Reseta tudo para telas grandes) */
+        /* Se o modal tiver um cabeçalho próprio (botão fechar, título) */
+        .modal-header, .cabecalho-modal {
+            margin-top: env(safe-area-inset-top) !important;
+        }
+        
+        /* 5. PC (Reset) */
         @media screen and (min-width: 768px) {
-            header, #cabecalho-principal {
-                padding-top: 0 !important;
-                height: 60px !important;
-            }
-            
-            #rodape-nav, #menu-inferior {
-                padding-bottom: 0 !important;
-                height: 60px !important;
-                box-sizing: border-box !important;
-            }
-            
-            main, #corpo-app, #container-leitura {
-                padding-top: 80px !important;
-                padding-bottom: 20px !important;
-            }
+            header { height: 70px !important; padding-top: 0 !important; }
+            #rodape-nav { height: 70px !important; padding-bottom: 0 !important; box-sizing: border-box !important; }
+            main { padding-top: 80px !important; }
+            .modal-overlay { padding-top: 20px !important; }
         }
         
     </style>
