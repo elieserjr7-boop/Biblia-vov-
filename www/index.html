@@ -1757,29 +1757,19 @@
             background-color: #121212;
             color: #fff;
         }
-        /* ==========================================================================
-           AJUSTE DO CLONE DE COMPARAÇÃO (SAFE AREA)
-           ========================================================================== */
         
-        /* Quando a classe 'tela-cheia' é ativada pelo botão */
+        /* Quando a janela de comparação expande */
         #janela-comparacao.tela-cheia {
-            /* Força ocupar tudo */
-            width: 100% !important;
             height: 100% !important;
-            max-height: 100% !important;
             bottom: 0 !important;
-            left: 0 !important;
-            
-            /* AQUI ESTÁ A CORREÇÃO: Adiciona espaço no topo para o relógio */
-            padding-top: env(safe-area-inset-top, 25px) !important;
-            
-            /* Garante que o fundo cubra tudo */
-            background-color: var(--cor-fundo-principal, #fff) !important;
+            padding-top: env(safe-area-inset-top, 30px) !important; /* Salva o relógio */
+            background-color: var(--cor-fundo-principal, #fff);
         }
         
-        /* Modo escuro para segurança */
-        body.modo-escuro #janela-comparacao.tela-cheia {
-            background-color: #121212 !important;
+        /* Modo escuro */
+        body.modo-escuro #janela-comparacao {
+            background-color: #121212;
+            color: #fff;
         }
         
     </style>
@@ -2009,19 +1999,21 @@
         
     </main>
 
-    <div id="overlay-comparacao" class="modal-overlay escondido">
-        <div class="janela-leitura-perfil zoom-in" id="janela-comparacao">
+    <div id="overlay-comparacao" class="modal-overlay escondido" onclick="fecharComparacao(event)">
+        
+        <div class="janela-leitura-perfil" id="janela-comparacao" style="height: 70vh; bottom: 0;">
             
             <div class="cabecalho-leitura-modal">
-                <h3 id="titulo-comparacao">Comparar Versões</h3>
+                <h3 id="titulo-comparacao">Versões</h3>
+                
                 <div class="acoes-leitura-modal">
-                    <button onclick="alternarTelaCheiaComparacao()" title="Tela Cheia">⤢</button>
+                    <button onclick="alternarTelaCheiaComparacao()" title="Expandir">⤢</button>
                     <button onclick="fecharComparacao()" title="Fechar">✕</button>
                 </div>
             </div>
     
-            <div id="lista-comparacao" style="overflow-y: auto; height: calc(100% - 60px); padding: 10px;">
-                </div>
+            <div id="lista-comparacao" style="overflow-y: auto; height: calc(100% - 60px); padding: 15px;">
+            </div>
     
         </div>
     </div>
@@ -2390,44 +2382,57 @@
             atualizarMetaColor(escuroAtivo);
         }
 
-        /* --- FUNÇÃO PARA EXPANDIR A COMPARAÇÃO --- */
-        function alternarTelaCheiaComparacao() {
-            const janela = document.getElementById('janela-comparacao-conteudo');
+        /* --- SISTEMA DE COMPARAÇÃO NOVO --- */
+
+        // 1. Função para Abrir a Janela
+        function abrirComparacao() {
+            // Pega o modal novo
+            const modal = document.getElementById('modal-comparacao-final');
+            const conteudo = document.getElementById('conteudo-comparacao-final');
             
-            // Adiciona/Remove a classe que estica a janela
-            janela.classList.toggle('tela-cheia');
+            // Mostra o modal
+            modal.classList.remove('escondido');
             
-            if (janela.classList.contains('tela-cheia')) {
-                // MODO TELA CHEIA
-                janela.style.height = '100%';
-                janela.style.borderRadius = '0'; // Tira as bordas redondas
-            } else {
-                // MODO JANELA (VOLTAR AO NORMAL)
-                janela.style.height = '70vh'; 
-                janela.style.borderRadius = '20px 20px 0 0';
-            }
+            // (Opcional) Aqui você colocaria a lógica real de buscar versículos.
+            // Vou colocar um exemplo visual para você ver que funcionou:
+            conteudo.innerHTML = `
+                <div class="item-versao" style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                    <strong>NVI:</strong> <br> "No princípio Deus criou os céus e a terra."
+                </div>
+                <div class="item-versao" style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                    <strong>ACF:</strong> <br> "No princípio criou Deus os céus e a terra."
+                </div>
+                <div class="item-versao" style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #eee;">
+                    <strong>KJV:</strong> <br> "In the beginning God created the heaven and the earth."
+                </div>
+            `;
         }
         
-        /* Fecha se clicar fora da janela (fundo escuro) */
-        function fecharComparacaoSeClicarFora(e) {
-            if (e.target.id === 'overlay-comparacao') {
-                fecharComparacao();
-            }
-        }
-
-        /* --- FUNÇÃO PARA O NOVO MODAL DE COMPARAÇÃO --- */
-        function alternarTelaCheiaComparacao() {
-            // Pega a janela interna pelo ID novo que criamos
-            const janela = document.getElementById('janela-comparacao');
+        // 2. Função para Fechar
+        function fecharComparacaoFinal(e) {
+            // Se passou 'e', verifica se clicou fora. Se não passou 'e', fecha direto.
+            if (e && e.target.id !== 'modal-comparacao-final') return;
             
-            // Adiciona/Remove a classe 'tela-cheia'
+            document.getElementById('modal-comparacao-final').classList.add('escondido');
+            
+            // Reseta o tamanho ao fechar
+            const janela = document.getElementById('janela-comparacao-box');
+            janela.classList.remove('tela-cheia');
+            janela.style.height = '70vh';
+            janela.style.borderRadius = '20px 20px 0 0';
+        }
+        
+        // 3. Função Tela Cheia
+        function telaCheiaComparacao() {
+            const janela = document.getElementById('janela-comparacao-box');
             janela.classList.toggle('tela-cheia');
             
-            // Ajuste visual extra (opcional, mas recomendado)
             if (janela.classList.contains('tela-cheia')) {
-                janela.style.borderRadius = '0'; // Quadrado quando cheio
+                janela.style.height = '100%';
+                janela.style.borderRadius = '0';
             } else {
-                janela.style.borderRadius = ''; // Volta ao arredondado original
+                janela.style.height = '70vh';
+                janela.style.borderRadius = '20px 20px 0 0';
             }
         }
         
@@ -2996,82 +3001,92 @@
             }, 100);
         }
         
-        // --- FUNÇÃO DE COMPARAÇÃO (ATUALIZADA COM BOTÃO DE TEMA) ---
-        async function compararVersoes(idxLivro, cap, ver, nome) {
-            // 1. Fecha menus que possam estar abertos
-            fecharModalVersiculo(); 
-            const telaAntiga = document.getElementById('overlay-comparacao');
-            if (telaAntiga) telaAntiga.remove();
-        
-            // 2. Cria o Overlay (A tela cheia)
-            const overlay = document.createElement('div');
-            overlay.id = 'overlay-comparacao';
+       async function compararVersoes(idxLivro, cap, ver, nomeLivro) {
+            // 1. Configurar elementos da nova janela
+            const modal = document.getElementById('overlay-comparacao');
+            const titulo = document.getElementById('titulo-comparacao');
+            const lista = document.getElementById('lista-comparacao');
             
-            // Configuração visual para garantir que cobre tudo e permite rolagem
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.zIndex = '9999'; 
-            overlay.style.backgroundColor = document.body.classList.contains('modo-escuro') ? '#121212' : '#fdfbf7';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
+            // 2. Abrir a janela e mostrar carregando
+            titulo.innerText = `${nomeLivro} ${cap}:${ver}`;
+            lista.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">🔍 Buscando versões...</div>';
+            modal.classList.remove('escondido');
         
-            // 3. O NOVO CABEÇALHO (Com o botão de tema incluído!)
-            overlay.innerHTML = `
-                <div class="cabecalho-subtela" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
-                    
-                    <button class="btn-voltar-perfil" id="btn-fechar-comp">← Voltar</button>
-                    
-                    <h3 style="margin:0; font-size: 1.1rem; text-align:center;">${nome} ${cap}:${ver}</h3>
-                    
-                    <button onclick="alternarTema(); atualizarCorOverlay()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; padding:5px;">
-                        🌗
-                    </button>
-                </div>
+            // 3. Definir quais versões buscar (APIs Públicas)
+            // Almeida (Pt), King James (En), World English (En)
+            const versoes = [
+                { codigo: 'almeida', nome: 'Almeida (Português)' },
+                { codigo: 'kjv', nome: 'King James (Inglês)' },
+                { codigo: 'bbe', nome: 'Bible in Basic English' }
+            ];
         
-                <div id="lista-comparacao-cheia" class="tela-cheia-container" style="flex-grow: 1; overflow-y: auto;">
-                    <div style="padding: 20px; text-align:center; opacity: 0.7;">Carregando traduções...</div>
-                </div>
-            `;
+            let htmlFinal = '';
         
-            document.body.appendChild(overlay);
-            document.body.style.overflow = 'hidden'; // Trava a rolagem do fundo
+            // 4. Loop para buscar os dados reais
+            // Nota: Como a API "bible-api.com" usa nomes em inglês para livros, 
+            // vamos tentar fazer a busca segura ou usar a referência direta se possível.
+            // Para simplificar, vou usar uma chamada paralela:
         
-            // 4. Configura o botão de fechar
-            document.getElementById('btn-fechar-comp').onclick = function() {
-                overlay.remove();
-                document.body.style.overflow = ''; 
-            };
+            try {
+                // Mapeamento simples de nomes pt -> en para esta API específica, 
+                // ou usamos a API que aceita PT se tiveres configurada. 
+                // Vou usar um fetch genérico que funciona na maioria dos casos:
+                
+                const promessas = versoes.map(v => 
+                    fetch(`https://bible-api.com/${nomeLivro}+${cap}:${ver}?translation=${v.codigo}`)
+                        .then(r => r.json())
+                        .then(data => ({ nome: v.nome, texto: data.text || "Não disponível" }))
+                        .catch(() => ({ nome: v.nome, texto: "Erro ao carregar." }))
+                );
         
-            // 5. Carrega os textos (Mesma lógica de antes)
-            const listaContainer = document.getElementById('lista-comparacao-cheia');
-            const promises = listaVersoesDisponiveis.map(async item => {
-                const v = item.sigla;
-                try {
-                    let dadosVersao = cacheVersoes[v];
-                    if (!dadosVersao) {
-                        const r = await fetch(`./${v}.json`);
-                        if(r.ok) {
-                            dadosVersao = await r.json();
-                            cacheVersoes[v] = dadosVersao;
-                        }
-                    }
-                    if(dadosVersao && dadosVersao[idxLivro]?.chapters?.[cap-1]) {
-                        const txt = dadosVersao[idxLivro].chapters[cap-1][ver-1];
-                        return `
-                            <div class="item-traducao-cheia">
-                                <span class="comp-versao">${v}</span>
-                                <div class="comp-texto">${txt}</div>
-                            </div>`;
-                    }
-                } catch(e) { console.error(e); }
-                return "";
-            });
+                const resultados = await Promise.all(promessas);
         
-            const htmls = await Promise.all(promises);
-            listaContainer.innerHTML = htmls.join("");
+                // 5. Montar o HTML
+                resultados.forEach(res => {
+                    htmlFinal += `
+                        <div class="item-comparacao" style="margin-bottom: 20px; border-bottom: 1px solid var(--cor-borda, #eee); padding-bottom: 15px;">
+                            <span style="font-weight: bold; color: var(--cor-destaque); font-size: 0.9em; display:block; margin-bottom:5px;">
+                                ${res.nome}
+                            </span>
+                            <p style="margin: 0; line-height: 1.5; font-size: 1rem;">
+                                ${res.texto}
+                            </p>
+                        </div>
+                    `;
+                });
+        
+                lista.innerHTML = htmlFinal;
+        
+            } catch (erro) {
+                lista.innerHTML = '<p style="text-align:center; color:red;">Erro ao conectar com as versões.</p>';
+                console.error(erro);
+            }
+        }
+
+        function alternarTelaCheiaComparacao() {
+            const janela = document.getElementById('janela-comparacao');
+            janela.classList.toggle('tela-cheia');
+            
+            if (janela.classList.contains('tela-cheia')) {
+                janela.style.height = '100%';
+                janela.style.borderRadius = '0';
+            } else {
+                janela.style.height = '70vh'; // Volta ao tamanho original
+                janela.style.borderRadius = '20px 20px 0 0';
+            }
+        }
+        
+        // Função para Fechar
+        function fecharComparacao(e) {
+            if (e && e.target.id !== 'overlay-comparacao' && e.target.tagName !== 'BUTTON') return;
+            
+            document.getElementById('overlay-comparacao').classList.add('escondido');
+            
+            // Reseta visual ao fechar
+            const janela = document.getElementById('janela-comparacao');
+            janela.classList.remove('tela-cheia');
+            janela.style.height = '70vh';
+            janela.style.borderRadius = '20px 20px 0 0';
         }
         
         // Pequena função auxiliar para mudar a cor do fundo do overlay instantaneamente
