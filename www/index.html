@@ -3674,11 +3674,10 @@
         
         /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
         function abrirTelaComentarios() {
-            // NAVEGAÇÃO: Esconde menu e mostra a tela específica
             document.getElementById('menu-perfil-principal').style.display = 'none';
-            document.getElementById('view-progressao').style.display = 'none';
-            document.getElementById('view-favoritos').style.display = 'none';
-            
+            const subTelas = ['view-favoritos', 'view-progressao'];
+            subTelas.forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+        
             const telaView = document.getElementById('view-comentarios');
             if(telaView) {
                 telaView.style.display = 'block';
@@ -3689,7 +3688,6 @@
             if(!container) return;
             
             container.innerHTML = '';
-        
             if (!dadosUsuario.notas) dadosUsuario.notas = {};
             const chaves = Object.keys(dadosUsuario.notas);
         
@@ -3698,40 +3696,47 @@
                 return;
             }
         
-            chaves.reverse(); // Mais recentes primeiro
+            chaves.reverse();
+            
+            // --- LISTA DE SIGLAS ---
+            const siglasBiblicas = [
+                "gn", "ex", "lv", "nm", "dt", "js", "jz", "rt", "1sm", "2sm", "1rs", "2rs", "1cr", "2cr", "ed", "ne", "et", "job", "sl", "pv", "ec", "ct", "is", "jr", "lm", "ez", "dn", "os", "jl", "am", "ob", "jn", "mq", "na", "hc", "sf", "ag", "zc", "ml",
+                "mt", "mc", "lc", "jo", "at", "rm", "1co", "2co", "gl", "ef", "fp", "cl", "1ts", "2ts", "1tm", "2tm", "tt", "fl", "hb", "tg", "1pe", "2pe", "1jo", "2jo", "3jo", "jd", "ap"
+            ];
         
             chaves.forEach(chave => {
                 const partes = chave.split('_');
-                const livSigla = partes[0];
+                const livSigla = partes[0].toLowerCase();
                 const cap = parseInt(partes[1]);
                 const ver = parseInt(partes[2]);
-                
-                // --- CORREÇÃO DO [OBJECT OBJECT] ---
-                let conteudoNota = dadosUsuario.notas[chave];
-                let textoReal = "";
-                
-                // Se for um objeto (erro antigo), tenta pegar o texto dentro dele
-                if (typeof conteudoNota === 'object' && conteudoNota !== null) {
-                    textoReal = conteudoNota.texto || conteudoNota.conteudo || JSON.stringify(conteudoNota);
-                } else {
-                    textoReal = conteudoNota; // Se for texto normal, usa ele
-                }
         
-                // Tenta pegar nome do livro
-                const nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
+                // Busca Texto da Nota
+                let conteudoNota = dadosUsuario.notas[chave];
+                let textoReal = (typeof conteudoNota === 'object' && conteudoNota !== null) ? (conteudoNota.texto || "") : conteudoNota;
+        
+                // Busca Índice do Livro
+                let indiceLivro = siglasBiblicas.indexOf(livSigla);
+                if (indiceLivro === -1 && livSigla === 'jo') indiceLivro = 42; 
+        
+                // Busca Nome do Livro
+                let nomeLivro = livSigla.toUpperCase();
+                if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+                    nomeLivro = listaLivros[indiceLivro];
+                }
                 
-                // Tenta pegar versículo (com segurança se 'biblia' não existir)
+                // Busca Texto Versículo
                 let textoVersiculo = "Carregando texto...";
                 try {
-                     if(typeof biblia !== 'undefined' && biblia[livSigla] && biblia[livSigla][cap-1]) {
-                         textoVersiculo = biblia[livSigla][cap-1][ver-1];
-                     }
-                } catch(e) { console.log("Erro ao pegar verso", e); }
+                    const bibliaAlvo = window.bibliaCompleta || window.biblia || (typeof bibliaCompleta !== 'undefined' ? bibliaCompleta : null);
+                    if(bibliaAlvo && indiceLivro !== -1 && bibliaAlvo[indiceLivro]) {
+                         if (bibliaAlvo[indiceLivro].chapters && bibliaAlvo[indiceLivro].chapters[cap-1]) {
+                             textoVersiculo = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
+                         }
+                    }
+                } catch(e) {}
         
                 const div = document.createElement('div');
                 div.className = 'item-ref'; 
-                
-                // Passa o textoReal corrigido ou a chave
                 div.onclick = function() { verNotaCompleta(chave); };
         
                 div.innerHTML = `
@@ -3751,34 +3756,58 @@
         
         /* --- 2. FUNÇÃO PARA VOLTAR AO MENU DE PERFIL (Necessária no seu HTML) --- */
         function verNotaCompleta(chave) {
-            notaSendoLida = chave; // Guarda ex: "gn_1_1"
+            notaSendoLida = chave;
             
             const partes = chave.split('_');
-            const livSigla = partes[0];
+            const livSigla = partes[0].toLowerCase(); // Garante minúsculo
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
         
-            // Tenta pegar o nome do livro visualmente
+            // --- 1. LISTA DE SIGLAS (Para achar o índice do livro) ---
+            // A ordem TEM que ser a mesma da const listaLivros = ["Gênesis", "Êxodo"...]
+            const siglasBiblicas = [
+                "gn", "ex", "lv", "nm", "dt", "js", "jz", "rt", "1sm", "2sm", "1rs", "2rs", "1cr", "2cr", "ed", "ne", "et", "job", "sl", "pv", "ec", "ct", "is", "jr", "lm", "ez", "dn", "os", "jl", "am", "ob", "jn", "mq", "na", "hc", "sf", "ag", "zc", "ml",
+                "mt", "mc", "lc", "jo", "at", "rm", "1co", "2co", "gl", "ef", "fp", "cl", "1ts", "2ts", "1tm", "2tm", "tt", "fl", "hb", "tg", "1pe", "2pe", "1jo", "2jo", "3jo", "jd", "ap"
+            ];
+            
+            // Tratamento especial para Jó/João se necessário (alguns sistemas usam 'jo' para João e 'job' para Jó)
+            // Se sua chave usa 'jo' para João, ok. Se usa 'jo' para Jó, ajuste a lista acima.
+        
+            // Descobre o índice (Ex: 'gn' -> 0)
+            let indiceLivro = siglasBiblicas.indexOf(livSigla);
+            
+            // Se não achou (ex: 'job' vs 'jo'), tenta fallback
+            if (indiceLivro === -1 && livSigla === 'jo') indiceLivro = 42; // Tenta João (43º livro, index 42)
+            
+            // Tenta pegar o nome bonito
             let nomeLivro = livSigla.toUpperCase();
-            if (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) {
-                nomeLivro = nomesLivros[livSigla];
+            if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+                nomeLivro = listaLivros[indiceLivro];
             }
         
-            // 1. Preenche o Título
+            // 2. Título
             const tituloEl = document.getElementById('leitura-titulo');
             if(tituloEl) tituloEl.innerText = `${nomeLivro} ${cap}:${ver}`;
         
-            // 2. BUSCA O TEXTO BÍBLICO (Correção aqui: usa bibliaCompleta)
+            // 3. BUSCA O TEXTO BÍBLICO (Agora usando o índice correto)
             let textoBiblico = "Texto indisponível.";
             
             try {
-                // Tenta usar a variável global do seu código: bibliaCompleta
-                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta && bibliaCompleta[livSigla]) {
-                    textoBiblico = bibliaCompleta[livSigla][cap-1][ver-1];
-                } 
-                // Caso de falha, tenta a variável window.biblia
-                else if (typeof window.biblia !== 'undefined' && window.biblia[livSigla]) {
-                    textoBiblico = window.biblia[livSigla][cap-1][ver-1];
+                // Tenta pegar a bíblia global
+                const bibliaAlvo = window.bibliaCompleta || window.biblia || (typeof bibliaCompleta !== 'undefined' ? bibliaCompleta : null);
+        
+                if (bibliaAlvo && indiceLivro !== -1 && bibliaAlvo[indiceLivro]) {
+                    const livroObj = bibliaAlvo[indiceLivro];
+                    
+                    // Verifica se a estrutura é .chapters ou direta
+                    // Estrutura comum: livroObj.chapters[cap-1][ver-1]
+                    if (livroObj.chapters && livroObj.chapters[cap-1]) {
+                        textoBiblico = livroObj.chapters[cap-1][ver-1];
+                    } 
+                    // Estrutura alternativa: livroObj[cap-1][ver-1] (array direto)
+                    else if (Array.isArray(livroObj) && livroObj[cap-1]) {
+                        textoBiblico = livroObj[cap-1][ver-1];
+                    }
                 }
             } catch (erro) {
                 console.log("Erro ao ler bíblia:", erro);
@@ -3787,11 +3816,9 @@
             const textoBiblicoEl = document.getElementById('leitura-texto-biblico');
             if(textoBiblicoEl) textoBiblicoEl.innerText = `"${textoBiblico}"`;
         
-            // 3. Preenche a Nota do Usuário
+            // 4. Nota do Usuário
             let conteudoNota = dadosUsuario.notas[chave];
             let textoReal = "";
-            
-            // Tratamento para evitar [object Object]
             if (typeof conteudoNota === 'object' && conteudoNota !== null) {
                 textoReal = conteudoNota.texto || conteudoNota.conteudo || "";
             } else {
@@ -3801,7 +3828,7 @@
             const notaEl = document.getElementById('leitura-nota-usuario');
             if(notaEl) notaEl.innerText = textoReal;
         
-            // 4. Abre o Modal Manualmente
+            // 5. Abre Modal
             const modal = document.getElementById('modal-leitura-nota');
             if(modal) {
                 modal.style.display = 'flex';
