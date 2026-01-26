@@ -1943,6 +1943,49 @@
             color: #ccc !important;
         }
         
+        /* --- ESTILO DOS MODAIS DE SISTEMA --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Fica acima de tudo */
+            backdrop-filter: blur(2px);
+        }
+
+        .caixa-confirmacao {
+            background: white; /* ou cor do seu tema escuro */
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Animação de entrada */
+        .zoom-in {
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-modal {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
     </style>
 </head>
 <body id="corpo-app">
@@ -4098,7 +4141,7 @@
         // 1. FAZER BACKUP (Gera o arquivo e baixa) */        
         async function fazerBackup() {
             try {
-                // 1. PREPARAR DADOS
+                // Gera o pacote de dados
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4106,154 +4149,164 @@
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
                 };
-
-                // Transforma tudo num texto só
                 const jsonString = JSON.stringify(pacoteDados);
 
-                // --- MODO CELULAR (CAPACITOR) ---
-                if (window.Capacitor && window.Capacitor.isNative) {
-                    const { Share, Clipboard } = Capacitor.Plugins;
-
-                    try {
-                        // Tenta compartilhar via WhatsApp/Email/Drive como TEXTO
-                        await Share.share({
-                            title: 'Backup Bíblia',
-                            text: jsonString, // <--- O segredo: enviamos o texto, não um arquivo
-                            dialogTitle: 'Enviar Backup para...'
-                        });
+                // Cria o Modal Visualmente
+                const div = document.createElement('div');
+                div.className = 'modal-overlay';
+                div.innerHTML = `
+                    <div class="caixa-confirmacao zoom-in">
+                        <h3 style="margin-top:0; color:#333;">Seu Código de Backup</h3>
+                        <p style="font-size:13px; color:#666; margin-bottom:10px;">
+                            Copie este código e guarde no WhatsApp ou Notas.
+                        </p>
                         
-                    } catch (erroShare) {
-                        // Se o usuário cancelar ou o share falhar, copiamos para a área de transferência
-                        await Clipboard.write({
-                            string: jsonString
-                        });
-                        mostrarAlerta(
-                            "O menu de compartilhar falhou, mas COPIEI o código do backup para sua área de transferência. Cole em um bloco de notas!", 
-                            "Copiado 📋"
-                        );
-                    }
+                        <textarea id="txt-backup-copy" style="width:100%; height:100px; border:1px solid #ddd; border-radius:8px; padding:8px; font-size:11px; resize:none;" readonly>${jsonString}</textarea>
+                        
+                        <button onclick="copiarCodigoBackup()" class="btn-modal" style="background:#3498db; color:white;">
+                            📋 Copiar Código
+                        </button>
 
-                } else {
-                    // --- MODO WEB (PC) ---
-                    const blob = new Blob([jsonString], { type: "application/json" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `backup_biblia_${new Date().toISOString().split('T')[0]}.json`;
-                    document.body.appendChild(a);
-                    a.click(); 
-                    document.body.removeChild(a); 
-                    URL.revokeObjectURL(url); 
-                    mostrarAlerta("Arquivo salvo no PC.", "Sucesso ✅");
-                }
+                        <button onclick="compartilharNativo('${jsonString.replace(/'/g, "\\'")}')" class="btn-modal" style="background:#f39c12; color:white; margin-top:5px;">
+                            📤 Enviar / Compartilhar
+                        </button>
+                        
+                        <button onclick="fecharModalTemp(this)" class="btn-modal" style="background:#e74c3c; color:white; margin-top:5px;">
+                            Fechar
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(div);
 
             } catch (e) {
                 console.error(e);
-                mostrarAlerta("Erro ao gerar dados.", "Erro ❌");
+                mostrarAlerta("Erro ao gerar backup.", "Erro");
             }
         }
-        /* --- MENU DE RESTAURAÇÃO --- */
-        function acionarRestauracao() {
-            // Pergunta ao usuário qual método ele quer usar
-            // Vamos criar um modal simples dinâmico aqui ou usar o confirm
-            // Para facilitar, vamos criar um modalzinho rápido na hora
+
+        /* Função auxiliar para copiar o texto da textarea */
+        function copiarCodigoBackup() {
+            const textarea = document.getElementById('txt-backup-copy');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // Para mobile
             
+            // Tenta copiar
+            try {
+                if(window.Capacitor && window.Capacitor.isNative) {
+                    const { Clipboard } = Capacitor.Plugins;
+                    Clipboard.write({ string: textarea.value });
+                } else {
+                    document.execCommand('copy');
+                }
+                mostrarAlerta("Código copiado! Cole no WhatsApp ou Bloco de Notas.", "Sucesso ✅");
+            } catch (err) {
+                mostrarAlerta("Não foi possível copiar auto. Tente selecionar o texto manualmente.", "Ops");
+            }
+        }
+
+        /* Função auxiliar para usar o Share nativo (opcional) */
+        async function compartilharNativo(texto) {
+            if (window.Capacitor && window.Capacitor.isNative) {
+                const { Share } = Capacitor.Plugins;
+                await Share.share({
+                    title: 'Backup Bíblia',
+                    text: texto,
+                    dialogTitle: 'Guardar Backup'
+                });
+            } else {
+                mostrarAlerta("Esta função é para o celular. No PC, use o botão Copiar.", "Aviso");
+            }
+        }
+
+
+        /* 2. RESTAURAR BACKUP - Abre modal de escolha */
+        function acionarRestauracao() {
             const div = document.createElement('div');
             div.className = 'modal-overlay';
-            div.style.display = 'flex';
             div.innerHTML = `
-                <div class="caixa-confirmacao zoom-in" style="width: 300px;">
-                    <h3>Restaurar Backup</h3>
-                    <p>Como você salvou seu backup?</p>
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-                        <button onclick="document.getElementById('input-restore-hidden').click(); fecharModalTemp(this)" class="btn-salvar" style="background:#2ecc71;">
-                            📂 Abrir Arquivo .JSON
-                        </button>
-                        <button onclick="restaurarViaTexto(this)" class="btn-salvar" style="background:#3498db;">
-                            📋 Colar Texto do Backup
-                        </button>
-                        <button onclick="fecharModalTemp(this)" class="btn-cancelar">Cancelar</button>
-                    </div>
+                <div class="caixa-confirmacao zoom-in">
+                    <h3 style="margin-top:0; color:#333;">Restaurar Dados</h3>
+                    <p style="font-size:13px; color:#666;">Como você salvou seus dados?</p>
+                    
+                    <button onclick="abrirTelaColar(this)" class="btn-modal" style="background:#3498db; color:white;">
+                        📋 Colei um Código (Texto)
+                    </button>
+                    
+                    <button onclick="document.getElementById('input-restore-hidden').click(); fecharModalTemp(this)" class="btn-modal" style="background:#2ecc71; color:white; margin-top:5px;">
+                        📂 Tenho um Arquivo .JSON
+                    </button>
+                    
+                    <button onclick="fecharModalTemp(this)" class="btn-modal" style="background:#95a5a6; color:white; margin-top:15px;">
+                        Cancelar
+                    </button>
                 </div>
             `;
             document.body.appendChild(div);
         }
 
-        /* Fecha o modal temporário criado acima */
-        function fecharModalTemp(elemento) {
-            const modal = elemento.closest('.modal-overlay');
-            if(modal) modal.remove();
+        /* Abre a tela para colar o texto manualmente */
+        function abrirTelaColar(btnAnterior) {
+            fecharModalTemp(btnAnterior); // Fecha o anterior
+            
+            const div = document.createElement('div');
+            div.className = 'modal-overlay';
+            div.innerHTML = `
+                <div class="caixa-confirmacao zoom-in">
+                    <h3>Colar Código</h3>
+                    <p style="font-size:12px;">Cole o código que você salvou anteriormente.</p>
+                    <textarea id="txt-paste-backup" style="width:100%; height:120px; border:1px solid #ccc; border-radius:8px; padding:10px;" placeholder="Cole aqui..."></textarea>
+                    
+                    <button onclick="processarTextoRestauracao()" class="btn-modal" style="background:#27ae60; color:white;">
+                        Restaurar Agora
+                    </button>
+                    <button onclick="fecharModalTemp(this)" class="btn-modal" style="background:#e74c3c; color:white;">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(div);
         }
 
-        /* --- RESTAURAR COLANDO TEXTO (NOVO) --- */
-        async function restaurarViaTexto(elementoBotao) {
-            fecharModalTemp(elementoBotao);
-            
-            // Tenta ler da área de transferência automaticamente (Só funciona se der permissão)
-            // Se não, pede pro usuário colar num prompt
-            let textoBackup = "";
-            
-            if (window.Capacitor && window.Capacitor.isNative) {
-                const { Clipboard } = Capacitor.Plugins;
-                const { value } = await Clipboard.read();
-                textoBackup = value;
-            }
-
-            // Se o clipboard estiver vazio ou não acessível, pede manual
-            if (!textoBackup) {
-                // Cria um editor simples para colar
-                const div = document.createElement('div');
-                div.className = 'modal-overlay';
-                div.style.display = 'flex';
-                div.innerHTML = `
-                    <div class="caixa-confirmacao zoom-in" style="width: 90%; max-width:400px;">
-                        <h3>Colar Código</h3>
-                        <textarea id="txt-paste-backup" style="width:100%; height:150px; border:1px solid #ccc; border-radius:8px; padding:10px;" placeholder="Cole o código do backup aqui..."></textarea>
-                        <div class="botoes-editor">
-                            <button onclick="fecharModalTemp(this)" class="btn-cancelar">Cancelar</button>
-                            <button onclick="processarTextoRestauracao()" class="btn-salvar">Restaurar</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(div);
-                return;
-            } 
-            
-            // Se já pegou do clipboard, processa direto
-            confirmarRestauracaoTexto(textoBackup);
-        }
-
+        /* Processa o texto colado */
         function processarTextoRestauracao() {
             const texto = document.getElementById('txt-paste-backup').value;
-            if(!texto) return alert("Cole o código primeiro!");
-            fecharModalTemp(document.getElementById('txt-paste-backup'));
+            if(!texto) return mostrarAlerta("Cole o código primeiro!", "Atenção");
+            
+            fecharModalTemp(document.getElementById('txt-paste-backup')); // Fecha modal
             confirmarRestauracaoTexto(texto);
         }
 
+        /* Valida e salva os dados */
         function confirmarRestauracaoTexto(jsonString) {
             try {
                 const dados = JSON.parse(jsonString);
                 
-                // Validação simples
-                if (!dados.notas && !dados.favoritos) {
+                // Verifica se é um backup válido do nosso app
+                if (!dados.notas && !dados.favoritos && !dados.grifos) {
                     throw new Error("Formato inválido");
                 }
 
-                // Aplica os dados (Reaproveita sua lógica de salvar)
+                // Restaura
                 if(dados.notas) dadosUsuario.notas = dados.notas;
                 if(dados.grifos) dadosUsuario.grifos = dados.grifos;
                 if(dados.favoritos) dadosUsuario.favoritos = dados.favoritos;
                 
-                salvarDados(); // Sua função que salva no localStorage
+                salvarDados(); // Salva no LocalStorage
                 
-                mostrarAlerta("Seus dados foram restaurados com sucesso!", "Restaurado! 🎉");
+                mostrarAlerta("Seus dados foram recuperados com sucesso!", "Parabéns 🎉");
                 
-                // Recarrega a página para atualizar visual
+                // Recarrega para atualizar a tela
                 setTimeout(() => window.location.reload(), 2000);
 
             } catch (e) {
-                mostrarAlerta("O código colado não é um backup válido.", "Erro ❌");
+                mostrarAlerta("O texto colado não é um backup válido.", "Erro ❌");
             }
+        }
+
+        /* Fecha qualquer modal */
+        function fecharModalTemp(elemento) {
+            const modal = elemento.closest('.modal-overlay');
+            if(modal) modal.remove();
         }
         
         iniciarApp();
