@@ -3484,44 +3484,46 @@
         }
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
-        /* --- FUNÇÃO PRINCIPAL: LISTA DE COMENTÁRIOS --- */
         function abrirTelaComentarios() {
-            // 1. Proteção: Fecha menu se estiver aberto
+            // 1. Fecha o menu lateral
             if (typeof fecharMenuHamburguer === 'function') fecharMenuHamburguer();
         
-            // 2. Proteção: Verifica se o container principal existe
-            const area = document.getElementById('conteudo-leitura');
+            // 2. ESCONDE A NAVEGAÇÃO (Para combinar com o teu voltarParaLeitura)
+            const rodape = document.getElementById('rodape-nav');
+            const abas = document.getElementById('abas-principais');
+            if (rodape) rodape.classList.add('escondido');
+            if (abas) abas.classList.add('escondido');
+        
+            // 3. DEFINE O ALVO CORRETO (Onde o texto vai aparecer)
+            // Aqui estava o erro: mudamos para 'texto-biblico'
+            const area = document.getElementById('texto-biblico');
+            
             if (!area) {
-                alert("Erro: Container 'conteudo-leitura' não encontrado.");
-                return;
+                alert("Erro: ID 'texto-biblico' não encontrado no HTML.");
+                return; // Para tudo se não achar a div
             }
         
-            // 3. Garante que dadosUsuario existe
-            if (typeof dadosUsuario === 'undefined' || !dadosUsuario) {
-                console.log("Dados do usuário ainda não carregados.");
-                return;
-            }
-        
-            // Garante que o objeto notas existe
-            if (!dadosUsuario.notas) {
-                dadosUsuario.notas = {};
-            }
+            // 4. PREPARA OS DADOS
+            if (typeof dadosUsuario === 'undefined' || !dadosUsuario) return;
+            if (!dadosUsuario.notas) dadosUsuario.notas = {};
         
             const chaves = Object.keys(dadosUsuario.notas);
         
-            // CASO 1: Não tem comentários
+            // CENÁRIO A: SEM COMENTÁRIOS
             if (chaves.length === 0) {
                 area.innerHTML = `
-                    <div style="padding: 20px; text-align: center; margin-top: 50px;">
+                    <div style="padding: 40px 20px; text-align: center;">
                         <h3 style="opacity: 0.6;">Meus Comentários</h3>
                         <p>Você ainda não criou nenhuma anotação.</p>
-                        <button onclick="voltarParaLeitura()" class="btn-voltar-perfil" style="margin-top:20px;">Voltar para Bíblia</button>
+                        <button onclick="voltarParaLeitura()" class="btn-voltar-perfil" style="margin-top:20px;">
+                            Voltar para Bíblia
+                        </button>
                     </div>`;
                 window.scrollTo(0,0);
                 return;
             }
         
-            // CASO 2: Tem comentários -> Monta a lista
+            // CENÁRIO B: COM COMENTÁRIOS (Monta a lista)
             let html = `
                 <div style="padding: 20px; padding-bottom: 80px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -3531,34 +3533,29 @@
         
             chaves.forEach(chave => {
                 try {
-                    const partes = chave.split('_'); // Ex: "0_1_1"
+                    const partes = chave.split('_'); // Ex: 0_1_1
                     const lIdx = parseInt(partes[0]);
                     const c = parseInt(partes[1]);
                     const v = parseInt(partes[2]);
                     
-                    // Proteção para o nome do livro
-                    let nomeLivro = "Livro";
-                    if (typeof listaLivros !== 'undefined' && listaLivros[lIdx]) {
-                        nomeLivro = listaLivros[lIdx];
-                    }
-        
+                    let nomeLivro = (typeof listaLivros !== 'undefined') ? listaLivros[lIdx] : "Livro";
                     const textoNota = dadosUsuario.notas[chave] || "";
         
-                    // Cria o item da lista
                     html += `
-                        <div class="item-historico" onclick="verDetalheComentario(${lIdx}, ${c}, ${v}, '${chave}')" style="cursor:pointer; padding:15px; border-bottom:1px solid #ddd; margin-bottom:10px;">
+                        <div class="item-historico" onclick="verDetalheComentario(${lIdx}, ${c}, ${v}, '${chave}')" 
+                             style="cursor:pointer; padding:15px; border-bottom:1px solid #ddd; margin-bottom:10px;">
+                            
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <strong style="font-size:1rem;">${nomeLivro} ${c}:${v}</strong>
                                 <span style="font-size:0.8rem; color:#888; background:#eee; padding:2px 6px; border-radius:4px;">Ver</span>
                             </div>
+                            
                             <div class="preview-comentario">
                                 "${textoNota}"
                             </div>
                         </div>
                     `;
-                } catch (erro) {
-                    console.error("Erro ao renderizar item:", erro);
-                }
+                } catch (e) { console.error(e); }
             });
         
             html += `
@@ -3571,27 +3568,19 @@
             window.scrollTo(0,0);
         }
 
-        /* --- FUNÇÃO AUXILIAR: O MODAL (POPUP) --- */
+        /* --- FUNÇÃO AUXILIAR: O MODAL POPUP (Esta mantém-se igual à anterior) --- */
         function verDetalheComentario(lIdx, cap, ver, chave) {
-            // Fecha modal anterior se houver
             const antigo = document.getElementById('modal-detalhe-nota');
             if (antigo) antigo.remove();
         
-            // 1. Tenta pegar o texto bíblico
             let textoVersiculo = "Carregando texto...";
-            // Verifica se a variável biblia existe e tem o livro/capítulo
             if (typeof biblia !== 'undefined' && biblia[lIdx] && biblia[lIdx].chapters && biblia[lIdx].chapters[cap-1]) {
                 textoVersiculo = biblia[lIdx].chapters[cap-1][ver-1];
             }
-        
-            // 2. Pega a nota
             const notaUsuario = (dadosUsuario.notas && dadosUsuario.notas[chave]) ? dadosUsuario.notas[chave] : "";
         
-            // 3. Cria o Overlay
             const overlay = document.createElement('div');
             overlay.id = 'modal-detalhe-nota';
-            
-            // Estilo fixo para garantir que aparece
             overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;";
         
             const corFundo = document.body.classList.contains('modo-escuro') ? '#1e1e1e' : '#ffffff';
@@ -3600,48 +3589,38 @@
         
             overlay.innerHTML = `
                 <div style="background-color: ${corFundo}; color: ${corTexto}; width: 100%; max-width: 500px; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 85vh;">
-                    
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #4444; padding-bottom:10px; margin-bottom:10px;">
                         <h3 style="margin:0; font-size:1.1rem;">${nomeLivro} ${cap}:${ver}</h3>
                         <button id="btn-fechar-popup" style="background:none; border:none; font-size:1.8rem; line-height:1; cursor:pointer; color:${corTexto}">×</button>
                     </div>
-        
                     <div style="overflow-y: auto; flex-grow: 1;">
                         <p style="font-style: italic; margin-bottom: 15px; opacity: 0.8; line-height: 1.4;">"${textoVersiculo}"</p>
                         <hr style="border: 0; border-top: 1px solid #4444; margin: 15px 0;">
                         <strong style="display:block; margin-bottom:8px;">Sua Anotação:</strong>
                         <div class="box-leitura-comentario">${notaUsuario}</div>
                     </div>
-        
                     <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
                         <button id="btn-apagar-popup" style="background-color: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight:bold;">Apagar</button>
                         <button id="btn-editar-popup" style="background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight:bold;">Editar</button>
                     </div>
                 </div>
             `;
-        
             document.body.appendChild(overlay);
         
-            // Eventos
             document.getElementById('btn-fechar-popup').onclick = () => overlay.remove();
             overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-        
             document.getElementById('btn-apagar-popup').onclick = () => {
                 if(typeof apagarItemIndividual === 'function') {
                     apagarItemIndividual('notas', chave, lIdx, cap, ver);
                     overlay.remove();
-                } else { alert("Erro: função apagar não encontrada."); }
-            };
-        
-            document.getElementById('btn-editar-popup').onclick = () => {
-                overlay.remove();
-                if (typeof abrirModalNota === 'function') {
-                    abrirModalNota(lIdx, cap, ver); 
-                } else {
-                    alert("Função de edição não encontrada.");
                 }
             };
+            document.getElementById('btn-editar-popup').onclick = () => {
+                overlay.remove();
+                if (typeof abrirModalNota === 'function') abrirModalNota(lIdx, cap, ver); 
+            };
         }
+        
         
         // Funções de Resetar
         function resetarFavoritos() {
