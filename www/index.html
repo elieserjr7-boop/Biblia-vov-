@@ -15,12 +15,6 @@
     <link rel="apple-touch-icon" href="./icon-192.png">
     <link rel="icon" type="image/png" href="./icon-192.png">
 
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-        eruda.init();
-        console.log("Console Eruda inicializado com sucesso! 🚀");
-    </script>
-
     <style>
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
@@ -4213,6 +4207,9 @@
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
+                    // --- CORREÇÃO AQUI: Adicionamos o progresso ---
+                    progresso: dadosUsuario.progresso || {}, 
+                    // ----------------------------------------------
                     notas: dadosUsuario.notas || {},
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
@@ -4220,12 +4217,11 @@
                 
                 // Converte para texto
                 const jsonString = JSON.stringify(pacoteDados);
-
+        
                 // 2. Cria o Modal Visualmente
                 const div = document.createElement('div');
                 div.className = 'modal-overlay';
                 
-                // Note que removemos o botão de compartilhar que dava erro
                 div.innerHTML = `
                     <div class="caixa-confirmacao zoom-in">
                         <h3>Seu Código de Backup</h3>
@@ -4236,7 +4232,7 @@
                         <button onclick="copiarCodigoBackup()" class="btn-modal" style="background:#3498db; color:white;">
                             📋 Copiar Código
                         </button>
-
+        
                         <button onclick="baixarBackupPeloModal()" class="btn-modal" style="background:#27ae60; color:white;">
                             💾 Baixar Arquivo .JSON
                         </button>
@@ -4247,7 +4243,7 @@
                     </div>
                 `;
                 document.body.appendChild(div);
-
+        
             } catch (e) {
                 console.error(e);
                 mostrarAlerta("Erro ao gerar backup.", "Erro");
@@ -4373,32 +4369,55 @@
             try {
                 const dados = JSON.parse(jsonString);
                 
-                // Verificação simples se é o nosso backup
-                if (!dados.notas && !dados.favoritos && !dados.grifos) {
+                // Verificação simples se é o nosso backup (Agora verificamos progresso também)
+                if (!dados.notas && !dados.favoritos && !dados.grifos && !dados.progresso) {
                     throw new Error("Formato inválido");
                 }
-
+        
                 // Atualiza os dados globais
                 if(dados.notas) dadosUsuario.notas = dados.notas;
                 if(dados.grifos) dadosUsuario.grifos = dados.grifos;
                 if(dados.favoritos) dadosUsuario.favoritos = dados.favoritos;
+        
+                // --- CORREÇÃO AQUI: Restauramos o progresso ---
+                if(dados.progresso) dadosUsuario.progresso = dados.progresso;
+                // ----------------------------------------------
                 
                 salvarDados(); // Salva no LocalStorage
                 
-                mostrarAlerta("Seus dados foram recuperados com sucesso!", "Parabéns 🎉");
+                mostrarAlerta("Seus dados (incluindo leitura) foram recuperados!", "Parabéns 🎉");
                 
-                // Recarrega a página para atualizar tudo
+                // Recarrega a página para atualizar tudo (barras de progresso, etc)
                 setTimeout(() => window.location.reload(), 2000);
-
+        
             } catch (e) {
-                mostrarAlerta("O código colado não é válido.", "Erro ❌");
+                console.error(e);
+                mostrarAlerta("O código colado não é válido ou está corrompido.", "Erro ❌");
             }
         }
-
         /* Utilitário para fechar modais */
         function fecharModalTemp(elemento) {
             const modal = elemento.closest('.modal-overlay');
             if(modal) modal.remove();
+        }
+        
+        /* Função extra para processar o UPLOAD de arquivo .json */
+        function processarArquivoBackup(inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+        
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const conteudo = e.target.result;
+                // Reutilizamos a lógica de restauração que já corrigimos acima
+                confirmarRestauracaoTexto(conteudo);
+            };
+            
+            reader.readAsText(file);
+            
+            // Limpa o input para permitir selecionar o mesmo arquivo novamente se falhar
+            inputElement.value = '';
         }
         
         iniciarApp();
