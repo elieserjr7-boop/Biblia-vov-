@@ -4095,10 +4095,10 @@
         }
         /* --- SISTEMA DE BACKUP E RESTAURAÇÃO (MENSAGENS PERSONALIZADAS) --- */
 
-        // 1. FAZER BACKUP (Gera o arquivo e baixa) */
-        /* --- FAZER BACKUP (Versão Final: Cache + Compartilhar) --- */
+        // 1. FAZER BACKUP (Gera o arquivo e baixa) */        
         async function fazerBackup() {
             try {
+                // 1. PREPARAR DADOS
                 const pacoteDados = {
                     versao: "1.0",
                     data: new Date().toISOString(),
@@ -4106,107 +4106,154 @@
                     grifos: dadosUsuario.grifos || {},
                     favoritos: dadosUsuario.favoritos || [] 
                 };
-                
-                const jsonString = JSON.stringify(pacoteDados, null, 2);
-                const dataHoje = new Date().toISOString().split('T')[0];
-                const nomeArquivo = `biblia_backup_${dataHoje}.json`;
 
+                // Transforma tudo num texto só
+                const jsonString = JSON.stringify(pacoteDados);
+
+                // --- MODO CELULAR (CAPACITOR) ---
                 if (window.Capacitor && window.Capacitor.isNative) {
-                    const { Filesystem, Directory, Encoding, Share } = Capacitor.Plugins;
+                    const { Share, Clipboard } = Capacitor.Plugins;
 
                     try {
-                        // 1. Grava na pasta CACHE (Não precisa de permissão do usuário)
-                        const resultado = await Filesystem.writeFile({
-                            path: nomeArquivo,
-                            data: jsonString,
-                            directory: Directory.Cache, // <--- Importante: Directory.Cache
-                            encoding: Encoding.UTF8
-                        });
-
-                        // 2. Abre a janelinha para enviar para Drive/WhatsApp
+                        // Tenta compartilhar via WhatsApp/Email/Drive como TEXTO
                         await Share.share({
-                            title: 'Backup da Bíblia',
-                            text: 'Aqui está seu arquivo de backup.',
-                            url: resultado.uri, 
-                            dialogTitle: 'Salvar Backup'
+                            title: 'Backup Bíblia',
+                            text: jsonString, // <--- O segredo: enviamos o texto, não um arquivo
+                            dialogTitle: 'Enviar Backup para...'
                         });
-
-                    } catch (erro) {
-                        console.error("Erro ao compartilhar:", erro);
-                        // O usuário pode ter cancelado a janela, não é necessariamente um erro crítico
+                        
+                    } catch (erroShare) {
+                        // Se o usuário cancelar ou o share falhar, copiamos para a área de transferência
+                        await Clipboard.write({
+                            string: jsonString
+                        });
+                        mostrarAlerta(
+                            "O menu de compartilhar falhou, mas COPIEI o código do backup para sua área de transferência. Cole em um bloco de notas!", 
+                            "Copiado 📋"
+                        );
                     }
 
                 } else {
-                    // Versão PC/Navegador
+                    // --- MODO WEB (PC) ---
                     const blob = new Blob([jsonString], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = nomeArquivo;
+                    a.download = `backup_biblia_${new Date().toISOString().split('T')[0]}.json`;
                     document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    mostrarAlerta("Download iniciado.", "Sucesso ✅");
+                    a.click(); 
+                    document.body.removeChild(a); 
+                    URL.revokeObjectURL(url); 
+                    mostrarAlerta("Arquivo salvo no PC.", "Sucesso ✅");
                 }
 
             } catch (e) {
                 console.error(e);
-                mostrarAlerta("Erro ao gerar backup.", "Erro ❌");
+                mostrarAlerta("Erro ao gerar dados.", "Erro ❌");
             }
         }
-        // 2. ACIONAR RESTAURAÇÃO
+        /* --- MENU DE RESTAURAÇÃO --- */
         function acionarRestauracao() {
-            const input = document.getElementById('input-restore-hidden');
-            if(input) input.click(); 
+            // Pergunta ao usuário qual método ele quer usar
+            // Vamos criar um modal simples dinâmico aqui ou usar o confirm
+            // Para facilitar, vamos criar um modalzinho rápido na hora
+            
+            const div = document.createElement('div');
+            div.className = 'modal-overlay';
+            div.style.display = 'flex';
+            div.innerHTML = `
+                <div class="caixa-confirmacao zoom-in" style="width: 300px;">
+                    <h3>Restaurar Backup</h3>
+                    <p>Como você salvou seu backup?</p>
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                        <button onclick="document.getElementById('input-restore-hidden').click(); fecharModalTemp(this)" class="btn-salvar" style="background:#2ecc71;">
+                            📂 Abrir Arquivo .JSON
+                        </button>
+                        <button onclick="restaurarViaTexto(this)" class="btn-salvar" style="background:#3498db;">
+                            📋 Colar Texto do Backup
+                        </button>
+                        <button onclick="fecharModalTemp(this)" class="btn-cancelar">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(div);
         }
-        
-        // 3. PROCESSAR O ARQUIVO ESCOLHIDO
-        function processarArquivoBackup(input) {
-            const arquivo = input.files[0];
-            if (!arquivo) return;
-        
-            const leitor = new FileReader();
-        
-            leitor.onload = function(e) {
-                try {
-                    const conteudo = e.target.result;
-                    const dadosRecuperados = JSON.parse(conteudo);
-        
-                    // Validação
-                    if (!dadosRecuperados.notas && !dadosRecuperados.grifos) {
-                        throw new Error("Formato inválido");
-                    }
-        
-                    // Atualiza os dados
-                    if(dadosRecuperados.notas) dadosUsuario.notas = dadosRecuperados.notas;
-                    if(dadosRecuperados.grifos) dadosUsuario.grifos = dadosRecuperados.grifos;
-                    if(dadosRecuperados.favoritos) dadosUsuario.favoritos = dadosRecuperados.favoritos;
-        
-                    salvarDados();
-        
-                    // --- MENSAGEM PERSONALIZADA DE SUCESSO ---
-                    mostrarAlerta(
-                        "Suas anotações e favoritos foram recuperados com sucesso!\n\nO aplicativo será recarregado agora.", 
-                        "Restauração Concluída 🎉"
-                    );
-                    
-                    // Dá tempo do usuário ler antes de recarregar
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
-        
-                } catch (erro) {
-                    console.error(erro);
-                    // --- MENSAGEM DE ARQUIVO INVÁLIDO ---
-                    mostrarAlerta(
-                        "O arquivo selecionado não parece ser um backup válido desta Bíblia.", 
-                        "Arquivo Inválido ⚠️"
-                    );
+
+        /* Fecha o modal temporário criado acima */
+        function fecharModalTemp(elemento) {
+            const modal = elemento.closest('.modal-overlay');
+            if(modal) modal.remove();
+        }
+
+        /* --- RESTAURAR COLANDO TEXTO (NOVO) --- */
+        async function restaurarViaTexto(elementoBotao) {
+            fecharModalTemp(elementoBotao);
+            
+            // Tenta ler da área de transferência automaticamente (Só funciona se der permissão)
+            // Se não, pede pro usuário colar num prompt
+            let textoBackup = "";
+            
+            if (window.Capacitor && window.Capacitor.isNative) {
+                const { Clipboard } = Capacitor.Plugins;
+                const { value } = await Clipboard.read();
+                textoBackup = value;
+            }
+
+            // Se o clipboard estiver vazio ou não acessível, pede manual
+            if (!textoBackup) {
+                // Cria um editor simples para colar
+                const div = document.createElement('div');
+                div.className = 'modal-overlay';
+                div.style.display = 'flex';
+                div.innerHTML = `
+                    <div class="caixa-confirmacao zoom-in" style="width: 90%; max-width:400px;">
+                        <h3>Colar Código</h3>
+                        <textarea id="txt-paste-backup" style="width:100%; height:150px; border:1px solid #ccc; border-radius:8px; padding:10px;" placeholder="Cole o código do backup aqui..."></textarea>
+                        <div class="botoes-editor">
+                            <button onclick="fecharModalTemp(this)" class="btn-cancelar">Cancelar</button>
+                            <button onclick="processarTextoRestauracao()" class="btn-salvar">Restaurar</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(div);
+                return;
+            } 
+            
+            // Se já pegou do clipboard, processa direto
+            confirmarRestauracaoTexto(textoBackup);
+        }
+
+        function processarTextoRestauracao() {
+            const texto = document.getElementById('txt-paste-backup').value;
+            if(!texto) return alert("Cole o código primeiro!");
+            fecharModalTemp(document.getElementById('txt-paste-backup'));
+            confirmarRestauracaoTexto(texto);
+        }
+
+        function confirmarRestauracaoTexto(jsonString) {
+            try {
+                const dados = JSON.parse(jsonString);
+                
+                // Validação simples
+                if (!dados.notas && !dados.favoritos) {
+                    throw new Error("Formato inválido");
                 }
-            };
-        
-            leitor.readAsText(arquivo);
-            input.value = ''; 
+
+                // Aplica os dados (Reaproveita sua lógica de salvar)
+                if(dados.notas) dadosUsuario.notas = dados.notas;
+                if(dados.grifos) dadosUsuario.grifos = dados.grifos;
+                if(dados.favoritos) dadosUsuario.favoritos = dados.favoritos;
+                
+                salvarDados(); // Sua função que salva no localStorage
+                
+                mostrarAlerta("Seus dados foram restaurados com sucesso!", "Restaurado! 🎉");
+                
+                // Recarrega a página para atualizar visual
+                setTimeout(() => window.location.reload(), 2000);
+
+            } catch (e) {
+                mostrarAlerta("O código colado não é um backup válido.", "Erro ❌");
+            }
         }
         
         iniciarApp();
