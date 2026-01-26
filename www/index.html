@@ -2533,25 +2533,28 @@
         }
         
         // --- CARREGAMENTO DE BÍBLIA ---
+        /* --- FUNÇÃO DE CARREGAMENTO CORRIGIDA (Copie TUDO abaixo) --- */
         async function carregarVersaoBiblia(versao) {
-            // Verifica se já está em cache
+            
+            // 1. Verifica se já está em cache
             if (cacheVersoes[versao]) {
                 bibliaCompleta = cacheVersoes[versao];
-                window.biblia = bibliaCompleta; // <--- O PULO DO GATO: Cria o atalho para o modal funcionar
+                window.biblia = bibliaCompleta; // <--- O PULO DO GATO (Atalho Global)
                 versaoCarregadaNome = versao;
                 
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
-                return;
+                return; // <--- Este return só funciona porque está DENTRO da function
             }
         
-            // Verifica se já é a versão atual carregada
+            // 2. Verifica se já é a versão atual
             if (versaoCarregadaNome === versao && bibliaCompleta) {
-                window.biblia = bibliaCompleta; // Garante o atalho mesmo assim
+                window.biblia = bibliaCompleta; 
                 return;
             }
         
+            // 3. Carrega do arquivo
             loading.style.display = 'block';
             try {
                 const resp = await fetch(`./${versao}.json`);
@@ -2561,31 +2564,10 @@
                 
                 cacheVersoes[versao] = dados;
                 bibliaCompleta = dados;
-                window.biblia = dados; // <--- O PULO DO GATO 2: Salva na variavel global 'biblia'
+                window.biblia = dados; // <--- O PULO DO GATO 2 (Salva na global)
                 
                 versaoCarregadaNome = versao;
                 
-                if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
-                    lerCapitulo(capituloAtual);
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao carregar versão.");
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-        
-            if (versaoCarregadaNome === versao && bibliaCompleta) return;
-        
-            loading.style.display = 'block';
-            try {
-                const resp = await fetch(`./${versao}.json`);
-                if(!resp.ok) throw new Error("Erro");
-                const dados = await resp.json();
-                cacheVersoes[versao] = dados;
-                bibliaCompleta = dados;
-                versaoCarregadaNome = versao;
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
