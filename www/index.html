@@ -2533,28 +2533,24 @@
         }
         
         // --- CARREGAMENTO DE BÍBLIA ---
-        /* --- FUNÇÃO DE CARREGAMENTO CORRIGIDA (Copie TUDO abaixo) --- */
         async function carregarVersaoBiblia(versao) {
-            
-            // 1. Verifica se já está em cache
+            // 1. Verifica cache
             if (cacheVersoes[versao]) {
                 bibliaCompleta = cacheVersoes[versao];
-                window.biblia = bibliaCompleta; // <--- O PULO DO GATO (Atalho Global)
-                versaoCarregadaNome = versao;
                 
+                // --- A CORREÇÃO MAGICA ---
+                window.bibliaCompleta = bibliaCompleta; 
+                window.biblia = bibliaCompleta; 
+                // -------------------------
+        
+                versaoCarregadaNome = versao;
                 if (!telaLeitura.classList.contains('escondido') && modoAtual === 'biblia') {
                     lerCapitulo(capituloAtual);
                 }
-                return; // <--- Este return só funciona porque está DENTRO da function
-            }
-        
-            // 2. Verifica se já é a versão atual
-            if (versaoCarregadaNome === versao && bibliaCompleta) {
-                window.biblia = bibliaCompleta; 
                 return;
             }
         
-            // 3. Carrega do arquivo
+            // 2. Carrega do arquivo
             loading.style.display = 'block';
             try {
                 const resp = await fetch(`./${versao}.json`);
@@ -2564,7 +2560,11 @@
                 
                 cacheVersoes[versao] = dados;
                 bibliaCompleta = dados;
-                window.biblia = dados; // <--- O PULO DO GATO 2 (Salva na global)
+        
+                // --- A CORREÇÃO MAGICA ---
+                window.bibliaCompleta = dados; // Grava na Janela Global
+                window.biblia = dados;         // Grava no backup
+                // -------------------------
                 
                 versaoCarregadaNome = versao;
                 
@@ -3673,6 +3673,7 @@
         let notaSendoLida = null; 
 
         /* --- HELPER: Converte sigla (ex: "gn") para índice numérico (ex: 0) --- */
+        /* Helper: Converte 'gn' em 0, 'ex' em 1... */
         function obterIndicePorSigla(sigla) {
             const mapa = {
                 "gn": 0, "ex": 1, "lv": 2, "nm": 3, "dt": 4, "js": 5, "jz": 6, "rt": 7,
@@ -3686,18 +3687,14 @@
                 "hb": 57, "tg": 58, "1pe": 59, "2pe": 60, "1jo": 61, "2jo": 62, "3jo": 63,
                 "jd": 64, "ap": 65
             };
-            // Retorna o índice ou -1 se não achar
             return (mapa[sigla] !== undefined) ? mapa[sigla] : -1;
         }
         
         /* --- 1. FUNÇÃO CORRIGIDA PARA SEUS IDs --- */
         function abrirTelaComentarios() {
-            // Esconde as outras telas
             document.getElementById('menu-perfil-principal').style.display = 'none';
-            ['view-favoritos', 'view-progressao'].forEach(id => { 
-                const el = document.getElementById(id); 
-                if(el) el.style.display='none'; 
-            });
+            const subTelas = ['view-favoritos', 'view-progressao'];
+            subTelas.forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
         
             const telaView = document.getElementById('view-comentarios');
             if(telaView) {
@@ -3709,8 +3706,6 @@
             if(!container) return;
             
             container.innerHTML = '';
-            
-            // Verifica se existem notas
             if (!dadosUsuario.notas) dadosUsuario.notas = {};
             const chaves = Object.keys(dadosUsuario.notas);
         
@@ -3719,8 +3714,10 @@
                 return;
             }
         
-            // Inverte para mostrar as mais recentes primeiro
             chaves.reverse();
+            
+            // Tenta pegar a bíblia de qualquer jeito
+            const bibliaAlvo = window.bibliaCompleta || window.biblia || bibliaCompleta;
         
             chaves.forEach(chave => {
                 const partes = chave.split('_');
@@ -3728,32 +3725,29 @@
                 const cap = parseInt(partes[1]);
                 const ver = parseInt(partes[2]);
         
-                // 1. Busca Texto da Nota
+                // Texto da Nota
                 let conteudoNota = dadosUsuario.notas[chave];
                 let textoReal = (typeof conteudoNota === 'object' && conteudoNota !== null) ? (conteudoNota.texto || "") : conteudoNota;
         
-                // 2. Converte Sigla para Índice (CORREÇÃO)
+                // --- BUSCA O TEXTO BÍBLICO ---
+                let textoVersiculo = "Carregando texto...";
+                let nomeLivro = livSigla.toUpperCase();
+        
                 const indiceLivro = obterIndicePorSigla(livSigla);
         
-                // 3. Pega Nome do Livro
-                let nomeLivro = livSigla.toUpperCase();
-                if (indiceLivro !== -1 && typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
-                    nomeLivro = listaLivros[indiceLivro];
-                }
-                
-                // 4. Pega Texto do Versículo
-                let textoVersiculo = "Carregando texto...";
-                if (bibliaCompleta && indiceLivro !== -1 && bibliaCompleta[indiceLivro]) {
-                    try {
-                        textoVersiculo = bibliaCompleta[indiceLivro].chapters[cap-1][ver-1];
-                    } catch(e) {
-                        textoVersiculo = "Texto indisponível";
+                if (bibliaAlvo && indiceLivro !== -1) {
+                    // Pega o nome bonito
+                    if (typeof listaLivros !== 'undefined' && listaLivros[indiceLivro]) {
+                        nomeLivro = listaLivros[indiceLivro];
                     }
-                } else if (!bibliaCompleta) {
-                    textoVersiculo = "Aguardando Bíblia..."; // Caso a bíblia ainda não tenha carregado
+                    // Pega o versículo
+                    try {
+                        if (bibliaAlvo[indiceLivro] && bibliaAlvo[indiceLivro].chapters) {
+                            textoVersiculo = bibliaAlvo[indiceLivro].chapters[cap-1][ver-1];
+                        }
+                    } catch(e) { console.log(e); }
                 }
         
-                // 5. Cria o elemento HTML
                 const div = document.createElement('div');
                 div.className = 'item-ref'; 
                 div.onclick = function() { verNotaCompleta(chave); };
@@ -3762,15 +3756,12 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <span class="res-ref">${nomeLivro} ${cap}:${ver}</span>
-                            <div style="font-size:14px; color:#555; margin-bottom:8px; 
-                                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style:italic;">
-                                "${textoVersiculo}"
-                            </div>
+                            <div style="font-size:14px; color:#555; margin-bottom:8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">"${textoVersiculo}"</div>
                         </div>
                         <button onclick="event.stopPropagation(); apagarItemIndividual('notas', '${chave}', '${livSigla}', ${cap}, ${ver})" 
-                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 0 0 15px;">✖</button>
+                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 10px;">✖</button>
                     </div>
-                    <div class="nota-preview" style="border-left: 3px solid #f39c12; padding-left: 8px;">${textoReal}</div>
+                    <div class="nota-preview">${textoReal}</div>
                 `;
                 container.appendChild(div);
             });
