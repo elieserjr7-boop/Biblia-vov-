@@ -1781,6 +1781,95 @@
             }
         }
         
+        /* --- CORREÇÃO DA CAIXINHA NA LISTA --- */
+        .nota-preview {
+            background-color: #fff3cd; /* Fundo Amarelo */
+            color: #856404;            /* Texto Amarelo Escuro */
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 14px;
+            font-style: italic;
+            border-left: 4px solid #ffeeba;
+            
+            /* O SEGREDO PARA NÃO SAIR DA CAIXA: */
+            white-space: pre-wrap;      /* Respeita as quebras de linha que você deu */
+            word-wrap: break-word;      /* Quebra palavras muito longas */
+            word-break: break-word;     /* Garante que não estoure a largura */
+        }
+        
+        /* --- ESTILO DO NOVO MODAL DE LEITURA (CENTRALIZADO) --- */
+        .modal-centro-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.6); /* Fundo escuro transparente */
+            z-index: 10005; /* Bem na frente */
+            
+            display: none; /* Começa escondido */
+            align-items: center;     /* Centraliza Verticalmente */
+            justify-content: center; /* Centraliza Horizontalmente */
+            backdrop-filter: blur(2px);
+        }
+        
+        .modal-centro-card {
+            background-color: #fff;
+            width: 90%;
+            max-width: 500px; /* Largura máxima bonita no PC */
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: zoomIn 0.2s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Estilos internos do Modal de Leitura */
+        .modal-leitura-ref {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-leitura-texto-biblico {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .modal-leitura-comentario {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ffeeba;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Mantém parágrafos */
+        }
+        
+        /* Modo Escuro para o Modal */
+        body.modo-escuro .modal-centro-card { background-color: #2c2c2c; color: #eee; }
+        body.modo-escuro .modal-leitura-ref { color: #ecf0f1; border-color: #444; }
+        body.modo-escuro .modal-leitura-texto-biblico { background-color: #333; color: #ddd; border-left-color: #2980b9; }
+        body.modo-escuro .modal-leitura-comentario { background-color: #443e2a; color: #f1c40f; border-color: #555; }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -2018,6 +2107,28 @@
             <div id="lista-comparacao" style="overflow-y: auto; flex-grow: 1; padding: 20px 20px 120px 20px;">
                 Carregando...
             </div>
+        </div>
+    </div>
+
+    <div id="modal-leitura-nota" class="modal-centro-overlay" onclick="fecharModalLeitura(event)">
+        <div class="modal-centro-card" onclick="event.stopPropagation()"> <div class="modal-leitura-ref">
+                <span id="leitura-titulo">Livro 1:1</span>
+                <button onclick="fecharModalLeitura()" style="background:none; border:none; font-size:24px; color:#e74c3c; cursor:pointer;">&times;</button>
+            </div>
+    
+            <div id="leitura-texto-biblico" class="modal-leitura-texto-biblico">
+                "Texto do versículo aparecerá aqui..."
+            </div>
+    
+            <label style="font-size:12px; color:#999; font-weight:bold; margin-bottom:5px; display:block;">SEU COMENTÁRIO:</label>
+            <div id="leitura-nota-usuario" class="modal-leitura-comentario">
+                Seu comentário aparecerá aqui...
+            </div>
+    
+            <button onclick="editarNotaAtual()" style="width:100%; margin-top:20px; padding:12px; background:#3498db; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                Editar Comentário
+            </button>
+    
         </div>
     </div>
 
@@ -3454,42 +3565,143 @@
         }
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
+        /* --- VARIÁVEL GLOBAL PARA SABER QUAL NOTA ESTAMOS LENDO --- */
+        let notaSendoLida = null; // Guardará a chave (ex: "gn_1_1")
+        
+        /* --- 1. FUNÇÃO ATUALIZADA PARA LISTAR OS COMENTÁRIOS --- */
         function abrirTelaComentarios() {
-            document.getElementById('menu-perfil-principal').classList.add('escondido');
-            esconderTodasSubTelas();
-            document.getElementById('view-comentarios').classList.remove('escondido');
+            esconderTodasTelas();
             
-            const container = document.getElementById('lista-comentarios-container');
-            container.innerHTML = "";
+            const tela = document.getElementById('tela-comentarios'); // Certifique-se que sua div principal tem esse ID ou ajuste aqui
+            if(tela) tela.style.display = 'block';
             
-            const lista = Object.entries(dadosUsuario.notas || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
-            
-            if (lista.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px'>Nenhuma anotação feita.</p>";
+            ativarAba('aba-comentarios'); // Ajuste o nome da aba se for diferente
+        
+            const container = document.getElementById('lista-comentarios-container'); // Onde a lista aparece
+            if (!container) return;
+        
+            container.innerHTML = '';
+        
+            const chaves = Object.keys(dadosUsuario.notas);
+        
+            if (chaves.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:50px 20px; color:#7f8c8d;">
+                        <div style="font-size:60px; margin-bottom:15px;">📝</div>
+                        <h3>Nenhuma anotação ainda</h3>
+                        <p>Toque no número de um versículo para adicionar uma nota pessoal.</p>
+                    </div>
+                `;
                 return;
             }
-            
-            lista.forEach(([chave, dados]) => {
-                const [livro, cap, num] = chave.split("_");
+        
+            // Inverter para mostrar os mais recentes primeiro (opcional)
+            chaves.reverse();
+        
+            chaves.forEach(chave => {
+                // Chave é tipo "gn_1_1" ou "jo_3_16"
+                const partes = chave.split('_');
+                const livSigla = partes[0];
+                const cap = parseInt(partes[1]);
+                const ver = parseInt(partes[2]);
+        
+                const nomeLivro = nomesLivros[livSigla] || livSigla.toUpperCase();
                 
+                // Texto do comentário
+                const textoNota = dadosUsuario.notas[chave];
+        
+                // Texto do versículo (para prévia, pegamos da biblia global)
+                // Se a biblia não estiver carregada, mostra só a referência
+                let textoVersiculo = "Carregando texto...";
+                try {
+                     if(biblia[livSigla] && biblia[livSigla][cap-1]) {
+                         textoVersiculo = biblia[livSigla][cap-1][ver-1];
+                     }
+                } catch(e) { console.log(e); }
+        
                 const div = document.createElement('div');
-                div.className = "item-ref";
+                div.className = 'item-ref'; // Usa o estilo de cartão que você já tem
+                
+                // AQUI ESTÁ A MUDANÇA: Ao clicar, chama verNotaCompleta em vez de irParaVersiculo
+                div.onclick = function() { verNotaCompleta(chave); };
+        
                 div.innerHTML = `
-                    <strong>${livro} ${cap}:${num}</strong>
-                    <div class="nota-usuario">📝 ${dados.texto}</div>
-                    <button class="btn-deletar-individual" title="Apagar anotação">🗑️</button>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <span class="res-ref">${nomeLivro} ${cap}:${ver}</span>
+                            <div style="font-size:14px; color:#555; margin-bottom:8px;">"${textoVersiculo}"</div>
+                        </div>
+                        <button onclick="event.stopPropagation(); apagarItemIndividual('notas', '${chave}', '${livSigla}', ${cap}, ${ver})" 
+                                style="background:none; border:none; color:#c0392b; font-size:20px; padding:0 10px;">
+                            <i class="fa fa-trash"></i> &times;
+                        </button>
+                    </div>
+                    
+                    <div class="nota-preview">
+                        ${textoNota}
+                    </div>
                 `;
-                
-                div.onclick = () => abrirModalLeituraPerfil(livro, parseInt(cap), parseInt(num));
-                
-                const btnLixo = div.querySelector('.btn-deletar-individual');
-                btnLixo.onclick = (e) => {
-                    e.stopPropagation();
-                    apagarItemIndividual('notas', chave, livro, cap, num);
-                };
                 
                 container.appendChild(div);
             });
+        }
+
+        /* --- 2. NOVA FUNÇÃO PARA ABRIR O MODAL DE LEITURA --- */
+        function verNotaCompleta(chave) {
+            notaSendoLida = chave; // Guarda qual é a nota atual
+            
+            const partes = chave.split('_');
+            const livSigla = partes[0];
+            const cap = parseInt(partes[1]);
+            const ver = parseInt(partes[2]);
+            const nomeLivro = nomesLivros[livSigla] || livSigla;
+        
+            // 1. Preenche o Título
+            document.getElementById('leitura-titulo').innerText = `${nomeLivro} ${cap}:${ver}`;
+        
+            // 2. Preenche o Versículo
+            let textoBiblico = "Texto indisponível.";
+            if (biblia[livSigla] && biblia[livSigla][cap-1]) {
+                textoBiblico = biblia[livSigla][cap-1][ver-1];
+            }
+            document.getElementById('leitura-texto-biblico').innerText = `"${textoBiblico}"`;
+        
+            // 3. Preenche a Nota do Usuário
+            const textoNota = dadosUsuario.notas[chave] || "";
+            document.getElementById('leitura-nota-usuario').innerText = textoNota;
+        
+            // 4. Mostra o Modal (display flex para centralizar)
+            document.getElementById('modal-leitura-nota').style.display = 'flex';
+        }
+        
+        /* --- 3. FUNÇÃO PARA FECHAR O MODAL --- */
+        function fecharModalLeitura(event) {
+            // Se passar 'event', verifica se clicou no fundo escuro (overlay) e não no cartão
+            if (event && event.target.id !== 'modal-leitura-nota') return;
+            
+            document.getElementById('modal-leitura-nota').style.display = 'none';
+        }
+        
+        /* --- 4. FUNÇÃO EXTRA: EDITAR A PARTIR DO MODAL DE LEITURA --- */
+        function editarNotaAtual() {
+            if(!notaSendoLida) return;
+        
+            // Fecha a leitura
+            fecharModalLeitura();
+        
+            // Abre o modal de edição (que você já deve ter no sistema)
+            // Supondo que você tenha uma função abrirModalNota(livro, cap, num)
+            const partes = notaSendoLida.split('_');
+            const liv = partes[0];
+            const cap = parseInt(partes[1]);
+            const ver = parseInt(partes[2]);
+        
+            // Chama sua função existente de adicionar/editar
+            if(typeof abrirModalNota === 'function') {
+                abrirModalNota(liv, cap, ver); 
+            } else {
+                alert("Função de editar não encontrada. Verifique o nome da função no seu código.");
+            }
         }
         
         // Funções de Resetar
