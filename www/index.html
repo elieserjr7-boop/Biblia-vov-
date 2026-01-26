@@ -3576,6 +3576,9 @@
         }
 
         function salvarNotaPeloModal() {
+            // Se por acaso perder a referência, cancela para não dar erro
+            if (!versoSelecionado) return;
+        
             const textoDigitado = document.getElementById('texto-nota-input').value;
             const chave = `${versoSelecionado.livro}_${versoSelecionado.cap}_${versoSelecionado.num}`;
             
@@ -3591,7 +3594,19 @@
             
             salvarDados();
             fecharEditorNota();
-            lerCapitulo(capituloAtual); // Atualiza a tela para aparecer o ícone 📝
+            
+            // --- ATUALIZAÇÕES VISUAIS ---
+            
+            // 1. Se estiver na tela da Bíblia, atualiza o ícone
+            if (modoAtual === 'biblia') {
+                lerCapitulo(capituloAtual); 
+            }
+        
+            // 2. NOVO: Se estiver na tela de Comentários, atualiza a lista!
+            const telaComentarios = document.getElementById('view-comentarios');
+            if (telaComentarios && telaComentarios.style.display === 'block') {
+                abrirTelaComentarios(); // Recarrega a lista com o texto novo
+            }
         }
         
         // 4. Renderizar Tela de Favoritos
@@ -3802,53 +3817,49 @@
         function editarNotaAtual() {
             if(!notaSendoLida) return;
         
-            // 1. Fecha o modal de leitura atual
+            // 1. Fecha o modal de leitura
             document.getElementById('modal-leitura-nota').style.display = 'none';
         
-            // 2. Prepara os dados para o Editor
+            // 2. Pega os dados da chave (ex: gn_1_1)
             const partes = notaSendoLida.split('_');
             const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
             
-            // Pega o texto atual da nota
+            // --- O SEGREDO ESTÁ AQUI ---
+            // Criamos o objeto que a sua função de salvar exige
+            window.versoSelecionado = {
+                livro: livSigla,
+                cap: cap,
+                num: ver
+            };
+        
+            // 3. Pega o texto atual
             let conteudoNota = dadosUsuario.notas[notaSendoLida];
             let textoAtual = "";
             if (typeof conteudoNota === 'object' && conteudoNota !== null) {
                 textoAtual = conteudoNota.texto || conteudoNota.conteudo || "";
             } else {
-                textoAtual = conteudoNota || "";
+                textoAtual = conteudoNota || ""; // Caso seja só string antiga
             }
         
-            // 3. Preenche o Modal de Edição (aquele que você já tem no HTML)
+            // 4. Preenche e abre o Editor
+            const textArea = document.getElementById('texto-nota-input');
             const tituloEditor = document.getElementById('titulo-editor');
             const refEditor = document.getElementById('ref-editor');
-            const textArea = document.getElementById('texto-nota-input');
-        
-            // Tenta pegar o nome bonito do livro
+            
+            // Tenta pegar nome bonito do livro
             let nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
         
+            if(textArea) textArea.value = textoAtual;
             if(tituloEditor) tituloEditor.innerText = "Editando Anotação";
             if(refEditor) refEditor.innerText = `${nomeLivro} ${cap}:${ver}`;
-            if(textArea) textArea.value = textoAtual;
         
-            // 4. ATENÇÃO: Define variáveis globais para o botão "Salvar" saber onde gravar
-            // (Simulamos que o usuário clicou no versículo para o sistema saber onde salvar)
-            // Se o seu sistema usa outras variáveis globais, ajuste aqui.
-            if(typeof versoParaNota !== 'undefined') versoParaNota = ver; 
-            // Atualiza variaveis globais comuns (ajuste se seu app usar nomes diferentes)
-            window.livroNotaAtual = livSigla; 
-            window.capituloNotaAtual = cap;
-            window.versoNotaAtual = ver;
-        
-            // 5. Abre o Modal de Edição
+            // Mostra o editor
             const modalEditor = document.getElementById('modal-editor-nota');
             if(modalEditor) {
                 modalEditor.style.display = 'flex';
                 modalEditor.classList.remove('escondido');
-                // Adiciona classe de animação se houver
-                const caixa = modalEditor.querySelector('.caixa-editor');
-                if(caixa) caixa.classList.add('zoom-in');
             }
         }
         
