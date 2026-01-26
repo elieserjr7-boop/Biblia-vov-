@@ -19,43 +19,44 @@
         /* --- ESTILO GERAL (MANTIDO DO SEU ARQUIVO FAVORITO) --- */
         * { box-sizing: border-box; }
 
-           /* --- CSS BLINDADO CONTRA LISTRAS --- */
+        /* --- CSS BLINDADO CONTRA LISTRAS --- */
         html {
-            /* CORREÇÃO DA LISTRA (CAMUFLAGEM): */
-            /* Define a cor de fundo padrão (Modo Claro) no elemento raiz */
-            background-color: #fdfbf7; 
+            /* MUDANÇA AQUI: Pintamos o fundo da "base" com a mesma cor do cabeçalho (#2c3e50) */
+            /* Antes estava #fdfbf7, o que causava o clarão branco/creme */
+            background-color: #2c3e50; 
             
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Quem rola é o body, não o html */
-        }
-    
-        body {
-            font-family: 'Verdana', sans-serif;
-            margin: 0;
-            padding: 0;
-            
-            /* A SOLUÇÃO MÁGICA: 100dvh se adapta às barras do Android/iOS */
-            height: 100vh; /* Fallback para navegadores antigos */
-            height: 100dvh; 
-            
-            width: 100%;
-            
-            /* Impede rolagem no corpo (quem rola é a area-principal) */
             overflow: hidden; 
-            position: fixed; /* Trava na tela */
-            top: 0;
-            left: 0;
+        }
+
+        body {
+            /* MUDANÇA AQUI: O corpo mantém a cor clara do papel */
+            background-color: #fdfbf7; 
             
-            display: flex;
-            flex-direction: column;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
             
-            background-color: #fdfbf7;
-            color: #111;
-            transition: background-color 0.3s, color 0.3s;
-            
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+            /* Garante que o conteúdo ocupe tudo para tapar o azul de fundo do html */
+            position: relative; 
+            z-index: 1;
+        }
+
+        /* --- CORREÇÃO PARA MODO ESCURO --- */
+
+        /* 1. Se o celular estiver com tema escuro no sistema */
+        @media (prefers-color-scheme: dark) {
+            html {
+                background-color: #121212 !important; /* Cor de fundo escura */
+            }
+        }
+        
+        /* 2. Se você ativou o modo escuro pelo botão do App */
+        html:has(body.dark-mode) {
+            background-color: #121212 !important; /* Mesma cor escura */
         }
         
         /* --- CABEÇALHO --- */
