@@ -2029,6 +2029,22 @@
             transition: filter 0.2s;
         }
         .btn-modal:active { transform: scale(0.98); }
+
+        /* --- CORREÇÃO: Texto do Versículo nas Listas (Modo Escuro) --- */
+
+        /* Altera para Branco Gelo (#ecf0f1) o texto que vem logo após o título laranja */
+        body.modo-escuro h4 + p,
+        body.modo-escuro h4 + i,
+        body.modo-escuro .texto-versiculo {
+            color: #ecf0f1 !important; 
+        }
+
+        /* Caso o texto esteja dentro de uma div genérica na lista */
+        body.modo-escuro .lista-itens p,
+        body.modo-escuro .card-item p {
+            color: #ecf0f1 !important;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
