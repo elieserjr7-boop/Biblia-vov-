@@ -1781,6 +1781,41 @@
             }
         }
         
+        /* --- CORREÇÃO DA CAIXINHA DE COMENTÁRIOS --- */
+        .item-nota {
+            background-color: #fff9c4; /* Amarelo post-it suave */
+            border-left: 5px solid #fbc02d; /* Borda lateral mais escura */
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            
+            /* O SEGREDO PARA NÃO SAIR DA CAIXA: */
+            word-wrap: break-word;       /* Quebra palavras longas */
+            overflow-wrap: break-word;   /* Padrão moderno */
+            white-space: pre-wrap;       /* Mantém parágrafos dados com Enter */
+            max-width: 100%;             /* Garante que não ultrapasse a tela */
+        }
+        
+        /* Ajuste do cabeçalho da nota para ficar bonitinho */
+        .nota-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-weight: bold;
+            color: #e65100;
+        }
+        
+        .nota-texto-completo {
+            font-family: 'Georgia', serif; /* Fonte mais "anotada" */
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
     </style>
 </head>
 <body id="corpo-app">
@@ -3410,48 +3445,124 @@
             fecharEditorNota();
             lerCapitulo(capituloAtual); // Atualiza a tela para aparecer o ícone 📝
         }
+
+        // Função auxiliar para encontrar o texto do versículo na bíblia carregada
+        function getTextoBiblico(livroNome, capitulo, versiculo) {
+            if (!bibliaCompleta) return "Bíblia não carregada...";
+            
+            // Procura o livro pelo nome
+            const livroDados = bibliaCompleta.find(b => b.name === livroNome);
+            if (!livroDados) return "Livro não encontrado.";
+            
+            // Tenta pegar o capítulo e versículo (arrays começam em 0, por isso -1)
+            try {
+                const texto = livroDados.chapters[capitulo - 1][versiculo - 1];
+                return texto || "Versículo não encontrado.";
+            } catch (e) {
+                return "Erro ao buscar texto.";
+            }
+        }
         
         // 4. Renderizar Tela de Favoritos
-        function abrirTelaFavoritos() {
-            document.getElementById('menu-perfil-principal').classList.add('escondido');
+        function abrirTelaComentarios() {
             esconderTodasSubTelas();
-            document.getElementById('view-favoritos').classList.remove('escondido');
+            document.getElementById('view-comentarios').classList.remove('escondido');
             
-            const container = document.getElementById('lista-favoritos-container');
+            const container = document.getElementById('lista-comentarios');
             container.innerHTML = "";
             
-            const lista = Object.entries(dadosUsuario.grifos || {}).sort((a, b) => b[1].timestamp - a[1].timestamp);
+            // Verifica se há notas
+            const chaves = Object.keys(dadosUsuario.notas || {});
             
-            if (lista.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px'>Nenhum versículo marcado ainda.</p>";
+            if (chaves.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 40px; color: #7f8c8d;">
+                        <div style="font-size: 50px; margin-bottom: 15px;">📝</div>
+                        <h3>Nenhuma anotação encontrada.</h3>
+                        <p>Toque em um versículo enquanto lê para adicionar uma nota.</p>
+                    </div>`;
                 return;
             }
-            
-            lista.forEach(([chave, dados]) => {
-                const [livro, cap, num] = chave.split("_");
+        
+            // Ordenar (opcional: mais recentes primeiro se tiver timestamp, ou alfabético)
+            chaves.reverse(); 
+        
+            chaves.forEach(chave => {
+                const nota = dadosUsuario.notas[chave];
+                // A chave é tipo "Gênesis_1_1", vamos separar
+                const partes = chave.split('_');
+                const livro = partes[0];
+                const cap = parseInt(partes[1]);
+                const num = parseInt(partes[2]);
                 
+                // Cria o elemento da nota com o NOVO estilo e NOVO onclick
                 const div = document.createElement('div');
-                div.className = `item-ref ${dados.cor}`; 
+                div.className = 'item-nota'; // Usa a classe CSS que criamos acima
                 
-                // Adicionamos o botão de lixeira no HTML
+                // O clique agora chama 'abrirEditorPelaLista' em vez de 'irParaVerso'
                 div.innerHTML = `
-                    <strong>${livro} ${cap}:${num}</strong>
-                    <div class="texto-ref-b">"${dados.texto}..."</div>
-                    <button class="btn-deletar-individual" title="Remover destaque">🗑️</button>
+                    <div class="nota-header">
+                        <span onclick="abrirEditorPelaLista('${chave}')" style="cursor:pointer">
+                            📖 ${livro} ${cap}:${num}
+                        </span>
+                        <button class="btn-excluir" onclick="apagarItemIndividual('notas', '${chave}', '${livro}', ${cap}, ${num})">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="nota-texto-completo" onclick="abrirEditorPelaLista('${chave}')" style="cursor:pointer">
+                        ${nota.texto}
+                    </div>
                 `;
-                
-                div.onclick = () => abrirModalLeituraPerfil(livro, parseInt(cap), parseInt(num));
-                
-                // Clique na LIXEIRA apaga o item
-                const btnLixo = div.querySelector('.btn-deletar-individual');
-                btnLixo.onclick = (e) => {
-                    e.stopPropagation(); // Impede de abrir o versículo ao deletar
-                    apagarItemIndividual('grifos', chave, livro, cap, num);
-                };
-                
                 container.appendChild(div);
             });
         }
+        
+        function abrirEditorPelaLista(chave) {
+            // 1. Recupera os dados da chave
+            const partes = chave.split('_');
+            const livro = partes[0];
+            const cap = parseInt(partes[1]);
+            const num = parseInt(partes[2]);
+            
+            // 2. Recupera o conteúdo da nota salva
+            const notaSalva = dadosUsuario.notas[chave];
+            if (!notaSalva) return;
+        
+            // 3. Busca o texto do versículo na Bíblia (para mostrar no modal)
+            const textoVerso = getTextoBiblico(livro, cap, num);
+        
+            // 4. Configura a variável global 'versoSelecionado' 
+            // (Isso é crucial para a função salvarNotaPeloModal saber onde salvar)
+            versoSelecionado = {
+                livro: livro,
+                cap: cap,
+                num: num,
+                texto: textoVerso
+            };
+        
+            // 5. Preenche o Modal (igual ao botão de editar)
+            
+            // Título (Ref)
+            const titulo = document.getElementById('titulo-modal-verso');
+            if(titulo) titulo.innerText = `${livro} ${cap}:${num}`;
+            
+            // Preview do Versículo
+            const preview = document.getElementById('texto-verso-preview');
+            if(preview) preview.innerText = `"${textoVerso}"`;
+            
+            // O texto da nota no campo de input
+            const input = document.getElementById('texto-nota-input');
+            if(input) input.value = notaSalva.texto;
+        
+            // 6. Abre o Modal
+            const modal = document.getElementById('modal-editor-nota');
+            if(modal) {
+                modal.classList.remove('escondido');
+                modal.style.display = 'flex'; // Garante centralização
+                input.focus();
+            }
+        }
+        
         
         // 5. Renderizar Tela de Comentários (ATUALIZADA)
         function abrirTelaComentarios() {
