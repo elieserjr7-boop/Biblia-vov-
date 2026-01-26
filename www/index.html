@@ -3733,16 +3733,17 @@
                 container.appendChild(div);
             });
         }
+        
         /* --- 2. FUNÇÃO PARA VOLTAR AO MENU DE PERFIL (Necessária no seu HTML) --- */
         function verNotaCompleta(chave) {
-            notaSendoLida = chave;
+            notaSendoLida = chave; // Guarda ex: "gn_1_1"
             
             const partes = chave.split('_');
             const livSigla = partes[0];
             const cap = parseInt(partes[1]);
             const ver = parseInt(partes[2]);
         
-            // Tenta pegar o nome do livro com segurança
+            // Tenta pegar o nome do livro visualmente
             let nomeLivro = livSigla.toUpperCase();
             if (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) {
                 nomeLivro = nomesLivros[livSigla];
@@ -3752,19 +3753,20 @@
             const tituloEl = document.getElementById('leitura-titulo');
             if(tituloEl) tituloEl.innerText = `${nomeLivro} ${cap}:${ver}`;
         
-            // 2. BLINDAGEM DO TEXTO BÍBLICO (Aqui estava o erro)
-            let textoBiblico = "Aguardando carregamento da Bíblia...";
+            // 2. BUSCA O TEXTO BÍBLICO (Correção aqui: usa bibliaCompleta)
+            let textoBiblico = "Texto indisponível.";
             
-            // Verifica se 'biblia' existe no escopo global (window) ou local
-            // Se der erro, ele cai no 'catch' e não trava o app
             try {
-                if (typeof window.biblia !== 'undefined' && window.biblia[livSigla]) {
+                // Tenta usar a variável global do seu código: bibliaCompleta
+                if (typeof bibliaCompleta !== 'undefined' && bibliaCompleta && bibliaCompleta[livSigla]) {
+                    textoBiblico = bibliaCompleta[livSigla][cap-1][ver-1];
+                } 
+                // Caso de falha, tenta a variável window.biblia
+                else if (typeof window.biblia !== 'undefined' && window.biblia[livSigla]) {
                     textoBiblico = window.biblia[livSigla][cap-1][ver-1];
-                } else if (typeof biblia !== 'undefined' && biblia[livSigla]) {
-                    textoBiblico = biblia[livSigla][cap-1][ver-1];
                 }
             } catch (erro) {
-                console.log("Bíblia ainda não carregou totalmente:", erro);
+                console.log("Erro ao ler bíblia:", erro);
             }
             
             const textoBiblicoEl = document.getElementById('leitura-texto-biblico');
@@ -3774,7 +3776,7 @@
             let conteudoNota = dadosUsuario.notas[chave];
             let textoReal = "";
             
-            // Tratamento para [object Object]
+            // Tratamento para evitar [object Object]
             if (typeof conteudoNota === 'object' && conteudoNota !== null) {
                 textoReal = conteudoNota.texto || conteudoNota.conteudo || "";
             } else {
@@ -3799,16 +3801,55 @@
         
         function editarNotaAtual() {
             if(!notaSendoLida) return;
-            fecharModalLeitura();
         
+            // 1. Fecha o modal de leitura atual
+            document.getElementById('modal-leitura-nota').style.display = 'none';
+        
+            // 2. Prepara os dados para o Editor
             const partes = notaSendoLida.split('_');
-            // Chama a função que já existe no seu app para abrir o editor
-            // Baseado no seu HTML, parece que você usa iniciarComentario() ou similar no fluxo normal
-            // Vamos tentar simular o clique ou chamar a lógica de edição:
+            const livSigla = partes[0];
+            const cap = parseInt(partes[1]);
+            const ver = parseInt(partes[2]);
             
-            // Configura os dados globais para edição (ajuste conforme sua lógica de editor)
-            // Se você tiver uma função específica, chame aqui. Senão, teremos que adaptar.
-            alert("Para editar, clique no versículo na leitura bíblica por enquanto."); 
+            // Pega o texto atual da nota
+            let conteudoNota = dadosUsuario.notas[notaSendoLida];
+            let textoAtual = "";
+            if (typeof conteudoNota === 'object' && conteudoNota !== null) {
+                textoAtual = conteudoNota.texto || conteudoNota.conteudo || "";
+            } else {
+                textoAtual = conteudoNota || "";
+            }
+        
+            // 3. Preenche o Modal de Edição (aquele que você já tem no HTML)
+            const tituloEditor = document.getElementById('titulo-editor');
+            const refEditor = document.getElementById('ref-editor');
+            const textArea = document.getElementById('texto-nota-input');
+        
+            // Tenta pegar o nome bonito do livro
+            let nomeLivro = (typeof nomesLivros !== 'undefined' && nomesLivros[livSigla]) ? nomesLivros[livSigla] : livSigla.toUpperCase();
+        
+            if(tituloEditor) tituloEditor.innerText = "Editando Anotação";
+            if(refEditor) refEditor.innerText = `${nomeLivro} ${cap}:${ver}`;
+            if(textArea) textArea.value = textoAtual;
+        
+            // 4. ATENÇÃO: Define variáveis globais para o botão "Salvar" saber onde gravar
+            // (Simulamos que o usuário clicou no versículo para o sistema saber onde salvar)
+            // Se o seu sistema usa outras variáveis globais, ajuste aqui.
+            if(typeof versoParaNota !== 'undefined') versoParaNota = ver; 
+            // Atualiza variaveis globais comuns (ajuste se seu app usar nomes diferentes)
+            window.livroNotaAtual = livSigla; 
+            window.capituloNotaAtual = cap;
+            window.versoNotaAtual = ver;
+        
+            // 5. Abre o Modal de Edição
+            const modalEditor = document.getElementById('modal-editor-nota');
+            if(modalEditor) {
+                modalEditor.style.display = 'flex';
+                modalEditor.classList.remove('escondido');
+                // Adiciona classe de animação se houver
+                const caixa = modalEditor.querySelector('.caixa-editor');
+                if(caixa) caixa.classList.add('zoom-in');
+            }
         }
         
         // Funções de Resetar
