@@ -1734,23 +1734,28 @@
             color: #fff !important;
         }
 
-        /* Correção Específica para o Modal "Ver em Outras Versões" */
-        #overlay-comparacao {
-            /* O padding-top empurra o conteúdo (botão voltar/título) para baixo */
-            /* env(safe-area-inset-top) pega o tamanho exato do relógio/câmera */
+        /* AJUSTE DO NOVO MODAL DE COMPARAÇÃO */
+
+        /* 1. Comportamento quando está em TELA CHEIA */
+        #janela-comparacao-conteudo.tela-cheia {
+            height: 100% !important;
+            bottom: 0 !important;
+            
+            /* AQUI ESTÁ A PROTEÇÃO: Empurra o conteúdo para baixo da câmara */
             padding-top: env(safe-area-inset-top, 20px) !important;
-            
-            /* Garante que o conteúdo começa do topo (após o padding) e não no meio */
-            justify-content: flex-start !important; 
-            
-            /* Garante que a cor de fundo vá até lá em cima (atrás do relógio) */
-            background-color: var(--cor-fundo-principal) !important;
         }
         
-        /* Ajuste fino para o cabeçalho interno desse modal não ficar colado */
-        #overlay-comparacao .cabecalho-modal {
-            margin-top: 10px !important; /* Um respiro extra */
-            padding-bottom: 10px !important;
+        /* 2. Ajuste do cabeçalho interno para ficar bonito */
+        #janela-comparacao-conteudo .cabecalho-leitura-modal {
+            border-bottom: 1px solid var(--cor-borda, #eee);
+            padding-bottom: 10px;
+        }
+        
+        /* 3. Garante que o fundo escuro cubra tudo */
+        #overlay-comparacao {
+            z-index: 2100 !important; /* Fica acima de tudo */
+            background-color: rgba(0,0,0,0.5); /* Fundo escurecido */
+            align-items: flex-end !important; /* Garante que a janela nasce de baixo */
         }
         
     </style>
@@ -1980,16 +1985,21 @@
         
     </main>
 
-   <div id="modal-comparacao" class="modal escondido">
-        <div class="modal-conteudo" style="display: flex; flex-direction: column; padding: 0; overflow: hidden;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid #ddd; position: relative; flex-shrink: 0; background: var(--cor-fundo);">
-                <button class="btn-fechar" onclick="fecharComparacao()" style="position: absolute; top: 12px; right: 15px; margin: 0;">✖</button>
-                <h3 id="titulo-comparacao" style="margin: 0; padding-right: 30px; font-size: 1.2rem;">Versículo</h3>
-            </div>
+    <div id="overlay-comparacao" class="modal-overlay escondido" onclick="fecharComparacaoSeClicarFora(event)">
+    
+        <div class="janela-leitura-perfil" id="janela-comparacao-conteudo" style="height: 75vh;">
             
-            <div id="lista-comparacao" style="overflow-y: auto; flex-grow: 1; padding: 20px 20px 120px 20px;">
-                Carregando...
+            <div class="cabecalho-leitura-modal">
+                <h3 id="titulo-comparacao">Outras Versões</h3> <div class="acoes-leitura-modal">
+                    <button onclick="alternarTelaCheiaComparacao()" title="Tela Cheia">⤢</button>
+                    <button onclick="fecharComparacao()" title="Fechar">✕</button>
+                </div>
             </div>
+    
+            <div id="lista-comparacao" style="overflow-y: auto; height: calc(100% - 60px); padding: 15px;">
+                Carregando versões...
+            </div>
+    
         </div>
     </div>
 
@@ -2355,6 +2365,27 @@
             const escuroAtivo = document.body.classList.contains('modo-escuro');
             localStorage.setItem('temaEscuro', escuroAtivo);
             atualizarMetaColor(escuroAtivo);
+        }
+
+        function alternarTelaCheiaComparacao() {
+            const janela = document.getElementById('janela-comparacao-conteudo');
+            janela.classList.toggle('tela-cheia');
+            
+            // Ajuste visual dinâmico
+            if (janela.classList.contains('tela-cheia')) {
+                janela.style.height = '100%';
+                janela.style.borderRadius = '0';
+            } else {
+                janela.style.height = '75vh'; // Volta ao tamanho original
+                janela.style.borderRadius = '20px 20px 0 0';
+            }
+        }
+        
+        // Fecha se clicar no fundo escuro
+        function fecharComparacaoSeClicarFora(e) {
+            if (e.target.id === 'overlay-comparacao') {
+                fecharComparacao();
+            }
         }
         
         function carregarTemaSalvo() {
